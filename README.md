@@ -2,4 +2,4 @@
 
 ## Asyncio
 
-ChatGPT: An asynchronous IRC plugin
+An asynchronous OpenAI plugin for Limnoria.
