@@ -1,6 +1,5 @@
 ###
 # Copyright (c) 2014, spline
-# Copyright (c) 2020, oddluck <oddluck@riseup.net>
 # Copyright © MMXXIV, Barry Suridge
 # All rights reserved.
 ###
