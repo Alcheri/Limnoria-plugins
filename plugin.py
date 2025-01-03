@@ -1,21 +1,38 @@
 ###
 # Copyright (c) 2014, spline
+# Copyright (c) 2020, oddluck
+# Copyright © MMXXIV, Barry Suridge
 # All rights reserved.
 #
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
+#   * Redistributions of source code must retain the above copyright notice,
+#     this list of conditions, and the following disclaimer.
+#   * Redistributions in binary form must reproduce the above copyright notice,
+#     this list of conditions, and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#   * Neither the name of the author of this software nor the name of
+#     contributors to this software may be used to endorse or promote products
+#     derived from this software without specific prior written consent.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 ###
 
 # my libs
-import sys
 import json
 import time
-import pytz
-import datetime
-if sys.version_info[0] <= 2:
-    from urllib import quote_plus
-else:
-    from urllib.parse import quote_plus
-import pickle
+import pendulum
 
 # supybot libs
 import supybot.utils as utils
@@ -25,19 +42,25 @@ import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 import supybot.world as world
 import supybot.conf as conf
+import supybot.log as log
+
 try:
     from supybot.i18n import PluginInternationalization
-    _ = PluginInternationalization('WorldTime')
+    _ = PluginInternationalization("WorldTime")
 except ImportError:
-    # Placeholder that allows to run the plugin on a bot
-    # without the i18n module
-    _ = lambda x:x
+    _ = lambda x: x
 
-filename = conf.supybot.directories.data.dirize('WorldTime.db')
+filename = conf.supybot.directories.data.dirize("WorldTime.json")
+
+HEADERS = {
+    "User-agent": "Mozilla/5.0 (compatible; Supybot/Limnoria %s; WorldTime plugin)"
+    % conf.version
+}
 
 class WorldTime(callbacks.Plugin):
     """Add the help for "@plugin help WorldTime" here
     This should describe *how* to use this plugin."""
+
     threaded = True
 
     ###############################
@@ -52,98 +75,108 @@ class WorldTime(callbacks.Plugin):
         world.flushers.append(self._flushDb)
 
     def _loadDb(self):
-       """Loads the (flatfile) database mapping ident@hosts to timezones."""
+        """Loads the (flatfile) database mapping ident@hosts to timezones."""
 
-       try:
-           with open(filename, 'rb') as f:
-               self.db = pickle.load(f)
-       except Exception as e:
-           self.log.debug('WorldTime: Unable to load pickled database: %s', e)
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                self.db = json.load(f)
+        except FileNotFoundError:
+            log.info("WorldTime: Database file not found, initializing empty database.")
+            self.db = {}
+        except json.JSONDecodeError as e:
+            log.warning(f"WorldTime: Error decoding JSON database: {e}")
+        except Exception as e:
+            log.warning(f"WorldTime: Unable to load database: {e}")
 
     def _flushDb(self):
-       """Flushes the (flatfile) database mapping ident@hosts to timezones."""
+        """Flushes the (flatfile) database mapping ident@hosts to timezones."""
 
-       try:
-           with open(filename, 'wb') as f:
-               pickle.dump(self.db, f, 2)
-       except Exception as e:
-               self.log.warning('WorldTime: Unable to write pickled database: %s', e)
+        try:
+            with open(filename, "w", encoding="utf-8") as f:
+                json.dump(self.db, f, indent=4)
+        except Exception as e:
+            log.warning(f"WorldTime: Unable to write database: {e}")
 
     def die(self):
-       self._flushDb()
-       world.flushers.remove(self._flushDb)
-       self.__parent.die()
+        self._flushDb()
+        world.flushers.remove(self._flushDb)
+        self.__parent.die()
 
     ##################
     # TIME FUNCTIONS #
     ##################
 
-    def _converttz(self, msg, s, outputTZ):
-        """Convert epoch seconds to a HH:MM readable string."""
+    def _converttz(self, msg, outputTZ):
+        """Convert current time to a readable string in a given timezone."""
 
-        # now do some timezone math.
         try:
-            dtobj = datetime.datetime.fromtimestamp(s, tz=pytz.timezone(outputTZ)) # convert epoch into aware dtobj.
+            dt = pendulum.now(outputTZ)
             outstrf = self.registryValue("format", msg.args[0])
-            local_dt = dtobj.astimezone(pytz.timezone(outputTZ))
-            return local_dt.strftime(outstrf)
+            return dt.strftime(outstrf)
         except Exception as e:
-            self.log.info("WorldTime: ERROR: _converttz: {0}".format(e))
+            log.info(f"WorldTime: ERROR: _converttz: {e}")
 
     ##############
     # GAPI STUFF #
     ##############
 
     def _getlatlng(self, location):
-        location = quote_plus(location)
-        url = 'http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false' % location
+        api_key = self.registryValue("mapsAPIkey")
+        location = utils.web.urlquote(location)
+        url = (
+            "https://maps.googleapis.com/maps/api/geocode/json?"
+            "address=%s&key=%s"
+            % (location, api_key)
+        )
 
-        # try and fetch url
         try:
-            response = utils.web.getUrl(url)
-        except utils.web.Error:
-            irc.error(str(e), Raise=True)
+            response = utils.web.getUrl(url, headers=HEADERS)
+        except utils.web.Error as e:
+            log.debug(f"WorldTime: Error fetching URL: {e}")
+            return None
 
-        # wrap in a big try/except
         try:
-            result = json.loads(response.decode('utf-8'))
-            if result['status'] == 'OK':
-               lat = str(result['results'][0]['geometry']['location']['lat'])
-               lng = str(result['results'][0]['geometry']['location']['lng'])
-               place = (result['results'][0]['formatted_address'])
-               ll = '%s,%s' % (lat, lng)  # lat+long into a single string.
-               return {'place':place, 'll':ll}
+            result = json.loads(response.decode())
+            if result["status"] == "OK":
+                lat = str(result["results"][0]["geometry"]["location"]["lat"])
+                lng = str(result["results"][0]["geometry"]["location"]["lng"])
+                place = result["results"][0]["formatted_address"]
+                ll = f"{lat},{lng}"
+                return {"place": place, "ll": ll}
             else:
-                self.log.info("ERROR: _getlatlng: status result NOT ok. Result: {0}".format(result))
+                log.error(f"_getlatlng: Status not OK. Result: {result}")
         except Exception as e:
-            self.log.info("ERROR: _getlatlng: {0}".format(e))
+            log.error(f"_getlatlng: {e}")
 
     def _gettime(self, latlng):
-        latlng = quote_plus(latlng)
-        url = 'https://maps.googleapis.com/maps/api/timezone/json?location=%s&sensor=false&timestamp=%s' % (latlng, time.time())
+        api_key = self.registryValue("mapsAPIkey")
+        latlng = utils.web.urlquote(latlng)
+        url = (
+            "https://maps.googleapis.com/maps/api/timezone/json?location="
+            f"{latlng}&sensor=false&timestamp={int(time.time())}&key={api_key}"
+        )
 
-        # try and fetch url
         try:
-            response = utils.web.getUrl(url)
-        except utils.web.Error:
-            irc.error(str(e), Raise=True)
+            response = utils.web.getUrl(url, headers=HEADERS)
+        except utils.web.Error as e:
+            log.debug(f"WorldTime: Error fetching URL: {e}")
+            return None
 
-        # wrap in a big try/except
         try:
-            result = json.loads(response.decode('utf-8'))
-            if result['status'] == 'OK':
+            result = json.loads(response.decode("utf-8"))
+            if result["status"] == "OK":
                 return result
             else:
-                self.log.info("WorldTime: _gettime: status result NOT ok. Result: {0}".format(result))
+                log.error(f"WorldTime: _gettime: Status not OK. Result: {result}")
         except Exception as e:
-            self.log.info("WorldTime: _gettime: {0}".format(e))
+            log.info(f"WorldTime: _gettime: {e}")
 
     ###################
     # PUBLIC FUNCTION #
     ###################
 
     def worldtime(self, irc, msg, args, opts, location):
-        """[--nick <nick] [<location>]
+        """[--nick <nick>] [<location>]
 
         Query GAPIs for <location> and attempt to figure out local time. [<location>]
         is only required if you have not yet set a location for yourself using the 'set'
@@ -152,63 +185,75 @@ class WorldTime(callbacks.Plugin):
         opts = dict(opts)
         if not location:
             try:
-                if 'nick' in opts:
-                    host = irc.state.nickToHostmask(opts['nick'])
+                nick = opts.get("nick", None)
+                if nick:
+                    if nick in irc.state.nicksToHostmasks:
+                        host = irc.state.nickToHostmask(nick)
+                    else:
+                        irc.error(f"Nickname '{nick}' not found in the bot's state.", prefixNick=False, Raise=True)
+                        return
                 else:
                     host = msg.prefix
-                ih = host.split('!')[1]
-                location = self.db[ih]
+
+                ih = host.split("!")[1]
+                location = self.db.get(ih)
+                if not location:
+                    irc.error(
+                        f"No location for {ircutils.bold('*!' + ih)} is set. "
+                        "Use the 'set' command to set a location for your current hostmask, "
+                        "or call 'worldtime' with <location> as an argument.", prefixNick=False,
+                        Raise=True,
+                    )
             except KeyError:
-                irc.error("No location for %s is set. Use the 'set' command "
-                    "to set a location for your current hostmask, or call 'worldtime' "
-                    "with <location> as an argument." % ircutils.bold('*!'+ih), Raise=True)
+                irc.error(
+                    "Unable to resolve nickname or hostmask. Ensure the nick is in the channel "
+                    "or the bot has seen the user before.", prefixNick=False,
+                    Raise=True,
+                )
+
         # first, grab lat and long for user location
         gc = self._getlatlng(location)
         if not gc:
-            irc.error("I could not find the location for: {0}. Bad location? Spelled wrong?".format(location), Raise=True)
-        # next, lets grab the localtime for that location w/lat+long.
-        ll = self._gettime(gc['ll'])
-        if not ll:
-            irc.error("I could not find the local timezone for: {0}. Bad location? Spelled wrong?".format(location), Raise=True)
-        # if we're here, we have localtime zone.
-        utcnow = int(time.time()) # grab UTC now.
-        # localtm = utcnow+ll['rawOffset']  # grab raw offset from
-        # now lets use pytz to convert into the localtime in the place.
-        lt = self._converttz(msg, utcnow, ll['timeZoneId'])
-        if lt:  # make sure we get it back.
-            if sys.version_info[0] <= 2:
-                s = "{0} :: Current local time is: {1} ({2})".format(ircutils.bold(gc['place'].encode('utf-8')), lt, ll['timeZoneName'].encode('utf-8'))
-            else:
-                s ="{0} :: Current local time is: {1} ({2})".format(ircutils.bold(gc['place']), lt, ll['timeZoneName'])
-            if self.registryValue('disableANSI', msg.args[0]):
-                s = ircutils.stripFormatting(s)
-            irc.reply(s)
-        else:
-            irc.error("Something went wrong during conversion to timezone. Check the logs.", Raise=True)
+            irc.error(f"I could not find the location for: {location}.", prefixNick=False, Raise=True)
 
-    worldtime = wrap(worldtime, [getopts({'nick': 'nick'}), additional('text')])
+        # next, grab the localtime for that location w/lat+long
+        ll = self._gettime(gc["ll"])
+        if not ll:
+            irc.error(f"I could not find the local timezone for: {location}.", prefixNick=False, Raise=True)
+
+        # if we're here, we have localtime zone
+        lt = self._converttz(msg, ll["timeZoneId"])
+        if lt:
+            s = f"{ircutils.bold(gc['place'])} :: Current local time is: {lt} ({ll['timeZoneName']})"
+            if self.registryValue("disableANSI", msg.args[0]):
+                s = ircutils.stripFormatting(s)
+            irc.reply(s, prefixNick=False)
+        else:
+            irc.error("Something went wrong during conversion to timezone.", prefixNick=False, Raise=True)
+
+    worldtime = wrap(worldtime, [getopts({"nick": "nick"}), additional("text")])
 
     def set(self, irc, msg, args, timezone):
         """<location>
 
         Sets the location for your current ident@host to <location>."""
-        ih = msg.prefix.split('!')[1]
+        ih = msg.prefix.split("!")[1]
         self.db[ih] = timezone
         irc.replySuccess()
-    set = wrap(set, ['text'])
+
+    set = wrap(set, ["text"])    
 
     def unset(self, irc, msg, args):
         """takes no arguments.
 
         Unsets the location for your current ident@host."""
-        ih = msg.prefix.split('!')[1]
+        ih = msg.prefix.split("!")[1]
         try:
             del self.db[ih]
             irc.replySuccess()
         except KeyError:
-            irc.error("No entry for %s exists." % ircutils.bold('*!'+ih), Raise=True)
+            irc.error(f"No entry for {ircutils.bold('*!' + ih)} exists.", prefixNick=False, Raise=True)
 
 Class = WorldTime
-
 
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
