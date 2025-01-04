@@ -14,17 +14,14 @@ import supybot.world as world
 __version__ = "2024.12.26+git"
 
 __author__ = supybot.Author("reticulatingspline", "spline", "")
+
 __maintainer__ = getattr(
     supybot.authors,
-    "oddluck",
-    supybot.Author("oddluck", "oddluck", ""),
+    "Alcheri",
+    supybot.Author("Alcheri", "", ""),
 )
 
-__contributors__ = {"Alcheri":
-                        ["misc. code enhancements"]
-                  }
-
-__url__ = ""
+__url__ = "https://github.com/Alcheri/WorldTime"
 
 import sys
 if sys.version_info <= (3, 9):
