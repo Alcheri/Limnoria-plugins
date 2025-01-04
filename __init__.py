@@ -18,7 +18,7 @@ __author__ = supybot.Author("reticulatingspline", "spline", "")
 __maintainer__ = getattr(
     supybot.authors,
     "Alcheri",
-    supybot.Author("Alcheri", "", ""),
+    supybot.Author("Barry Suridge", "", "barry.suridge@gmail.com"),
 )
 
 __url__ = "https://github.com/Alcheri/WorldTime"
