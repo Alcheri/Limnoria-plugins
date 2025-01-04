@@ -36,9 +36,8 @@ Enable Google [Geocoding](https://console.cloud.google.com/apis/library/geocodin
 ## Example Usage
 
 ```plaintext
-&lt;spline&gt; @worldtime New York, NY
-&lt;myybot&gt; New York, NY, USA :: Current local time is: Sat, 09:38 (Eastern Daylight Time)
-&lt;spline&gt; @worldtime 90210
-&lt;myybot&gt; Beverly Hills, CA 90210, USA :: Current local time is: Sat, 06:38 (Pacific Daylight Time)
-
+<spline> @worldtime New York, NY
+<myybot> New York, NY, USA :: Current local time is: Sat, 09:38 (Eastern Daylight Time)
+<spline> @worldtime 90210
+<myybot> Beverly Hills, CA 90210, USA :: Current local time is: Sat, 06:38 (Pacific Daylight Time)
 ```
