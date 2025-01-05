@@ -41,3 +41,5 @@ Enable Google [Geocoding](https://console.cloud.google.com/apis/library/geocodin
 <spline> @worldtime 90210
 <myybot> Beverly Hills, CA 90210, USA :: Current local time is: Sat, 06:38 (Pacific Daylight Time)
 ```
+
+![Build Status](../img/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
