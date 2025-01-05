@@ -1,6 +1,6 @@
 # Google Maps
 
-![Python versions](https://img.shields.io/badge/Python-version-blue) ![Supported Python versions](https://img.shields.io/badge/3.10%2C%203.11%2C%203.12%2C%203.13-blue.svg) ![Build Status](./local/status.svg)
+![Python versions](https://img.shields.io/badge/Python-version-blue) ![Supported Python versions](https://img.shields.io/badge/3.10%2C%203.11%2C%203.12%2C%203.13-blue.svg) ![Build Status](./local/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
 
 ## Setting up
 
@@ -8,7 +8,7 @@
 * Step 2: Generate a New API Key.
 * Step 3: Review Pricing and Usage Terms.
 
-**Google** gives each account US$200/month of free credit. 
+**Google** gives each account US$200/month of free credit.
 
 ## Install
 
