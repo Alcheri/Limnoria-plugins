@@ -42,4 +42,4 @@ Enable Google [Geocoding](https://console.cloud.google.com/apis/library/geocodin
 <myybot> Beverly Hills, CA 90210, USA :: Current local time is: Sat, 06:38 (Pacific Daylight Time)
 ```
 
-![Build Status](../img/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
+![Build Status](https://github.com/Alcheri/My-Limnoria-Plugins/blob/master/img/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
