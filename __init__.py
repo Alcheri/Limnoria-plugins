@@ -52,7 +52,7 @@ __author__ = supybot.Author('Barry Suridge', 'Alcheri',
 __contributors__ = {}
 
 # This is a url where the most recent plugin package can be downloaded.
-__url__ = 'https://github.com/Alcheri/Plugins/tree/master/Weather'
+__url__ = 'https://github.com/Alcheri/Weather'
 
 from . import config
 from . import plugin
