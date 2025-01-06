@@ -69,9 +69,9 @@ class URLtitle(callbacks.Plugin):
         """
         Triggered when a message is sent in a channel.
         """
-        if not self.registryValue('enabled', msg.channel, irc.network):
-            return
         channel = msg.args[0]
+        if not self.registryValue('enabled', channel, irc.network):
+            return
         text = msg.args[1]
        
         # Regular expression to detect URLs
