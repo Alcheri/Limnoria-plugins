@@ -15,6 +15,7 @@ try:
 except ImportError as ie:
     raise Exception(f'Cannot import module: {ie}')
 
+import supybot.ircutils as ircutils
 from supybot import callbacks
 from supybot.commands import *
 from supybot.i18n import PluginInternationalization
@@ -68,11 +69,11 @@ class URLtitle(callbacks.Plugin):
         """
         Triggered when a message is sent in a channel.
         """
-        channel = msg.args[0]
-        if not self.registryValue('enabled', channel, irc.network):
+        if not self.registryValue('enabled', msg.channel, irc.network):
             return
+        channel = msg.args[0]
         text = msg.args[1]
-
+       
         # Regular expression to detect URLs
         url_pattern = r'(https?://\S+|www\.\S+)'
         urls = re.findall(url_pattern, text)
