@@ -27,7 +27,7 @@ __author__ = supybot.Author('Barry Suridge', 'Alcheri',
 __contributors__ = {}
 
 # This is a url where the most recent plugin package can be downloaded.
-__url__ = 'https://github.com/Alcheri/My-Limnoria-Plugins'
+__url__ = 'https://github.com/Alcheri/Dictionary'
 
 from . import config
 from . import plugin
