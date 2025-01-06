@@ -38,14 +38,14 @@ Next, load the plugin:
 ## Using
 
 ```plaintext
-@map --address 1275 Grevillea Rd Wendouree VIC
-Google Maps: 1275 Grevillea Rd, Wendouree VIC 3355, Australia [ID: ChIJcSzC6YxD0WoRWtgRRJh8D2U] -37.5283674 143.8164991 ['premise']
+<Barry> @map --address 1275 Grevillea Rd Wendouree VIC
+<Borg> Google Maps: 1275 Grevillea Rd, Wendouree VIC 3355, Australia [ID: ChIJcSzC6YxD0WoRWtgRRJh8D2U] -37.5283674 143.8164991 ['premise']
 
-@map --reverse -- -37.5283674, 143.8164991
-Location: 1275 Grevillea Rd, Wendouree VIC 3355, Australia Coordinates: -37.5283674, 143.8164991 Type: premise Place ID: ChIJcSzC6YxD0WoRWtgRRJh8D2
+<Barry> @map --reverse -- -37.5283674, 143.8164991
+<Borg>  Location: 1275 Grevillea Rd, Wendouree VIC 3355, Australia Coordinates: -37.5283674, 143.8164991 Type: premise Place ID: ChIJcSzC6YxD0WoRWtgRRJh8D2
 
-@map --directions Sydney Opera House | Bondi Beach
-Route from Bennelong Point, Sydney NSW 2000, Australia to Bondi Beach, NSW 2026, Australia: Distance: 9.1 km, Duration: 17 mins. Directions: https://www.google.com/maps/dir/?api=1&origin=Sydney+Opera+House&destination=Bondi+Beach
+<Barry> @map --directions Sydney Opera House | Bondi Beach
+<Borg>  Route from Bennelong Point, Sydney NSW 2000, Australia to Bondi Beach, NSW 2026, Australia: Distance: 9.1 km, Duration: 17 mins. Directions: https://www.google.com/maps/dir/?api=1&origin=Sydney+Opera+House&destination=Bondi+Beach
 ```
 
 **Notes:**
