@@ -1,12 +1,17 @@
 ###
-# see LICENSE.txt file for details.
+# Copyright © 2025, Barry Suridge
+# All rights reserved.
+#
+# Credits: spline [https://github.com/andrewtryder] for the inspiration.
 ###
 
-import supybot.conf as conf
-import supybot.registry as registry
-from supybot.i18n import PluginInternationalization, internationalizeDocstring
-
-_ = PluginInternationalization('Wikipedia')
+from supybot import conf, registry
+try:
+    from supybot.i18n import PluginInternationalization
+    _ = PluginInternationalization('Asyncio')
+except:
+    
+    _ = lambda x: x
 
 def configure(advanced):
     # This will be called by supybot to configure this module.  advanced is
@@ -18,8 +23,11 @@ def configure(advanced):
 
 
 Wikipedia = conf.registerPlugin('Wikipedia')
-conf.registerGlobalValue(Wikipedia, 'disableANSI', registry.Boolean(False, """Do not display any ANSI in output."""))
-conf.registerGlobalValue(Wikipedia, 'lang', registry.String('en', """output language"""))
 
+#XXX Default: False
+conf.registerChannelValue(
+    Wikipedia, 'enabled', registry.Boolean(
+        False, """Should plugin work in this channel?""")
+)
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=250:

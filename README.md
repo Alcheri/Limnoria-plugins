@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/reticulatingspline/Wikipedia.svg?branch=master)](https://travis-ci.org/reticulatingspline/Wikipedia)
+# Wikipedia
 
-# Limnoria plugin for Wikipedia
+![Python versions](https://img.shields.io/badge/Python-version-blue) ![Supported Python versions](https://img.shields.io/badge/3.10%2C%203.11%2C%203.12%2C%203.13-blue.svg) ![Build Status](./local/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
 
 ## Introduction
 
@@ -8,43 +8,33 @@ This is a Limnoria plugin to query and search Wikipedia.
 
 ## Install
 
-You will need a working Limnoria bot on Python 2.7/3.4 for this to work.
+Go into your Limnoria plugin dir, usually ~/runbot/plugins and run:
 
-Go into your Limnoria plugin dir, usually ~/supybot/plugins and run:
-
-```
-git clone https://github.com/reticulatingspline/Wikipedia
+```plaintext
+git clone https://github.com/Alcheri/Wikipedia.git
 ```
 
-To install additional requirements, run:
+To install additional requirements, run from plugins/Wikipedia:
 
-```
-pip install -r requirements.txt 
+```plaintext
+pip install --upgrade -r requirements.txt 
 ```
 
 Next, load the plugin:
 
-```
+```plaintext
 /msg bot load Wikipedia
 ```
 
-You should be good to go.
+## Configuring
+
+* **_config channel #channel plugins.Wikipedia.enabled True or False (On or Off)_**
 
 ## Example Usage
 
+```plaintext
+<Barry> @wiki monty python
+<Borg> Monty Python (also collectively known as the Pythons)[2][3] were a British comedy troupe formed in 1969 consisting of Graham Chapman, John Cleese, Terry Gilliam, Eric Idle, Terry Jones, and Michael Palin.
 ```
-<spline> @wikipedia IRC
-<myybot> Internet Relay Chat :: Internet Relay Chat (IRC) is an application layer protocol that facilitates transfer ..
-```
 
-## About
-
-All of my plugins are free and open source. When I first started out, one of the main reasons I was
-able to learn was due to other code out there. If you find a bug or would like an improvement, feel
-free to give me a message on IRC or fork and submit a pull request. Many hours do go into each plugin,
-so, if you're feeling generous, I do accept donations via PayPal below.
-
-I'm always looking for work, so if you are in need of a custom feature, plugin or something bigger, contact me via GitHub or IRC.
-
-[![Donate via PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=N2MKJ2CVZQE96&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted)
-
+**_Inspired by: [andrewtryder/Wikipedia](https://github.com/andrewtryder/Wikipedia)_**
