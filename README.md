@@ -48,7 +48,7 @@ Next, load the plugin:
 <pre>   -- -37.5621587 143.8502556</pre>
 
 ## Using
-
+<!-- LaTeX text formatting (colour) -->
 >\<Barry\> @weather 1600 Amphitheatre Pkwy, Mountain View, CA\
 >\<Borg\>  1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA (Lat: 122°5' 7.08" W, Lon: 37°25' 19.56" N) | Clear sky, Temp: ${\texttt{\color{green}18.0°C}}$, Feels like: ${\texttt{\color{green}17.0°C}}$, Humidity: 33%, Clouds: 0%, Wind: 22 Km/h N, ${\texttt{\color{green}UVI 1 (Low)}}$
 >
