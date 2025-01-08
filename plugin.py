@@ -31,7 +31,10 @@
 # my libs
 import json
 import time
-import pendulum
+try:
+    import pendulum
+except Exception as ie:
+    raise Exception(f"Cannot import module: {ie}")
 
 # supybot libs
 import supybot.utils as utils
