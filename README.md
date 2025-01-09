@@ -46,10 +46,5 @@ Enable Google [Geocoding](https://console.cloud.google.com/apis/library/geocodin
 @wt unset -- Removes your current ident@host
 ```
 
-<br>
+![Build Status](https://github.com/Alcheri/My-Limnoria-Plugins/blob/master/img/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg) [![CodeQL](https://github.com/Alcheri/WorldTime/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Alcheri/WorldTime/actions/workflows/github-code-scanning/codeql)
 
-<center>
-
-![Build Status](https://github.com/Alcheri/My-Limnoria-Plugins/blob/master/img/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
-
-</center>
