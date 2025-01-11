@@ -9,11 +9,11 @@ import re
 import requests
 import time
 
-#XXX Third-party modules
+# XXX Third-party modules
 try:
     from bs4 import BeautifulSoup
 except ImportError as ie:
-    raise Exception(f'Cannot import module: {ie}')
+    raise Exception(f"Cannot import module: {ie}")
 
 import supybot.ircutils as ircutils
 from supybot import callbacks
@@ -21,16 +21,18 @@ from supybot.commands import *
 from supybot.i18n import PluginInternationalization
 
 
-_ = PluginInternationalization('URLtitle')
+_ = PluginInternationalization("URLtitle")
 
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:110.0) Gecko/20100101 Firefox/110.0'
+    "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:110.0) Gecko/20100101 Firefox/110.0"
 }
+
 
 class URLtitle(callbacks.Plugin):
     """
     Automatically detects URLs in messages and replies with the website title, with caching.
     """
+
     threaded = True
 
     def __init__(self, irc):
@@ -50,8 +52,8 @@ class URLtitle(callbacks.Plugin):
             response.raise_for_status()
 
             # Parse the HTML and extract the title
-            soup = BeautifulSoup(response.text, 'html.parser')
-            title_tag = soup.find('title')
+            soup = BeautifulSoup(response.text, "html.parser")
+            title_tag = soup.find("title")
 
             if title_tag:
                 formatted_title = f"{title_tag.get_text(strip=True)}"
@@ -70,19 +72,19 @@ class URLtitle(callbacks.Plugin):
         Triggered when a message is sent in a channel.
         """
         channel = msg.args[0]
-        if not self.registryValue('enabled', channel, irc.network):
+        if not self.registryValue("enabled", channel, irc.network):
             return
         text = msg.args[1]
-       
+
         # Regular expression to detect URLs
-        url_pattern = r'(https?://\S+|www\.\S+)'
+        url_pattern = r"(https?://\S+|www\.\S+)"
         urls = re.findall(url_pattern, text)
 
         if urls:
             for url in urls:
                 # Add http if the URL does not include a scheme
-                if not url.startswith(('http://', 'https://')):
-                    url = 'http://' + url
+                if not url.startswith(("http://", "https://")):
+                    url = "http://" + url
 
                 title = self.fetch_title(url)
                 irc.reply(title, to=channel)
