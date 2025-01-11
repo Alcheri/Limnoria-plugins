@@ -6,7 +6,8 @@
 
 from supybot import ircutils
 
-class UVI():
+
+class UVI:
     """Hello, I am the UV Index meter!"""
 
     # adapted from https://en.wikipedia.org/wiki/Ultraviolet_index#Index_usage
@@ -17,11 +18,11 @@ class UVI():
         """
         # Define ranges, colours, and descriptions
         ranges = [
-            (0, 3, 'light green', 'Low'),
-            (3, 6, 'yellow', 'Moderate'),
-            (6, 8, 'orange', 'High'),
-            (8, 11, 'red', 'Very High'),
-            (11, float('inf'), 'purple', 'Extreme')
+            (0, 3, "light green", "Low"),
+            (3, 6, "yellow", "Moderate"),
+            (6, 8, "orange", "High"),
+            (8, 11, "red", "Very High"),
+            (11, float("inf"), "purple", "Extreme"),
         ]
 
         # Handle invalid values
@@ -35,5 +36,3 @@ class UVI():
 
         # Fallback (should not happen)
         return ircutils.mircColor("UVI Unknown", "grey")
-
-
