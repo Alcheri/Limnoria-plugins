@@ -8,8 +8,8 @@
 from supybot.setup import plugin_setup
 
 plugin_setup(
-    'Wikipedia',
+    "Wikipedia",
     install_requires=[
-        'beautifulsoup4',
+        "beautifulsoup4",
     ],
 )

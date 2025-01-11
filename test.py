@@ -14,17 +14,12 @@ from Wikipedia.plugin import Wikipedia
 
 
 class TestWikipediaPlugin(unittest.TestCase):
-
-    @patch('Wikipedia.plugin.requests.get')
+    @patch("Wikipedia.plugin.requests.get")
     def test_wiki_success(self, mock_get):
         # Mock the API response
         mock_response = Mock()
         mock_response.json.return_value = {
-            'parse': {
-                'text': {
-                    '*': '<p>This is a test Wikipedia entry.</p>'
-                }
-            }
+            "parse": {"text": {"*": "<p>This is a test Wikipedia entry.</p>"}}
         }
         mock_get.return_value = mock_response
 
@@ -33,25 +28,28 @@ class TestWikipediaPlugin(unittest.TestCase):
 
         # Mock the irc.reply method
         irc = Mock()
-        plugin.wiki(irc, None, None, 'Test')
+        plugin.wiki(irc, None, None, "Test")
 
         # Assert that irc.reply was called with the expected output
-        irc.reply.assert_called_once_with('This is a test Wikipedia entry.', prefixNick=False)
+        irc.reply.assert_called_once_with(
+            "This is a test Wikipedia entry.", prefixNick=False
+        )
 
-    @patch('Wikipedia.plugin.requests.get')
+    @patch("Wikipedia.plugin.requests.get")
     def test_wiki_exception(self, mock_get):
         # Mock an exception during the API request
-        mock_get.side_effect = Exception('API request failed')
+        mock_get.side_effect = Exception("API request failed")
 
         # Create an instance of the Wikipedia plugin
         plugin = Wikipedia()
 
         # Mock the irc.error method
         irc = Mock()
-        plugin.wiki(irc, None, None, 'Test')
+        plugin.wiki(irc, None, None, "Test")
 
         # Assert that irc.error was called with the expected error message
-        irc.error.assert_called_once_with('Error: API request failed', Raise=True)
+        irc.error.assert_called_once_with("Error: API request failed", Raise=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
