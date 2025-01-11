@@ -6,9 +6,11 @@
 ###
 
 from supybot import conf, registry
+
 try:
     from supybot.i18n import PluginInternationalization
-    _ = PluginInternationalization('Dictionary')
+
+    _ = PluginInternationalization("Dictionary")
 except:
     # Placeholder that allows to run the plugin on a bot
     # without the i18n module
@@ -21,10 +23,11 @@ def configure(advanced):
     # user or not.  You should effect your configuration by manipulating the
     # registry as appropriate.
     from supybot.questions import expect, anything, something, yn
-    conf.registerPlugin('Dictionary', True)
+
+    conf.registerPlugin("Dictionary", True)
 
 
-Dictionary = conf.registerPlugin('Dictionary')
+Dictionary = conf.registerPlugin("Dictionary")
 # This is where your configuration variables (if any) should go.  For example:
 # conf.registerGlobalValue(Dictionary, 'someConfigVariableName',
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
