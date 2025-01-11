@@ -24,6 +24,7 @@ __maintainer__ = getattr(
 __url__ = "https://github.com/Alcheri/WorldTime"
 
 import sys
+
 if sys.version_info <= (3, 9):
     raise RuntimeError("This plugin requires Python 3.9 or above.")
 from . import config
