@@ -1,5 +1,5 @@
 .*
-!/.github
-!/.gitignore
+/.github
+/.gitignore
 /__pycache__
 /local/__pycache__
