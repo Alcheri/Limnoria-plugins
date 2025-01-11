@@ -7,13 +7,14 @@
 from supybot import ircutils
 
 # Constants
-APOSTROPHE = u'\N{APOSTROPHE}'
-DEGREE_SIGN = u'\N{DEGREE SIGN}'
-PERCENT_SIGN = u'\N{PERCENT SIGN}'
-QUOTATION_MARK = u'\N{QUOTATION MARK}'
+APOSTROPHE = "\N{APOSTROPHE}"
+DEGREE_SIGN = "\N{DEGREE SIGN}"
+PERCENT_SIGN = "\N{PERCENT SIGN}"
+QUOTATION_MARK = "\N{QUOTATION MARK}"
 
-class COLTEMP():
-    """ Colourise temperatures. """
+
+class COLTEMP:
+    """Colourise temperatures."""
 
     @staticmethod
     def colour_temperature(celsius: float) -> str:
@@ -22,13 +23,13 @@ class COLTEMP():
         """
         # Define ranges, colours, and descriptions
         ranges = [
-            (float('-inf'), 0, 'blue'),         # Below 0°C
-            (0, 1, 'teal'),                     # Exactly 0°C
-            (1, 10, 'light blue'),              # 1°C to < 10°C
-            (10, 20, 'light green'),            # 10°C to < 20°C
-            (20, 30, 'yellow'),                 # 20°C to < 30°C
-            (30, 40, 'orange'),                 # 30°C to < 40°C
-            (40, float('inf'), 'red')           # 40°C and above
+            (float("-inf"), 0, "blue"),  # Below 0°C
+            (0, 1, "teal"),  # Exactly 0°C
+            (1, 10, "light blue"),  # 1°C to < 10°C
+            (10, 20, "light green"),  # 10°C to < 20°C
+            (20, 30, "yellow"),  # 20°C to < 30°C
+            (30, 40, "orange"),  # 30°C to < 40°C
+            (40, float("inf"), "red"),  # 40°C and above
         ]
 
         # Ensure the input is a float
