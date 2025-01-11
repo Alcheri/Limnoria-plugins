@@ -10,8 +10,11 @@ Wikipedia: Wikipedia
 """
 
 import sys
+
 if sys.version_info < (3, 10):
-    raise RuntimeError("This plugin requires Python 3.10 or newer. Please upgrade your Python installation.")
+    raise RuntimeError(
+        "This plugin requires Python 3.10 or newer. Please upgrade your Python installation."
+    )
 
 import supybot
 from supybot import world
@@ -33,11 +36,12 @@ __maintainer__ = getattr(
 __contributors__ = {}
 
 # This is a url where the most recent plugin package can be downloaded.
-__url__ = 'https://github.com/Alcheri/Wikipedia'
+__url__ = "https://github.com/Alcheri/Wikipedia"
 
 from . import config
 from . import plugin
 from importlib import reload
+
 # In case we're being reloaded.
 reload(config)
 reload(plugin)
