@@ -10,32 +10,34 @@ from supybot.commands import *
 import supybot.callbacks as callbacks
 from supybot.i18n import PluginInternationalization, internationalizeDocstring
 
-_ = PluginInternationalization('Wikipedia')
+_ = PluginInternationalization("Wikipedia")
 
 import requests
 
-#XXX Third-party modules
+# XXX Third-party modules
 try:
     from bs4 import BeautifulSoup
 except ImportError as ie:
-    raise Exception(f'Cannot import module: {ie}')
+    raise Exception(f"Cannot import module: {ie}")
 
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:110.0) Gecko/20100101 Firefox/110.0'
+    "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:110.0) Gecko/20100101 Firefox/110.0"
 }
+
 
 class Wikipedia(callbacks.Plugin):
     """
     Add the help for "@plugin help Wikipedia" here
     This should describe *how* to use this plugin.
     """
+
     threaded = True
 
     def __init__(self, irc):
         self.__parent = super(Wikipedia, self)
         self.__parent.__init__(irc)
 
-    @wrap(['text'])
+    @wrap(["text"])
     def wiki(self, irc, msg, args, subject):
         """
         <subject>
@@ -47,20 +49,20 @@ class Wikipedia(callbacks.Plugin):
         """
 
         # Check if the plugin is enabled in the channel
-        if not self.registryValue('enabled', msg.channel, irc.network):
+        if not self.registryValue("enabled", msg.channel, irc.network):
             return
 
         # Normalize the subject input
-        subject = ' '.join([word.capitalize() for word in subject.split()])
+        subject = " ".join([word.capitalize() for word in subject.split()])
 
-        url = 'https://en.wikipedia.org/w/api.php'
+        url = "https://en.wikipedia.org/w/api.php"
         PARAMS = {
-            'action': 'parse',
-            'page': subject,
-            'lang': 'en',
-            'format': 'json',
-            'prop': 'text',
-            'redirects': 1  # Follow redirects
+            "action": "parse",
+            "page": subject,
+            "lang": "en",
+            "format": "json",
+            "prop": "text",
+            "redirects": 1,  # Follow redirects
         }
 
         try:
@@ -68,18 +70,24 @@ class Wikipedia(callbacks.Plugin):
             response.raise_for_status()
             data = response.json()
 
-            if 'error' in data:
-                error_message = data['error'].get('info', 'Unknown error')
-                irc.reply(f"The page '{subject}' does not exist on Wikipedia. Please check your query or try a different topic.", prefixNick=False)
+            if "error" in data:
+                error_message = data["error"].get("info", "Unknown error")
+                irc.reply(
+                    f"The page '{subject}' does not exist on Wikipedia. Please check your query or try a different topic.",
+                    prefixNick=False,
+                )
                 return
 
-            raw_html = data['parse']['text']['*']
-            soup = BeautifulSoup(raw_html, 'html.parser')
-            text = ''
+            raw_html = data["parse"]["text"]["*"]
+            soup = BeautifulSoup(raw_html, "html.parser")
+            text = ""
 
-            for p in soup.find_all('p'):
-                if 'may refer to:' in p.text:
-                    irc.reply(f"Disambiguation page found for '{subject}'. Please be more specific.", prefixNick=False)
+            for p in soup.find_all("p"):
+                if "may refer to:" in p.text:
+                    irc.reply(
+                        f"Disambiguation page found for '{subject}'. Please be more specific.",
+                        prefixNick=False,
+                    )
                     return
                 text += p.text
 
@@ -91,11 +99,12 @@ class Wikipedia(callbacks.Plugin):
             return
 
         # Return a longer summary or truncate if too long
-        summary = '. '.join(text.strip().split('.')[:2]) + '.'
+        summary = ". ".join(text.strip().split(".")[:2]) + "."
         if len(summary) > 300:
-            summary = summary[:297] + '... (truncated)'
+            summary = summary[:297] + "... (truncated)"
         irc.reply(summary, prefixNick=False)
+
 
 Class = Wikipedia
 
-    # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=250:
+# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=250:
