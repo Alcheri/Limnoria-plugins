@@ -187,7 +187,14 @@ class Weather(callbacks.Plugin):
         wind_direction = self._get_wind_direction(current["wind_deg"])
         uvi_index = self.colour_uvi(round(current["uvi"]))
 
-        return f"{desc}, Temp: {temp}, Feels like: {feels_like}, {humidity}, {cloud}{PERCENT_SIGN}, {wind_speed} {wind_direction}, {uvi_index}"
+        return (
+            f"{desc}, Temp: {temp}, "
+            f"Feels like: {feels_like}, "
+            f"{humidity}, "
+            f"{cloud}{PERCENT_SIGN}, "
+            f"{wind_speed}, {wind_direction}, "
+            f"UV Index: {uvi_index}"
+        )
 
     @staticmethod
     def _get_wind_direction(degrees: float) -> str:
