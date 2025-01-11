@@ -29,35 +29,41 @@
 ###
 
 from supybot import conf, registry
+
 try:
     from supybot.i18n import PluginInternationalization
-    _ = PluginInternationalization('Weather')
+
+    _ = PluginInternationalization("Weather")
 except:
     _ = lambda x: x
 
 
 def configure(advanced):
     from supybot.questions import expect, anything, something, yn
-    conf.registerPlugin('Weather', True)
+
+    conf.registerPlugin("Weather", True)
 
 
-Weather = conf.registerPlugin('Weather')
+Weather = conf.registerPlugin("Weather")
 
-conf.registerGroup(Weather, 'apikeys')
+conf.registerGroup(Weather, "apikeys")
 
 conf.registerGlobalValue(
-    Weather, 'googlemapsAPI', registry.String(
-        '', _("""Sets the API key for Google Maps."""), private=True)
+    Weather,
+    "googlemapsAPI",
+    registry.String("", _("""Sets the API key for Google Maps."""), private=True),
 )
 
 conf.registerGlobalValue(
-    Weather, 'openweatherAPI', registry.String(
-        '', _("""Sets the API key for Open Weather."""), private=True)
+    Weather,
+    "openweatherAPI",
+    registry.String("", _("""Sets the API key for Open Weather."""), private=True),
 )
 
 conf.registerChannelValue(
-    Weather, 'enabled', registry.Boolean(
-        False, """Should plugin work in this channel?""")
+    Weather,
+    "enabled",
+    registry.Boolean(False, """Should plugin work in this channel?"""),
 )
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
