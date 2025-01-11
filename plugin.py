@@ -31,6 +31,7 @@
 # my libs
 import json
 import time
+
 try:
     import pendulum
 except Exception as ie:
@@ -48,6 +49,7 @@ import supybot.log as log
 
 try:
     from supybot.i18n import PluginInternationalization
+
     _ = PluginInternationalization("WorldTime")
 except ImportError:
     _ = lambda x: x
@@ -58,6 +60,7 @@ HEADERS = {
     "User-agent": "Mozilla/5.0 (compatible; Supybot/Limnoria %s; WorldTime plugin)"
     % conf.version
 }
+
 
 class WorldTime(callbacks.Plugin):
     """Add the help for "@plugin help WorldTime" here
@@ -127,8 +130,7 @@ class WorldTime(callbacks.Plugin):
         location = utils.web.urlquote(location)
         url = (
             "https://maps.googleapis.com/maps/api/geocode/json?"
-            "address=%s&key=%s"
-            % (location, api_key)
+            "address=%s&key=%s" % (location, api_key)
         )
 
         try:
@@ -192,7 +194,11 @@ class WorldTime(callbacks.Plugin):
                     if nick in irc.state.nicksToHostmasks:
                         host = irc.state.nickToHostmask(nick)
                     else:
-                        irc.error(f"Nickname '{nick}' not found in the bot's state.", prefixNick=False, Raise=True)
+                        irc.error(
+                            f"Nickname '{nick}' not found in the bot's state.",
+                            prefixNick=False,
+                            Raise=True,
+                        )
                         return
                 else:
                     host = msg.prefix
@@ -203,25 +209,35 @@ class WorldTime(callbacks.Plugin):
                     irc.error(
                         f"No location for {ircutils.bold('*!' + ih)} is set. "
                         "Use the 'set' command to set a location for your current hostmask, "
-                        "or call 'worldtime' with <location> as an argument.", prefixNick=False,
+                        "or call 'worldtime' with <location> as an argument.",
+                        prefixNick=False,
                         Raise=True,
                     )
             except KeyError:
                 irc.error(
                     "Unable to resolve nickname or hostmask. Ensure the nick is in the channel "
-                    "or the bot has seen the user before.", prefixNick=False,
+                    "or the bot has seen the user before.",
+                    prefixNick=False,
                     Raise=True,
                 )
 
         # first, grab lat and long for user location
         gc = self._getlatlng(location)
         if not gc:
-            irc.error(f"I could not find the location for: {location}.", prefixNick=False, Raise=True)
+            irc.error(
+                f"I could not find the location for: {location}.",
+                prefixNick=False,
+                Raise=True,
+            )
 
         # next, grab the localtime for that location w/lat+long
         ll = self._gettime(gc["ll"])
         if not ll:
-            irc.error(f"I could not find the local timezone for: {location}.", prefixNick=False, Raise=True)
+            irc.error(
+                f"I could not find the local timezone for: {location}.",
+                prefixNick=False,
+                Raise=True,
+            )
 
         # if we're here, we have localtime zone
         lt = self._converttz(msg, ll["timeZoneId"])
@@ -231,7 +247,11 @@ class WorldTime(callbacks.Plugin):
                 s = ircutils.stripFormatting(s)
             irc.reply(s, prefixNick=False)
         else:
-            irc.error("Something went wrong during conversion to timezone.", prefixNick=False, Raise=True)
+            irc.error(
+                "Something went wrong during conversion to timezone.",
+                prefixNick=False,
+                Raise=True,
+            )
 
     worldtime = wrap(worldtime, [getopts({"nick": "nick"}), additional("text")])
 
@@ -243,7 +263,7 @@ class WorldTime(callbacks.Plugin):
         self.db[ih] = timezone
         irc.replySuccess()
 
-    set = wrap(set, ["text"])    
+    set = wrap(set, ["text"])
 
     def unset(self, irc, msg, args):
         """takes no arguments.
@@ -254,7 +274,12 @@ class WorldTime(callbacks.Plugin):
             del self.db[ih]
             irc.replySuccess()
         except KeyError:
-            irc.error(f"No entry for {ircutils.bold('*!' + ih)} exists.", prefixNick=False, Raise=True)
+            irc.error(
+                f"No entry for {ircutils.bold('*!' + ih)} exists.",
+                prefixNick=False,
+                Raise=True,
+            )
+
 
 Class = WorldTime
 
