@@ -19,23 +19,12 @@ if sys.version_info < (3, 10):
 import supybot
 from supybot import world
 
-# Use this for the version of this plugin.
 __version__ = "05012025"
 
-# XXX Replace this with an appropriate author or supybot.Author instance.
-__author__ = supybot.Author("reticulatingspline", "spline", "")
+__author__ = supybot.Author("Barry Suridge", "Alcheri", "")
 
-__maintainer__ = getattr(
-    supybot.authors,
-    "Alcheri",
-    supybot.Author("Barry Suridge", "", "barry.suridge@gmail.com"),
-)
-
-# This is a dictionary mapping supybot.Author instances to lists of
-# contributions.
 __contributors__ = {}
 
-# This is a url where the most recent plugin package can be downloaded.
 __url__ = "https://github.com/Alcheri/Wikipedia"
 
 from . import config
