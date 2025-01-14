@@ -10,7 +10,7 @@ from supybot import conf, registry
 try:
     from supybot.i18n import PluginInternationalization
 
-    _ = PluginInternationalization("Asyncio")
+    _ = PluginInternationalization("Wikipedia")
 except:
     _ = lambda x: x
 
