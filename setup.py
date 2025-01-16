@@ -8,10 +8,10 @@
 from supybot.setup import plugin_setup
 
 plugin_setup(
-    'GoogleMaps',
+    "GoogleMaps",
     install_requires=[
-        'aiohttp',
-        'nest_asyncio',
-        'asyncio',
+        "aiohttp",
+        "nest_asyncio",
+        "asyncio",
     ],
 )
