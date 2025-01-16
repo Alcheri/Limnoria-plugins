@@ -6,30 +6,33 @@
 ###
 
 from supybot import conf, registry
+
 try:
     from supybot.i18n import PluginInternationalization
-    _ = PluginInternationalization('GoogleMaps')
-except:
 
+    _ = PluginInternationalization("GoogleMaps")
+except:
     _ = lambda x: x
 
 
 def configure(advanced):
-
     from supybot.questions import expect, anything, something, yn
-    conf.registerPlugin('GoogleMaps', True)
+
+    conf.registerPlugin("GoogleMaps", True)
 
 
-GoogleMaps = conf.registerPlugin('GoogleMaps')
+GoogleMaps = conf.registerPlugin("GoogleMaps")
 
 conf.registerGlobalValue(
-    GoogleMaps, 'googlemapsAPI', registry.String(
-        '', _("""Sets the API key for Google Maps."""), private=True)
+    GoogleMaps,
+    "googlemapsAPI",
+    registry.String("", _("""Sets the API key for Google Maps."""), private=True),
 )
 
 conf.registerChannelValue(
-    GoogleMaps, 'enabled', registry.Boolean(
-        False, """Should plugin work in this channel?""")
+    GoogleMaps,
+    "enabled",
+    registry.Boolean(False, """Should plugin work in this channel?"""),
 )
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
