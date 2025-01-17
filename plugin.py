@@ -27,7 +27,8 @@ class Dictionary(callbacks.Plugin):
     threaded = True
 
     def __init__(self, irc):
-        super().__init__(irc)
+        self.__parent = super(Dictionary, self)
+        self.__parent.__init__(irc)
 
     @wrap(["text"])
     def dict(self, irc, msg, args, input):
