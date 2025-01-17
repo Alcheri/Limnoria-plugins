@@ -63,9 +63,7 @@ class Dictionary(callbacks.Plugin):
         except json.JSONDecodeError:
             irc.error("Failed to parse the API's JSON response.", prefixNick=False)
         except utils.web.Error as e:
-            irc.error(
-                f"No Definitions Found: {e}", prefixNick=False
-            )
+            irc.error(f"No Definitions Found: {e}", prefixNick=False)
         except Exception as e:
             irc.error(f"An unexpected error occurred: {e}", prefixNick=False)
 
