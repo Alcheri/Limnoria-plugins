@@ -36,7 +36,8 @@ class URLtitle(callbacks.Plugin):
     threaded = True
 
     def __init__(self, irc):
-        super().__init__(irc)
+        self.__parent = super(URLtitle, self)
+        self.__parent.__init__(irc)
         self.cache = {}  # Simple cache for storing URL titles
 
     def fetch_title(self, url):
