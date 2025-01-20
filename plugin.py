@@ -34,8 +34,8 @@ import time
 
 try:
     import pendulum
-except Exception as ie:
-    raise Exception(f"Cannot import module: {ie}")
+except ImportError as ie:
+    raise ImportError(f"Cannot import module: {ie}")
 
 # supybot libs
 import supybot.utils as utils
