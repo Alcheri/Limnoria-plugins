@@ -11,7 +11,7 @@ try:
     import asyncio  # asynchronous I/O
     import nest_asyncio  # allow nested event loops
 except ImportError as ie:
-    raise Exception(f"Cannot import module: {ie}")
+    raise ImportError(f"Cannot import module: {ie}")
 
 import supybot.log as log
 from supybot import callbacks
