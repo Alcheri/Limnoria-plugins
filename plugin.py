@@ -13,7 +13,7 @@ import time
 try:
     from bs4 import BeautifulSoup
 except ImportError as ie:
-    raise Exception(f"Cannot import module: {ie}")
+    raise ImportError(f"Cannot import module: {ie}")
 
 import supybot.ircutils as ircutils
 from supybot import callbacks
