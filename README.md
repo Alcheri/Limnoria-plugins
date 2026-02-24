@@ -42,7 +42,7 @@ Next, load the plugin:
 
 * **_config plugins.Weather.openweatherAPI [your_key_here]_**
 * **_config plugins.Weather.googlemapsAPI [your_key_here]_**
-* **_config channel #channel plugins.Weather.enable True or False (On or Off)_**
+* **_config channel #channel plugins.Weather.enabled True or False (On or Off)_**
 
 **Note:** For all Southern Hemisphere latitudes prefix the argument with '--' i.e.:
 <pre>   -- -37.5621587 143.8502556</pre>
@@ -71,3 +71,4 @@ Next, load the plugin:
 
 <br/><br/>
 <p align="center">Copyright © MMXXIV, Barry Suridge</p>
+
