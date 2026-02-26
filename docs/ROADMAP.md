@@ -70,6 +70,7 @@ Enforced numbered steps
 Optional compact mode:
 
 @config plugins.Asyncio.mathCompact True
+
 🌐 4. Rate Limit Intelligence
 
 Enhance current exponential backoff to:
@@ -154,3 +155,4 @@ Each release must remain production-ready.
 Maintainer: Barry Suridge
 Project: Asyncio Limnoria AI Plugin
 License: MIT
+
