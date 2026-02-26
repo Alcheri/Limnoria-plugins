@@ -1,7 +1,7 @@
 # Asyncio
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.1-blue.svg" alt="Version">
+  <img src="https://img.shields.io/github/v/release/Alcheri/Asyncio?color=blue&sort=semver" alt="Release">
   <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
   <img src="https://img.shields.io/badge/OpenAI-powered-8A2BE2.svg" alt="OpenAI">
