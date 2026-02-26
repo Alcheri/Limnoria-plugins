@@ -20,11 +20,11 @@ An asynchronous OpenAI plugin for Limnoria.
 
 ## Install
 
-Go into your Limnoria plugin dir, usually ~/runbot/plugins and run:
-
-```plaintext
-git clone https://github.com/Alcheri/Asyncio.git
-```
+<p align="center">
+  <a href="https://github.com/Alcheri/Asyncio/releases/latest">
+    <img src="https://img.shields.io/badge/Download-Latest%20Release-brightgreen?style=for-the-badge" alt="Download Latest Release">
+  </a>
+</p>
 
 To install additional requirements, run from /plugins/Asyncio:
 
