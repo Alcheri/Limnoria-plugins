@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Puss logo">
+  <title>Puss</title>
+  <defs>
+    <style>
+      .stroke { fill: none; stroke: #111; stroke-width: 20; stroke-linecap: round; stroke-linejoin: round; }
+      .fill { fill: #111; }
+    </style>
+  </defs>
+
+  <!-- Bubble -->
+  <path class="stroke" d="M120 170 Q120 120 170 120 H342 Q392 120 392 170 V300 Q392 350 342 350 H230 L170 405 V350 H170 Q120 350 120 300 Z"></path>
+
+  <!-- Cat ears on top -->
+  <path class="stroke" d="M210 120 L190 70 L235 110"></path>
+  <path class="stroke" d="M302 120 L322 70 L277 110"></path>
+
+  <!-- Eyes -->
+  <circle class="fill" cx="215" cy="235" r="10"></circle>
+  <circle class="fill" cx="297" cy="235" r="10"></circle>
+
+  <!-- Smile -->
+  <path class="stroke" d="M235 265 Q256 285 277 265"></path>
+</svg>
