@@ -85,8 +85,8 @@ Optional short-term global cooldown during API instability
 
 Introduce admin-only commands:
 
-!ai stats
-!ai resetall
+!ai stats\
+!ai resetall\
 !ai clearcache
 
 For:
@@ -155,4 +155,5 @@ Each release must remain production-ready.
 Maintainer: Barry Suridge
 Project: Asyncio Limnoria AI Plugin
 License: MIT
+
 
