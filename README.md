@@ -52,7 +52,7 @@ These external modules are required:  ¹ asyncio,  ² openai.
 ## Using
 
 ```plaintext
-@chat good morning\
+@chat good morning
 Puss Good morning, SomeNick!  How can I help you today?
 
 @chat Tell me a joke
