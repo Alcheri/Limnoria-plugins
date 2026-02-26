@@ -28,11 +28,5 @@ Asyncio = conf.registerPlugin("Asyncio")
 # conf.registerGlobalValue(Dictionary, 'someConfigVariableName',
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
 
-# OpenAI handles English dialects only:
-# American
-# British
-# Australian
-# Canadian
-
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
