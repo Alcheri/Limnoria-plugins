@@ -83,7 +83,8 @@ Directly attaching to Limnoria’s event loop caused:
 
 ### ✅ Final Approach: Threaded plugin + `asyncio.run()`
 
-The plugin uses:
+The plugin uses `threaded = True` and invokes asynchronous operations via `asyncio.run()`\
+within command handlers, ensuring safe execution without interfering with Limnoria’s event loop.
 
 Why:
 
@@ -298,3 +299,4 @@ The current structure reflects what actually works reliably in production.
 
 **Maintained by:** Barry Suridge  
 **Plugin:** Asyncio for Limnoria IRC
+
