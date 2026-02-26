@@ -1,12 +1,45 @@
-# Asyncio
+<!-- README Header (Launch-ready) -->
+<p align="center">
+  <img src="docs/images/puss-logo.svg" width="220" alt="Puss logo">
+</p>
+
+<h1 align="center">Asyncio Plugin</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/github/v/release/Alcheri/Asyncio?color=blue&sort=semver" alt="Release">
+  <em>Asynchronous AI Chat for Limnoria IRC</em>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Alcheri/Asyncio/releases/latest">
+    <img src="https://img.shields.io/github/v/release/Alcheri/Asyncio?sort=semver" alt="Latest Release">
+  </a>
   <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
-  <img src="https://img.shields.io/badge/OpenAI-powered-8A2BE2.svg" alt="OpenAI">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="Licence">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
+
+<p align="center">
+  <a href="https://github.com/Alcheri/Asyncio/releases/latest">
+    <img src="https://img.shields.io/badge/Download-Latest%20Release-brightgreen?style=for-the-badge" alt="Download Latest Release">
+  </a>
+</p>
+
+<hr style="width:65%; margin:auto;">
+
+<p align="center">
+  Asyncio is a production-ready AI chat plugin for Limnoria IRC bots.<br>
+  It provides safe multi-user behaviour with per-channel memory isolation,<br>
+  moderation, cooldowns, and a math mode that answers in ≤ 6 lines.
+</p>
+
+<p align="center">
+  <a href="docs/AsyncioPluginManual.md">Manual</a> •
+  <a href="docs/ROADMAP.md">Roadmap</a> •
+  <a href="CHANGELOG.md">Changelog</a> •
+  <a href="DEVELOPER_NOTES.md">Developer Notes</a>
+</p>
+
+<hr style="width:65%; margin:auto;">
 
 An asynchronous OpenAI plugin for Limnoria.
 
@@ -20,11 +53,11 @@ An asynchronous OpenAI plugin for Limnoria.
 
 ## Install
 
-<p align="center">
-  <a href="https://github.com/Alcheri/Asyncio/releases/latest">
-    <img src="https://img.shields.io/badge/Download-Latest%20Release-brightgreen?style=for-the-badge" alt="Download Latest Release">
-  </a>
-</p>
+Go into your Limnoria plugin dir, usually ~/runbot/plugins and run:
+
+```plaintext
+git clone https://github.com/Alcheri/Asyncio.git
+```
 
 To install additional requirements, run from /plugins/Asyncio:
 
