@@ -129,5 +129,7 @@ Puss Final answer: There are 35 chickens and 15 cows.
 
 ² `openai` is the official Python library for the OpenAI API.
 
+³ The `python-dotenv` library is a useful (secure) tool in Python for managing environment variables.
+
 <br><br>
 <p align="center">Copyright © MMXXIV, Barry Suridge</p>

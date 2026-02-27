@@ -3,7 +3,7 @@
 # Asyncio ChatGPT Plugin for Limnoria (Production Final)
 # - Per-user + per-channel memory
 # - Thread-safe asyncio execution
-# - Cooldowns
+# - Cooldowns (encapsulated)
 # - Moderation (cached)
 # - Registry-safe config handling
 # - Reset command
@@ -17,18 +17,21 @@ from supybot import callbacks
 from supybot.commands import wrap
 import supybot.registry as registry
 
-try:
-    import aiohttp
-except ImportError as ie:
-    raise Exception(f"Cannot import module: {ie}")
-
+import asyncio  # <-- REQUIRED (was missing)
 import time
 import random
 import re
 import os
 from functools import lru_cache
+
+try:
+    import aiohttp  # NOTE: currently unused; OK to keep if you plan to use it.
+except ImportError as ie:
+    raise Exception("Cannot import module: {}".format(ie))
+
 from openai import OpenAI
 from dotenv import load_dotenv
+
 
 # ----------------------------
 # Plugin Config Registration
@@ -58,7 +61,6 @@ conf.registerGlobalValue(
 # British
 # Australian
 # Canadian
-
 conf.registerGlobalValue(
     conf.supybot.plugins.Asyncio,
     "language",
@@ -77,6 +79,7 @@ conf.registerGlobalValue(
     registry.Integer(350, "Max characters per IRC reply chunk"),
 )
 
+
 # ----------------------------
 # Environment / API Setup
 # ----------------------------
@@ -91,16 +94,32 @@ client = OpenAI(api_key=api_key)
 # ----------------------------
 # Safe Limnoria Config Helpers
 # ----------------------------
+def _unwrap_value(value, default=None):
+    """Extract native Python values from Limnoria registry wrapper types."""
+    try:
+        return getattr(value, "value", value)
+    except Exception:
+        return default
+
+
 def _to_int(value, default):
     try:
-        return int(getattr(value, "value", value))
+        return int(_unwrap_value(value, default))
     except Exception:
         return default
 
 
 def _to_bool(value, default=False):
     try:
-        return bool(getattr(value, "value", value))
+        return bool(_unwrap_value(value, default))
+    except Exception:
+        return default
+
+
+def _to_str(value, default=""):
+    try:
+        v = _unwrap_value(value, default)
+        return str(v)
     except Exception:
         return default
 
@@ -110,8 +129,8 @@ def get_config():
         "max_tokens": _to_int(conf.supybot.plugins.Asyncio.get("maxUserTokens"), 512),
         "cooldown": _to_int(conf.supybot.plugins.Asyncio.get("cooldownSeconds"), 5),
         "irc_chunk": _to_int(conf.supybot.plugins.Asyncio.get("ircChunkSize"), 350),
-        "botnick": conf.supybot.plugins.Asyncio.get("botnick"),
-        "language": conf.supybot.plugins.Asyncio.get("language"),
+        "botnick": _to_str(conf.supybot.plugins.Asyncio.get("botnick"), "Puss"),
+        "language": _to_str(conf.supybot.plugins.Asyncio.get("language"), "British"),
         "debug": _to_bool(conf.supybot.plugins.Asyncio.get("debugMode"), False),
     }
 
@@ -120,66 +139,111 @@ def get_config():
 # Global State
 # ----------------------------
 USER_HISTORIES = {}
-USER_COOLDOWNS = {}
+
+
+# ----------------------------
+# Cooldown Manager (Polish Target #1)
+# ----------------------------
+class CooldownManager(object):
+    """
+    Per-context cooldown tracker.
+
+    Behaviour matches v1.1 logic:
+      - last_time defaults to 0
+      - if delta < cooldown -> wait_time = int(cooldown - delta) + 1
+      - record timestamp when allowed (record-before-API; defensive)
+    """
+
+    def __init__(self):
+        self._store = {}  # context_key -> last_time (float)
+
+    def should_wait_message(self, context_key, now, cooldown_s):
+        if not context_key:
+            return None
+
+        cd = float(cooldown_s)
+        if cd <= 0.0:
+            return None
+
+        last_time = float(self._store.get(context_key, 0.0))
+        delta = float(now) - last_time
+
+        if delta < cd:
+            wait_time = int(cd - delta) + 1
+            return "Please wait {}s before sending another request.".format(wait_time)
+
+        return None
+
+    def record(self, context_key, now):
+        if not context_key:
+            return
+        self._store[context_key] = float(now)
+
+    def clear(self, context_key):
+        if not context_key:
+            return
+        self._store.pop(context_key, None)
+
+
+COOLDOWNS = CooldownManager()
 
 
 # ----------------------------
 # Utility Functions
 # ----------------------------
-def count_tokens(text: str) -> int:
-    return len(text.split())
+def count_tokens(text):
+    return len((text or "").split())
 
 
-def is_likely_math(query: str) -> bool:
-    # Lightweight heuristic for common maths/word-problem patterns
+def is_likely_math(query):
     math_pattern = (
         r"[\d\+\-\*/\^\=<>√∑∫π()]|"
         r"\b(solve|calculate|evaluate|simplify|factor|equation|system of|"
         r"legs|heads|probability|percent|ratio|algebra|geometry|integral|derivative)\b"
     )
-    return bool(re.search(math_pattern, query, re.IGNORECASE))
+    return bool(re.search(math_pattern, query or "", re.IGNORECASE))
 
 
-def clean_output(text: str) -> str:
+def clean_output(text):
     if not text:
         return ""
 
-    # Remove common LaTeX wrappers
     text = text.replace("\\(", "").replace("\\)", "")
     text = text.replace("\\[", "").replace("\\]", "")
     text = text.replace("\\left", "").replace("\\right", "")
     text = text.replace("\\cdot", "⋅")
 
-    # Keep content of \text{...}
     text = re.sub(r"\\text\{(.*?)\}", r"\1", text)
-
-    # Remove remaining backslashes that clutter IRC
     text = text.replace("\\", "")
-
-    # Collapse excessive blank lines
     text = re.sub(r"\n\s*\n+", "\n", text)
 
     return text.strip()
 
 
-def _context_key(msg) -> str:
+def _context_key(msg):
     nick = getattr(msg, "nick", "unknown")
     channel = getattr(msg, "channel", None) or "PM"
-    return f"{channel}:{nick}"
+    return "{}:{}".format(channel, nick)
 
 
-def get_user_history(context_key: str, system_prompt: str):
+def get_user_history(context_key, system_prompt):
     if context_key not in USER_HISTORIES:
         USER_HISTORIES[context_key] = [{"role": "system", "content": system_prompt}]
-    return USER_HISTORIES[context_key]
+        return USER_HISTORIES[context_key]
+
+    # If the system prompt changes (e.g., math mode vs chat mode), keep it aligned.
+    # This avoids “stale” system prompts across mode changes.
+    history = USER_HISTORIES[context_key]
+    if (
+        history
+        and history[0].get("role") == "system"
+        and history[0].get("content") != system_prompt
+    ):
+        history[0]["content"] = system_prompt
+    return history
 
 
-def irc_send_chunked_preserve_newlines(irc, text: str, chunk_size: int = 350):
-    """
-    Send text to IRC safely:
-    - Preserve newlines (so '6 lines' stays 6 lines)
-    - Chunk long lines to avoid truncation
-    """
+def irc_send_chunked_preserve_newlines(irc, text, chunk_size=350):
     text = (text or "").strip()
     if not text:
         irc.reply("AI returned no response.", prefixNick=False)
@@ -187,11 +251,10 @@ def irc_send_chunked_preserve_newlines(irc, text: str, chunk_size: int = 350):
 
     lines = text.splitlines()
     for line in lines:
-        line = line.strip()
+        line = (line or "").strip()
         if not line:
             continue
 
-        # Chunk a single long line
         while len(line) > chunk_size:
             irc.reply(line[:chunk_size], prefixNick=False)
             line = line[chunk_size:].lstrip()
@@ -203,17 +266,17 @@ def irc_send_chunked_preserve_newlines(irc, text: str, chunk_size: int = 350):
 # Moderation (Cached)
 # ----------------------------
 @lru_cache(maxsize=512)
-def _moderation_cache(text: str) -> bool:
+def _moderation_cache(text):
     try:
         response = client.moderations.create(model="omni-moderation-latest", input=text)
         return response.results[0].flagged
     except Exception as e:
-        log.warning(f"[Asyncio] Moderation error (fail-open): {e}")
+        log.warning("[Asyncio] Moderation error (fail-open): {}".format(e))
         return False
 
 
-async def check_moderation_flag(user_input: str) -> bool:
-    text = user_input.strip()
+async def check_moderation_flag(user_input):
+    text = (user_input or "").strip()
     if not text or text.startswith("!") or len(text) < 5:
         return False
 
@@ -222,11 +285,12 @@ async def check_moderation_flag(user_input: str) -> bool:
         try:
             return await asyncio.to_thread(_moderation_cache, text)
         except Exception as e:
-            if "429" in str(e) or "Too Many Requests" in str(e):
+            s = str(e)
+            if "429" in s or "Too Many Requests" in s:
                 await asyncio.sleep(delay + random.uniform(0, 0.5))
                 delay *= 2
             else:
-                log.error(f"[Asyncio] Moderation failure: {e}")
+                log.error("[Asyncio] Moderation failure: {}".format(e))
                 break
 
     return False
@@ -235,26 +299,26 @@ async def check_moderation_flag(user_input: str) -> bool:
 # ----------------------------
 # Chat Logic
 # ----------------------------
-async def chat_with_model(user_message: str, context_key: str, config: dict) -> str:
+async def chat_with_model(user_message, context_key, config):
     math_mode = is_likely_math(user_message)
 
     if math_mode:
         system_prompt = (
-            f"Your name is {config['botnick']}. "
-            f"Use {config['language']} English conventions. "
+            "Your name is {botnick}. "
+            "Use {language} English conventions. "
             "Solve maths/word problems clearly. "
             "Return the final solution in NO MORE THAN 6 LINES. "
             "Prefer short equations and a final answer line. "
             "Do not use LaTeX; use plain text."
-        )
+        ).format(botnick=config["botnick"], language=config["language"])
         max_tokens = 300
         temperature = 0.2
     else:
         system_prompt = (
-            f"Your name is {config['botnick']}. "
-            f"Answer using {config['language']} English conventions. "
+            "Your name is {botnick}. "
+            "Answer using {language} English conventions. "
             "Be concise, friendly, and conversational."
-        )
+        ).format(botnick=config["botnick"], language=config["language"])
         max_tokens = 250
         temperature = 0.6
 
@@ -281,31 +345,32 @@ async def chat_with_model(user_message: str, context_key: str, config: dict) -> 
         return clean_output(reply)
 
     except Exception as e:
-        log.error(f"[Asyncio] OpenAI API error for {context_key}: {e}", exc_info=True)
+        log.error(
+            "[Asyncio] OpenAI API error for {}: {}".format(context_key, e),
+            exc_info=True,
+        )
         return "Sorry, I ran into an API error. Please try again."
 
 
-async def execute_chat_with_input_moderation(
-    user_request: str, context_key: str
-) -> str:
-    config = get_config()
-
+async def execute_chat_with_input_moderation(user_request, context_key, config):
+    # Cooldown gate (BEFORE any token counting, moderation, or API calls)
     now = time.time()
-    last_time = USER_COOLDOWNS.get(context_key, 0)
+    msg_wait = COOLDOWNS.should_wait_message(context_key, now, config["cooldown"])
+    if msg_wait:
+        return msg_wait
 
-    if (now - last_time) < float(config["cooldown"]):
-        wait_time = int(config["cooldown"] - (now - last_time)) + 1
-        return f"Please wait {wait_time}s before sending another request."
+    # Record immediately (defensive: prevents burst spam if downstream hangs)
+    COOLDOWNS.record(context_key, now)
 
-    USER_COOLDOWNS[context_key] = now
-
+    # Token limit (approx)
     prompt_tokens = count_tokens(user_request)
     if prompt_tokens > config["max_tokens"]:
         return (
-            f"Error: Your input exceeds the max token limit of "
-            f"{config['max_tokens']} (you used {prompt_tokens})."
-        )
+            "Error: Your input exceeds the max token limit of "
+            "{max_tokens} (you used {used})."
+        ).format(max_tokens=config["max_tokens"], used=prompt_tokens)
 
+    # Moderation
     flagged = await check_moderation_flag(user_request)
     if flagged:
         return "I'm sorry, but your input has been flagged as inappropriate."
@@ -324,24 +389,37 @@ class Asyncio(callbacks.Plugin):
     @wrap(["text"])
     def chat(self, irc, msg, args, user_input):
         """<message> -- Chat with the AI (per-channel + per-user memory)."""
+
         context_key = _context_key(msg)
+        config = get_config()
+
+        # ---- Pre-cooldown check (UX polish) ----
+        now = time.time()
+        msg_wait = COOLDOWNS.should_wait_message(context_key, now, config["cooldown"])
+
+        if msg_wait:
+            irc.reply(msg_wait, prefixNick=False)
+            return
+
+        # Show processing only if we're actually proceeding
         irc.reply("Processing your message...", prefixNick=False)
 
         try:
             response = asyncio.run(
-                execute_chat_with_input_moderation(user_input, context_key=context_key)
+                execute_chat_with_input_moderation(
+                    user_input, context_key=context_key, config=config
+                )
             )
 
-            config = get_config()
             irc_send_chunked_preserve_newlines(
                 irc, response, chunk_size=config["irc_chunk"]
             )
 
             if config["debug"]:
-                log.info(f"[Asyncio DEBUG] {context_key}: {response}")
+                log.info("[Asyncio DEBUG] {}: {}".format(context_key, response))
 
         except Exception as e:
-            log.error(f"[Asyncio] Exception in chat command: {e}", exc_info=True)
+            log.error("[Asyncio] Exception in chat command: {}".format(e), exc_info=True)
             irc.reply("An unexpected error occurred. Check logs.", prefixNick=False)
 
     def reset(self, irc, msg, args):
@@ -350,8 +428,9 @@ class Asyncio(callbacks.Plugin):
 
         if context_key in USER_HISTORIES:
             del USER_HISTORIES[context_key]
-        if context_key in USER_COOLDOWNS:
-            del USER_COOLDOWNS[context_key]
+
+        # New: cooldown clear via manager
+        COOLDOWNS.clear(context_key)
 
         irc.reply(
             "Your conversation memory has been reset for this context.",
