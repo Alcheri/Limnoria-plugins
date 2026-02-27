@@ -12,5 +12,6 @@ plugin_setup(
     install_requires=[
         'asyncio',
         'openai',
+        'python-dotenv',
     ],
 )
