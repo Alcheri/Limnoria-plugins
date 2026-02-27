@@ -1,76 +1,61 @@
-###
-# Copyright © 2024, Barry Suridge
-# All rights reserved.
-#
-#
-###
-
+# -*- coding: utf-8 -*-
 from supybot import conf, registry
 
 try:
     from supybot.i18n import PluginInternationalization
-
     _ = PluginInternationalization("Asyncio")
-except:
-
+except Exception:
     _ = lambda x: x
 
 
 def configure(advanced):
-
-    from supybot.questions import expect, anything, something, yn
-
+    # Limnoria convention: keep this even if unused for now.
+    from supybot.questions import expect, anything, something, yn  # noqa: F401
     conf.registerPlugin("Asyncio", True)
 
 
 Asyncio = conf.registerPlugin("Asyncio")
-# This is where your configuration variables (if any) should go.  For example:
-# conf.registerGlobalValue(Dictionary, 'someConfigVariableName',
-#     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
 
 
 # ----------------------------
-# Plugin Config Registration
+# Global Plugin Configuration
 # ----------------------------
 conf.registerGlobalValue(
-    conf.supybot.plugins.Asyncio,
+    Asyncio,
     "maxUserTokens",
-    registry.Integer(512, "Maximum number of user input tokens"),
+    registry.Integer(512, _("Maximum number of user input tokens")),
 )
 
 conf.registerGlobalValue(
-    conf.supybot.plugins.Asyncio,
+    Asyncio,
     "cooldownSeconds",
-    registry.Integer(5, "Seconds between user messages"),
+    registry.Integer(5, _("Seconds between user messages")),
 )
 
 conf.registerGlobalValue(
-    conf.supybot.plugins.Asyncio,
+    Asyncio,
     "botnick",
-    registry.String("Puss", "Bot nickname"),
+    registry.String("Puss", _("Bot nickname")),
 )
 
 # OpenAI handles English dialects only:
-# American
-# British
-# Australian
-# Canadian
+# American / British / Australian / Canadian
 conf.registerGlobalValue(
-    conf.supybot.plugins.Asyncio,
+    Asyncio,
     "language",
-    registry.String("British", "Language preference"),
+    registry.String("British", _("Language preference")),
 )
 
 conf.registerGlobalValue(
-    conf.supybot.plugins.Asyncio,
+    Asyncio,
     "debugMode",
-    registry.Boolean(False, "Enable debug logging"),
+    registry.Boolean(False, _("Enable debug logging")),
 )
 
 conf.registerGlobalValue(
-    conf.supybot.plugins.Asyncio,
+    Asyncio,
     "ircChunkSize",
-    registry.Integer(350, "Max characters per IRC reply chunk"),
+    registry.Integer(350, _("Max characters per IRC reply chunk")),
 )
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
