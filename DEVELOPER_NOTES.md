@@ -2,301 +2,430 @@
 
 This document explains the architectural decisions behind the Asyncio Limnoria plugin.
 
-It is intended for:
+It exists to:
 
-- Future maintenance of the plugin
-- Refactoring work
-- Debugging production issues
-- Adding new features safely
+- Preserve architectural intent
+- Prevent regression during refactors
+- Document production-learned lessons
+- Guide safe feature expansion
 
----
-
-## 🎯 Design Goals
-
-The plugin was designed with the following priorities:
-
-1. **Stability over cleverness**
-2. **IRC-safe behaviour under load**
-3. **Isolation between users and channels**
-4. **Protection against runaway API usage**
-5. **Compatibility with Limnoria’s architecture**
-6. **Minimal external dependencies**
-
-This means some implementation choices favour reliability rather than theoretical elegance.
+This is an internal engineering document — not user-facing documentation.
 
 ---
 
-## 🧠 Conversation Memory Model
+# 🎯 Design Principles
 
-### ❌ Rejected Approach: Global History
+The plugin prioritises:
 
-Early versions used one shared conversation history.
+1. Stability over cleverness
+2. IRC-safe behaviour under load
+3. Strict user/channel isolation
+4. Protection against runaway API usage
+5. Compatibility with Limnoria’s threading model
+6. Minimal external dependencies
 
-Problems:
+Implementation choices favour reliability over theoretical elegance.
 
-- Users contaminated each other’s context
-- Multi-channel bots behaved unpredictably
-- One user could influence responses to others
-- Memory growth became unbounded
+---
 
-### ✅ Final Approach: Context-Keyed Memory
+# 🧠 Conversation Memory Model
 
-The plugin now stores history using:
-context_key = f"{channel}:{nick}"
+## ❌ Rejected: Global Shared History
 
-This ensures:
+Early implementations used one shared conversation history.
+
+This caused:
+
+- Cross-user context contamination
+- Multi-channel behavioural drift
+- Unbounded memory growth
+- Unpredictable response context
+
+## ✅ Adopted: Context-Keyed Memory
+
+History is keyed using:
+
+    context_key = f"{channel}:{nick}"
+
+Properties:
 
 - Same user in different channels → separate conversations
-- Private messages → independent context
-- Users never share memory
-- History stays relevant
+- Private messages → isolated context
+- No shared state between users
+- Bounded memory per context
 
-This model is simple, predictable, and IRC-friendly.
-
----
-
-## ⏱ Cooldown Design
-
-Cooldowns are tracked using the same context key:
-USER_COOLDOWNS[context_key]
-
-Why:
-
-- Prevents spam without blocking other users
-- Prevents one channel from affecting another
-- Works naturally with Limnoria’s multi-channel behaviour
-
-Cooldown enforcement happens **before any API call** to prevent unnecessary usage.
+This model is deterministic and IRC-safe.
 
 ---
 
-## 🔄 Async Execution Strategy
+# ⏱ Cooldown Architecture
 
-### ❌ Rejected Approach: Native async event loop integration
+Cooldowns use the same context key:
 
-Directly attaching to Limnoria’s event loop caused:
+    USER_COOLDOWNS[context_key]
+
+Design guarantees:
+
+- Spam control without affecting other users
+- No cross-channel interference
+- Cooldown enforcement occurs BEFORE any API call
+
+This prevents unnecessary API usage and protects rate limits.
+
+---
+
+# 🔄 Async Execution Strategy
+
+## ❌ Rejected: Direct Limnoria Event Loop Integration
+
+Attempting to attach coroutines to Limnoria’s internal loop caused:
 
 - Deadlocks
 - Hanging commands
-- Difficult-to-debug coroutine states
-- Conflicts with other plugins
+- Coroutine lifecycle corruption
+- Plugin conflicts
 
-### ✅ Final Approach: Threaded plugin + `asyncio.run()`
-
-The plugin uses `threaded = True` and invokes asynchronous operations via `asyncio.run()`\
-within command handlers, ensuring safe execution without interfering with Limnoria’s event loop.
-
-Why:
-
-- Prevents spam without blocking other users
-- Prevents one channel from affecting another
-- Works naturally with Limnoria’s multi-channel behaviour
-
-Cooldown enforcement happens **before any API call** to prevent unnecessary usage.
-
----
-
-## 🔄 Async Execution Strategy
-
-### ❌ Rejected Approach: Native async event loop integration
-
-Directly attaching to Limnoria’s event loop caused:
-
-- Deadlocks
-- Hanging commands
-- Difficult-to-debug coroutine states
-- Conflicts with other plugins
-
-### ✅ Final Approach: Threaded plugin + `asyncio.run()`
+## ✅ Adopted: Threaded Plugin + asyncio.run()
 
 The plugin uses:
-threaded = True
-asyncio.run(...)
 
-Reasons:
+    threaded = True
+    asyncio.run(...)
 
-- Limnoria handles threading safely
-- Each command gets a clean event loop
+Design rationale:
+
+- Limnoria manages threads safely
+- Each command receives a clean event loop
 - Prevents coroutine reuse errors
-- Simplifies debugging dramatically
+- Dramatically simplifies debugging
 
-This trades a tiny bit of overhead for much higher reliability.
+Trade-off:
 
----
+Slight per-call overhead in exchange for reliability and isolation.
 
-## 🔢 Token Counting Strategy
-
-### ❌ Rejected: tiktoken dependency
-
-Problems encountered:
-
-- Model name changes broke encoding lookup
-- Extra dependency complexity
-- Unnecessary precision for IRC usage
-- More fragile under version changes
-
-### ✅ Final Approach: Approximate token counting
-
-The plugin uses:
-
-Reasons:
-
-- Limnoria handles threading safely
-- Each command gets a clean event loop
-- Prevents coroutine reuse errors
-- Simplifies debugging dramatically
-
-This trades a tiny bit of overhead for much higher reliability.
+This is intentional.
 
 ---
 
-## 🔢 Token Counting Strategy
+# 🔢 Token Counting Strategy
 
-### ❌ Rejected: tiktoken dependency
+## ❌ Rejected: tiktoken Dependency
 
-Problems encountered:
+Issues encountered:
 
-- Model name changes broke encoding lookup
-- Extra dependency complexity
-- Unnecessary precision for IRC usage
-- More fragile under version changes
+- Model encoding breakage on version changes
+- Increased dependency surface
+- Unnecessary precision for IRC use
+- Fragility under model evolution
 
-### ✅ Final Approach: Approximate token counting
+## ✅ Adopted: Approximate Token Counting
 
-The plugin uses:
-len(text.split())
+Implementation:
 
-Why this is acceptable:
+    len(text.split())
 
-- Token limits are only protective, not billing-critical
+Why acceptable:
+
+- Token limits are protective, not billing-critical
 - Overestimation is safer than underestimation
-- No dependency required
-- Works consistently across models
+- Zero external dependencies
+- Model-agnostic behaviour
+
+Precision is not required for IRC safety.
 
 ---
 
-## 🛡 Moderation Strategy
+# 🛡 Moderation Strategy
 
-Moderation is:
+Moderation characteristics:
 
-- Cached using `lru_cache`
-- Executed in a background thread
+- Cached using lru_cache
+- Executed in background thread
 - Fail-open if moderation API fails
+- Applied only to user input (not history)
 
 Why fail-open?
 
-- Prevents moderation outages from breaking the bot
-- Avoids blocking legitimate users
-- Maintains reliability in production IRC environments
+- Prevents moderation outages from disabling the bot
+- Maintains IRC reliability
+- Avoids blocking legitimate usage
 
-Moderation is intentionally applied **only to user input**, not history.
-
----
-
-## 📦 Limnoria Config Handling
-
-Limnoria registry values sometimes return custom types.
-
-Direct comparisons caused errors like:
-TypeError: '<' not supported between instances of 'float' and 'Integer'
-
-### Solution
-
-All config reads go through helper converters:
-_to_int()
-_to_bool()
-
-This ensures values are always native Python types.
+Reliability takes precedence over strict enforcement.
 
 ---
 
-## 🧹 History Trimming
+# 📦 Limnoria Registry Handling
 
-History is automatically trimmed:
-[system] + last N messages
+Limnoria registry values may return custom wrapper types.
 
-Why:
+Direct comparisons caused errors such as:
 
-- Prevents memory growth
-- Keeps responses focused
-- Avoids sending excessive tokens
-- Keeps behaviour predictable
+    TypeError: '<' not supported between instances of 'float' and 'Integer'
 
-This trimming happens silently on each request.
+## Rule
+
+All registry reads must pass through converters:
+
+    _to_int()
+    _to_bool()
+
+No direct comparison of raw registry values is permitted.
 
 ---
 
-## 🧾 Why No Persistent Storage Yet
+# 🧹 History Trimming Policy
 
-Persistent memory was intentionally deferred.
+History is trimmed on every request:
+
+    [system] + last N messages
+
+Design goals:
+
+- Prevent unbounded memory growth
+- Keep context relevant
+- Avoid excessive token usage
+- Ensure predictable behaviour
+
+Trimming is automatic and silent.
+
+---
+
+# 🗃 Persistence Policy (Deferred)
+
+Persistent storage was intentionally postponed.
 
 Reasons:
 
 - Avoid file corruption risks
-- Avoid concurrency issues
-- Keep plugin restart-safe
-- Keep initial architecture simple
+- Avoid concurrency complexity
+- Preserve restart safety
+- Keep core architecture simple
 
-Persistent storage can be added later without changing the core logic.
-
----
-
-## ⚙️ Error Handling Philosophy
-
-The plugin prefers:
-
-- Logging over crashing
-- User-friendly fallback messages
-- Safe defaults instead of hard failures
-
-If something goes wrong:
-
-- User sees a simple message
-- Logs contain full stack trace (when debug enabled)
+Persistence can be introduced later without redesigning the memory model.
 
 ---
 
-## 🧭 Future Architecture Directions
+# ⚙️ Error Handling Philosophy
 
-Planned safe extensions:
+The plugin follows:
 
-- JSON-based persistent memory
-- Admin control commands
-- Token usage tracking
-- Channel-level enable/disable
-- Response style presets
+- Log extensively
+- Fail safely
+- Never crash the bot
+- Provide user-friendly fallback messages
 
-All of these can be added without breaking the existing structure.
+Contract:
 
----
-
-## 📘 Maintenance Tips
-
-If modifying the plugin:
-
-1. Never reintroduce global history
-2. Keep context_key logic intact
-3. Always convert registry values to native types
-4. Avoid deep integration with Limnoria event loop
-5. Test in multi-channel environment before release
+- Users see minimal, clear error messages
+- Full stack traces are logged (debug mode)
+- Only command layer may reply to IRC
 
 ---
 
-## 🧑‍💻 Author Notes
+# 🚫 Architectural Anti-Patterns
 
-This plugin evolved through real IRC usage rather than theoretical design.
+The following must NOT be reintroduced:
 
-Many decisions were made to fix real-world issues:
+- Global shared history
+- Direct event loop manipulation
+- Blocking I/O inside command handlers
+- Direct registry comparisons
+- Deep-layer irc.reply() calls
+- Shared mutable global state across contexts
+
+These are known failure sources.
+
+---
+
+# 🚀 v1.2 Architectural Change Proposal
+
+v1.2 is a structural hardening release.
+
+Objectives:
+
+1. Formalise service separation
+2. Introduce structured internal layering
+3. Improve observability and debugging
+4. Prepare for optional persistence
+5. Strengthen error classification
+6. Reduce implicit global state
+
+User-facing behaviour must remain unchanged.
+
+---
+
+## 🧩 Layered Architecture (Proposed)
+
+    plugin.py      → IRC command interface only
+    core.py        → Conversation orchestration
+    services.py    → External API interactions
+    memory.py      → Context memory handling
+    cooldown.py    → Cooldown tracking
+    errors.py      → Exception hierarchy
+    utils.py       → Pure helper functions
+
+Rules:
+
+- plugin.py must not call APIs directly
+- services.py must not call irc.reply()
+- memory.py must not contain business logic
+- core.py orchestrates but does not perform raw I/O
+
+---
+
+## 🛡 Structured Exception Hierarchy
+
+Proposed:
+
+    PluginError
+    ├── ConfigurationError
+    ├── RateLimitError
+    ├── ModerationError
+    ├── MemoryError
+    ├── ServiceError
+        ├── APIConnectionError
+        ├── APITimeoutError
+        └── APIResponseError
+
+Only PluginError subclasses may propagate upward.
+
+---
+
+## 🧠 Memory Engine Abstraction
+
+Encapsulate memory:
+
+    class ConversationMemory:
+        get_context()
+        append()
+        trim()
+        clear()
+
+Removes global mutable state and prepares for persistence.
+
+---
+
+## ⏱ Cooldown Manager Abstraction
+
+    class CooldownManager:
+        is_allowed()
+        record()
+
+Prevents scattered cooldown logic.
+
+---
+
+## 📊 Observability Improvements
+
+Debug-mode metrics:
+
+- API latency
+- Context count
+- Average history length
+
+Must not alter behaviour.
+
+---
+
+## 🗃 Optional Persistence (Experimental)
+
+- JSON snapshotting
+- Atomic file replace
+- Disabled by default
+- Must never block command thread
+- Fail gracefully on corruption
+
+---
+
+## 🔄 Async Strategy Stability
+
+threaded = True + asyncio.run() remains unchanged in v1.2.
+
+No coroutine objects may escape scope.
+
+---
+
+## 🚫 Explicit Non-Goals for v1.2
+
+- No direct event loop integration
+- No global shared memory
+- No heavy dependency additions
+- No behaviour change
+
+---
+
+# 🧪 v1.2 Implementation Checklist
+
+## Phase 1 – Structural Refactor
+
+- [ ] Extract ConversationMemory to memory.py
+- [ ] Extract CooldownManager to cooldown.py
+- [ ] Implement errors.py hierarchy
+- [ ] Replace raw dictionary access
+- [ ] Preserve identical behaviour
+
+## Phase 2 – Layer Enforcement
+
+- [ ] Remove API calls from plugin.py
+- [ ] Remove IRC references from services.py
+- [ ] Ensure core.py orchestrates cleanly
+- [ ] Confirm no blocking I/O exists
+
+## Phase 3 – Observability
+
+- [ ] Add debug timing metrics
+- [ ] Log context statistics
+- [ ] Confirm zero overhead when disabled
+
+## Phase 4 – Optional Persistence
+
+- [ ] Add config flag
+- [ ] Implement atomic JSON write
+- [ ] Ensure background execution
+- [ ] Confirm restart recovery
+- [ ] Confirm corruption safety
+
+---
+
+# 🧪 Regression Test Matrix
+
+Before tagging v1.2:
+
+Multi-Channel Isolation  
+Cooldown Behaviour  
+Failure Modes  
+Memory Trimming  
+Restart Behaviour  
+
+No regression is acceptable.
+
+---
+
+# 📌 Versioning Philosophy
+
+v1.1 → Production-stable architecture  
+v1.2 → Structural refinement and internal hardening  
+v1.3 → Optional capability expansion  
+v2.0 → Major architectural shift only  
+
+---
+
+# 🧑‍💻 Author Notes
+
+This plugin evolved through real IRC production usage.
+
+Decisions reflect resolution of:
 
 - Hanging bots
-- Cross-user memory bleed
-- Rate limit storms
+- Cross-user memory contamination
+- Rate-limit storms
 - Registry type crashes
+- Coroutine lifecycle bugs
 
-The current structure reflects what actually works reliably in production.
+The current architecture reflects what has proven reliable under real-world IRC load.
 
 ---
 
-**Maintained by:** Barry Suridge  
-**Plugin:** Asyncio for Limnoria IRC
-
+Maintained by: Barry Suridge  
+Plugin: Asyncio for Limnoria IRC  
+Status: Production-stable architecture
