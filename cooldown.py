@@ -8,70 +8,47 @@
 # Designed to be simple, predictable, and difficult to misuse.
 ###
 
-from __future__ import annotations
-
-from dataclasses import dataclass, field
-from typing import Dict
-
-
-@dataclass
-class CooldownManager:
+class CooldownManager(object):
     """
     Per-context cooldown tracker.
 
-    Keys must already be context-isolated (e.g. f"{channel}:{nick}").
-
-    This manager is intentionally simple and dict-backed to match v1.1 behaviour,
-    while removing global-dict access from the rest of the codebase.
+    Behaviour matches v1.1 logic:
+      - last_time defaults to 0
+      - if delta < cooldown -> wait_time = int(cooldown - delta) + 1
+      - record timestamp when allowed (record-before-API; defensive)
     """
 
-    _store: Dict[str, float] = field(default_factory=dict)
+    def __init__(self):
+        self._store = {}  # context_key -> last_time (float)
 
-    def last_seen(self, context_key: str) -> float:
-        """Return last timestamp for context, or 0.0 if never seen."""
+    def should_wait_message(self, context_key, now, cooldown_s):
         if not context_key:
-            return 0.0
-        return float(self._store.get(context_key, 0.0))
-
-    def should_wait_message(
-        self, context_key: str, now: float, cooldown_s: float
-    ) -> str | None:
-        """
-        If still in cooldown, return the exact user-facing wait message.
-        If allowed, return None.
-
-        Behaviour matches your current logic:
-          wait_time = int(cooldown - (now - last_time)) + 1
-        """
-        if not context_key:
-            # Defensive: treat empty key as "allowed" but do not track.
             return None
 
         cd = float(cooldown_s)
-        if cd <= 0:
+        if cd <= 0.0:
             return None
 
-        last_time = self.last_seen(context_key)
+# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
+
+        last_time = float(self._store.get(context_key, 0.0))
         delta = float(now) - last_time
 
         if delta < cd:
             wait_time = int(cd - delta) + 1
-            return f"Please wait {wait_time}s before sending another request."
+            return "Please wait {}s before sending another request.".format(wait_time)
 
         return None
 
-    def record(self, context_key: str, now: float) -> None:
-        """Record a timestamp for the context."""
+    def record(self, context_key, now):
         if not context_key:
             return
         self._store[context_key] = float(now)
 
-    def clear(self, context_key: str) -> None:
-        """Clear cooldown for a specific context."""
+    def clear(self, context_key):
         if not context_key:
             return
         self._store.pop(context_key, None)
 
-    def clear_all(self) -> None:
-        """Clear all cooldowns."""
+    def clear_all(self):
         self._store.clear()
