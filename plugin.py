@@ -77,13 +77,15 @@ def _to_str(value, default=""):
 
 
 def get_config():
+    plugin_conf = conf.supybot.plugins.Asyncio
+
     return {
-        "max_tokens": _to_int(conf.supybot.plugins.Asyncio.get("maxUserTokens"), 512),
-        "cooldown": _to_int(conf.supybot.plugins.Asyncio.get("cooldownSeconds"), 5),
-        "irc_chunk": _to_int(conf.supybot.plugins.Asyncio.get("ircChunkSize"), 350),
-        "botnick": _to_str(conf.supybot.plugins.Asyncio.get("botnick"), "Puss"),
-        "language": _to_str(conf.supybot.plugins.Asyncio.get("language"), "British"),
-        "debug": _to_bool(conf.supybot.plugins.Asyncio.get("debugMode"), False),
+        "max_tokens": _to_int(plugin_conf.maxUserTokens(), 512),
+        "cooldown": _to_int(plugin_conf.cooldownSeconds(), 5),
+        "irc_chunk": _to_int(plugin_conf.ircChunkSize(), 350),
+        "botnick": _to_str(plugin_conf.botnick(), "Puss"),
+        "language": _to_str(plugin_conf.language(), "British"),
+        "debug": _to_bool(plugin_conf.debugMode(), False),
     }
 
 
@@ -395,4 +397,5 @@ class Asyncio(callbacks.Plugin):
 Class = Asyncio
 
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
+
 
