@@ -17,17 +17,16 @@ from supybot import callbacks
 from supybot.commands import wrap
 import supybot.registry as registry
 
-import asyncio  # <-- REQUIRED (was missing)
+try:
+    import asyncio  # NOTE: currently unused; OK to keep if you plan to use it.
+except ImportError as ie:
+    raise Exception("Cannot import module: {}".format(ie))
+
 import time
 import random
 import re
 import os
 from functools import lru_cache
-
-try:
-    import aiohttp  # NOTE: currently unused; OK to keep if you plan to use it.
-except ImportError as ie:
-    raise Exception("Cannot import module: {}".format(ie))
 
 from openai import OpenAI
 from dotenv import load_dotenv
