@@ -1,9 +1,9 @@
-<!-- README Header (Launch-ready) -->
+<!-- README Header -->
 <p align="center">
   <img src="docs/images/puss-logo.svg" width="220" alt="Puss logo">
 </p>
 
-<h1 align="center">Asyncio Plugin</h1>
+<h1 align="center">Asyncio Plugin (ChatGTP)</h1>
 
 <p align="center">
   <em>Asynchronous AI Chat for Limnoria IRC</em>
@@ -42,98 +42,95 @@
 
 </div>
 
-
 <hr style="width:65%; margin:auto;">
 
-An asynchronous OpenAI plugin for Limnoria.
+## Overview
+
+Asyncio brings modern asynchronous AI chat to Limnoria. It supports natural conversation, math queries, multi-user concurrency, and safe behaviour across channels. The plugin is designed for reliability, clarity, and minimal configuration.
 
 ## Prerequisites
 
-* Step 1: Create an OpenAI Account [OpenAI Platform]( https://platform.openai.com) 
-* Step 2: Generate a New API Key.
-* Step 3: Review Pricing and Usage Terms.
-* Step 4: Create a file named .env in the root directory of your bot i.e. `~/runbot`.
-* Step 5: Add your key-value to this file i.e. `OPENAI_API_KEY = "Your_API_Key"`
+Before installing, ensure you have:
 
-## Install
-
-Go into your Limnoria plugin dir, usually ~/runbot/plugins and run:
+- A valid OpenAI account — [OpenAI Platform]( https://platform.openai.com)
+- A newly generated API key
+- Awareness of OpenAI pricing and usage terms
+- A `.env` file in your bot’s root directory (`~/runbot`) containing:
 
 ```plaintext
-git clone https://github.com/Alcheri/Asyncio.git
+OPENAI_API_KEY="your_api_key_here"
 ```
+Python requirements:
 
-To install additional requirements, run from /plugins/Asyncio:
+* `Python 3.9+`
+* `asyncio`
+* `openai`
+* `python-dotenv`
 
-```plaintext
-pip install --upgrade -r requirements.txt 
-```
+# Installation
 
-Next, load into your bot:
+Navigate to your Limnoria plugin directory (usually ~/runbot/plugins) and clone the repository:
 
-```plaintext
-/msg yourbot load Asyncio
-```
+`git clone https://github.com/Alcheri/Asyncio.git`
 
-## Configure your bot
+Install the plugin’s dependencies:
 
-* **_supybot.plugins.Asyncio.botnick \[`your bot's nick`\]_**\
-The default is "Assistant".
-* **_supybot.plugins.Asyncio.language \[`American, Australian, British or Canadian`\]_**\
-The default is "British".
+`pip install --upgrade -r requirements.txt`
 
-These external modules are required:  ¹ asyncio,  ² openai.
+Load the plugin into your bot:
 
-**Note:** The plugin references `OPENAI_API_KEY` as the key-value label.
+`/msg yourbot load Asyncio`
 
-## Using
+Configuration
+
+The plugin exposes several settings through Limnoria’s configuration system:
+
+* `supybot.plugins.Asyncio.botnick` — the bot’s speaking name\
+_Default_: "Assistant"
+
+* `supybot.plugins.Asyncio.language` — response dialect\
+_Options_: American, Australian, British, Canadian\
+_Default_: British
+
+Usage Examples
 
 ```plaintext
 @chat good morning
-Puss Good morning, SomeNick!  How can I help you today?
+Puss Good morning, SomeNick! How can I help you today?
 
 @chat Tell me a joke
 Puss Processing your message...
-Puss Sure thing! Why did the kangaroo cross the road?  
+Puss Sure thing! Why did the kangaroo cross the road?
 Puss Because it was the chicken’s day off! 🦘😄
 
 @chat What is 3 ** 3?
-
 Puss Processing your message...
 Puss 3 ** 3 means 3 raised to the power of 3.
-Puss Calculating it:
 Puss 3 * 3 * 3 = 27
 Puss Final answer: 27
-
-@chat A farm has chickens and cows. There are a total of 50 heads and 130 legs. How many chickens and cows are on the farm?
-
-Puss Processing your message...
-Puss Let the number of chickens be C and the number of cows be W.
-Puss We have two equations:
-Puss 1. C + W = 50 (total heads)
-Puss 2. 2C + 4W = 130 (total legs)
-Puss From the first equation, we can express W as:
-Puss W = 50 - C
-Puss Substituting W in the second equation:
-Puss 2C + 4(50 - C) = 130
-Puss 2C + 200 - 4C = 130
-Puss ​-2C + 200 = 130
-Puss ​-2C = -70
-Puss C = 35
-Puss Now, W = 50 - 35 = 15
-Puss Final answer: There are 35 chickens and 15 cows.
 ```
 
-** The plugin handles both arithmetic expressions and equations. It also handles natural language math queries.
+Solving word problems
 
-**Notes:**
+```plaintext
+@chat A farm has chickens and cows. There are 50 heads and 130 legs. How many of each?
 
-¹ Python's `asyncio` library is a powerful framework designed for writing concurrent code using the async/await syntax.\
-&nbsp;&nbsp;It allows you to manage asynchronous I/O operations.
+Puss Processing your message...
+Puss Let the number of chickens be C and cows be W.
+Puss C + W = 50
+Puss 2C + 4W = 130
+Puss Solving gives C = 35 and W = 15.
+Puss Final answer: 35 chickens and 15 cows.
+```
 
-² `openai` is the official Python library for the OpenAI API.
+The plugin handles arithmetic, algebra, and natural-language math queries, always returning concise, readable answers.
 
-³ The `python-dotenv` library is a useful (secure) tool in Python for managing environment variables.
+Notes
+
+* `asyncio` provides the asynchronous event loop used for concurrent chat handling.
+* `openai` is the official Python client for the OpenAI API.
+* `python-dotenv` securely loads environment variables from `.env`.
 
 <br><br>
-<p align="center">Copyright © MMXXIV, Barry Suridge</p>
+
+<p align="center">Copyright © MMXXVI, Barry Suridge</p>
