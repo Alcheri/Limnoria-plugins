@@ -35,7 +35,7 @@ conf.registerGlobalValue(
 conf.registerGlobalValue(
     Asyncio,
     "botnick",
-    registry.String("Puss", _("Bot nickname")),
+    registry.String("Assistant", _("Bot nickname")),
 )
 
 # OpenAI handles English dialects only:
