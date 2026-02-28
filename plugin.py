@@ -84,7 +84,7 @@ def get_config():
         "max_tokens": _to_int(plugin_conf.maxUserTokens(), 512),
         "cooldown": _to_int(plugin_conf.cooldownSeconds(), 5),
         "irc_chunk": _to_int(plugin_conf.ircChunkSize(), 350),
-        "botnick": _to_str(plugin_conf.botnick(), "Puss"),
+        "botnick": _to_str(plugin_conf.botnick(), "Assistant"),
         "language": _to_str(plugin_conf.language(), "British"),
         "debug": _to_bool(plugin_conf.debugMode(), False),
     }
