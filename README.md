@@ -32,13 +32,16 @@
   moderation, cooldowns, and a math mode that answers in ≤ 6 lines.
 </p>
 
-<p align="center">
-  <a href="docs/AsyncioPluginGuide.md">Manual</a> •
-  <a href="docs/ROADMAP.md">Roadmap</a> •
-  <a href="./CHANGELOG.md">Changelog</a> •
-  <a href="./DEVELOPER_NOTES.md">Developer Notes</a> •
-  <a href="docs/architecture.md">Architecture </a>
-</p>
+<div align="center">
+
+[Manual](docs/AsyncioPluginGuide.md) •
+[Roadmap](docs/ROADMAP.md) •
+[Changelog](CHANGELOG.md) •
+[Developer Notes](DEVELOPER_NOTES.md) •
+[Architecture](docs/architecture.md)
+
+</div>
+
 
 <hr style="width:65%; margin:auto;">
 
