@@ -3,7 +3,7 @@
   <img src="docs/images/puss-logo.svg" width="220" alt="Puss logo">
 </p>
 
-<h1 align="center">Asyncio Plugin (ChatGPT)</h1>
+<h1 align="center">Asyncio ChatGPT Plugin for Limnoria</h1>
 
 <p align="center">
   <em>Asynchronous AI Chat for Limnoria IRC</em>
