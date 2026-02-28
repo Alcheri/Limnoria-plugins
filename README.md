@@ -36,7 +36,8 @@
   <a href="docs/AsyncioPluginGuide.md">Manual</a> •
   <a href="docs/ROADMAP.md">Roadmap</a> •
   <a href="./CHANGELOG.md">Changelog</a> •
-  <a href="./DEVELOPER_NOTES.md">Developer Notes</a>
+  <a href="./DEVELOPER_NOTES.md">Developer Notes</a> •
+  <a href="docs/docs/architecture.md">Architecture </a>
 </p>
 
 <hr style="width:65%; margin:auto;">
