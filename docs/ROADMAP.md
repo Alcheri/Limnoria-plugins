@@ -12,7 +12,7 @@ Help debug memory behaviour
 
 Demonstrate context isolation
 
-!token_usage
+`!token_usage`
 
 Display approximate:
 
@@ -33,7 +33,7 @@ Configurable maxHistoryLength
 
 Introduce new registry setting:
 
-@config plugins.Asyncio.maxHistoryLength 12
+`@config plugins.Asyncio.maxHistoryLength 12`
 
 Replace hardcoded history trimming with configurable value.
 
@@ -41,7 +41,7 @@ Optional Persistent Memory (Advanced / Optional)
 
 Add:
 
-@config plugins.Asyncio.persistentMemory False
+`@config plugins.Asyncio.persistentMemory False`
 
 If enabled:
 
@@ -57,7 +57,7 @@ Current behaviour:
 
 Auto-detection
 
-≤ 6 lines
+`≤ 6 lines`
 
 Plain text output
 
@@ -69,7 +69,7 @@ Enforced numbered steps
 
 Optional compact mode:
 
-@config plugins.Asyncio.mathCompact True
+`@config plugins.Asyncio.mathCompact True`
 
 🌐 4. Rate Limit Intelligence
 
@@ -85,9 +85,9 @@ Optional short-term global cooldown during API instability
 
 Introduce admin-only commands:
 
-!ai stats\
-!ai resetall\
-!ai clearcache
+`!ai stats`\
+`!ai resetall`\
+`!ai clearcache`
 
 For:
 
@@ -108,13 +108,13 @@ Output truncation detection warning
 🧪 Proposed Milestones
 v1.2-alpha
 
-maxHistoryLength
+`maxHistoryLength`
 
-!history
+`!history`
 
 v1.2-beta
 
-!token_usage
+`!token_usage`
 
 Improved math formatting
 
@@ -155,5 +155,6 @@ Each release must remain production-ready.
 Maintainer: Barry Suridge
 Project: Asyncio Limnoria AI Plugin
 License: MIT
+
 
 
