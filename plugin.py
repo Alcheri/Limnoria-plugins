@@ -18,7 +18,7 @@ from supybot.commands import wrap
 import supybot.registry as registry
 
 try:
-    import asyncio  # NOTE: currently unused; OK to keep if you plan to use it.
+    import asyncio
 except ImportError as ie:
     raise Exception("Cannot import module: {}".format(ie))
 
@@ -352,6 +352,7 @@ class Asyncio(callbacks.Plugin):
 Class = Asyncio
 
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
+
 
 
 
