@@ -7,7 +7,7 @@
 ``/msg <yourbot> config plugins.ID.nickservPassword [BotNickServPassword]``
 
 
-``@identify``
+``@id``
 
 ```plaintext
 @Barry @id
