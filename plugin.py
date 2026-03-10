@@ -41,7 +41,7 @@ _ = PluginInternationalization("ID")
 def nickservIdentify(irc):
     """Identify to DALnet's NickServ"""
     password = plugin_config.ID.nickservPassword()
-    irc.queueMsg(ircmsgs.privmsg("NickServ", "IDENTIFY %s" % password))
+    irc.queueMsg(ircmsgs.privmsg("NickServ@services.dal.net", "IDENTIFY %s" % password))
 
 
 class ID(callbacks.Plugin):
