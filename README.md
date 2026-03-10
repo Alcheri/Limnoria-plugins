@@ -1,0 +1,44 @@
+<h1 align="center">ISO Plugin</h1>
+
+![Python versions](https://img.shields.io/badge/Python-version-blue) ![Supported Python versions](https://img.shields.io/badge/3.9%2C%203.10%2C%203.11%2C%203.12%2C%203.13-blue.svg) [![Code style: black](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black) ![Build Status](local/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg) [![CodeQL](https://github.com/Alcheri/Weather/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Alcheri/Weather/actions/workflows/github-code-scanning/codeql)
+
+<p align="center">
+    <em>Convert alpha2 country codes to country name and vice versa.</em>
+</p>
+
+## Install
+
+Download ISO to the plugin dir, usually ~/runbot/plugins:
+
+```plaintext
+git clone https://github.com/Alcheri/ISO.git
+```
+
+To install additional requirements, run from /plugins/ISO folder:
+
+```plaintext
+pip install --upgrade -r requirements.txt 
+```
+
+Next, load the plugin:
+
+```plaintext
+/msg bot load ISO
+```
+
+## Setting up
+
+**_None_**
+
+## Using
+
+```plaintext
+<Barry> @country myanmar
+<Borg>  MM Myanmar
+
+<Barry> @country tr
+<Borg>  TR Türkiye
+```
+
+<br/><br/>
+<p align="center">Copyright © MMXXIV, Barry Suridge</p>
