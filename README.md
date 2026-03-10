@@ -4,4 +4,13 @@
   <em>A plugin to identify to DALnet's NickServ</em>
 </p>
 
+``/msg <yourbot> config plugins.ID.nickservPassword [BotNickServPassword]``
+
+
 ``@identify``
+
+```plaintext
+@Barry @id
+@Borg Barry: Identifying to NickServ...
+@Borg Barry: The operation succeeded.
+```
