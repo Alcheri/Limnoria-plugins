@@ -3,3 +3,5 @@
 <p align="center">
   <em>A plugin to identify to DALnet's NickServ</em>
 </p>
+
+``@identify``
