@@ -65,6 +65,6 @@ conf.registerGlobalValue(
     ),
 )
 
-# config plugins.ID.nickservPassword() will return the value of this configuration variable.
+# config plugins.ID.nickservPassword will return the value of this configuration variable.
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
