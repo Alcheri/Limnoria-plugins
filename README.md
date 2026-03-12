@@ -1,12 +1,21 @@
 
 <h1 align="center">An alternative to Limnorias' PING function </h1>
 
-![Python versions](https://img.shields.io/badge/Python-version-blue) ![Supported Python versions](https://img.shields.io/badge/3.9%2C%203.10%2C%203.11%2C%203.12%2C%203.13-blue.svg) [![Code style: black](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black) ![Build Status](local/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg) [![CodeQL](https://github.com/Alcheri/MyPing/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Alcheri/Weather/actions/workflows/github-code-scanning/codeql/badge.svg)
+<p align="center">
+  <a href="https://github.com/Alcheri/Asyncio/releases/latest">
+    <img src="https://img.shields.io/github/v/release/Alcheri/Asyncio?sort=semver" alt="Latest Release">
+  </a>
+  <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+</p>
 
-<center>
-    <em>Returns the ping result of <hostname | ip or IPv6> using Python's shlex library.
+<p align="center">
+    <em>
+        Returns the ping result of <hostname | ip or IPv6> using Python's shlex library.
     </em>
-</center>
+</p>
+        
 # Install
 
 Download the plugin:
@@ -45,4 +54,5 @@ To stop conflict with Limnorias' core 'ping' function do the following:
 
 <br><br>
 <p align="center">Copyright © MMXXV, Barry Suridge</p>
+
 
