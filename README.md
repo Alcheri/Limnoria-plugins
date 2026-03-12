@@ -51,7 +51,11 @@ Next, load the plugin:
 * **_supybot.plugins.UrbanDictionary.requestTimeout_**
 
     HTTP timeout in seconds for API requests. Default is _10_.
+  
+* **_supybot.plugins.UrbanDictionary.preferDefinePage_**
 
+    Prefer scraping the define page first instead of using the API endpoint.
+  
 * **_aka add ud urbandictionary $*_**
 
     Add an alias to your bot for ease of use.
@@ -70,3 +74,4 @@ Notes:
 One which doesn't exist, but you should ask [the stoner] people how it's doing anyways.
 Example: Hey [Maya], how's your spline doing? What? Not to well? Oh, [I'm sorry] to [hear] that.
 ```
+
