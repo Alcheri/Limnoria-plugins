@@ -1,7 +1,7 @@
 <h1 align="center">Limnoria plugin for UrbanDictionary</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
+    <img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
@@ -48,9 +48,18 @@ Next, load the plugin:
 
     Should plugin work in this channel?
 
+* **_supybot.plugins.UrbanDictionary.requestTimeout_**
+
+    HTTP timeout in seconds for API requests. Default is _10_.
+
 * **_aka add ud urbandictionary $*_**
 
     Add an alias to your bot for ease of use.
+
+Notes:
+
+- API requests are sent over HTTPS.
+- Search terms are URL-encoded automatically.
 
 ## Example Usage
 
