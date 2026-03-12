@@ -119,7 +119,9 @@ class UrbanDictionary(callbacks.Plugin):
                 )
         return None
 
-    def _fetch_define_page_fallback(self, term: str, timeout: int) -> Optional[Dict[str, Any]]:
+    def _fetch_define_page_fallback(
+        self, term: str, timeout: int
+    ) -> Optional[Dict[str, Any]]:
         """Fallback to scraping the Urban Dictionary define page when API fetches fail."""
         url = f"https://www.urbandictionary.com/define.php?term={quote_plus(term)}"
         headers = {"User-Agent": DEFAULT_USER_AGENT, "Accept": "text/html"}
@@ -155,7 +157,9 @@ class UrbanDictionary(callbacks.Plugin):
                 break
 
         if not description:
-            title_match = re.search(r"<title[^>]*>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
+            title_match = re.search(
+                r"<title[^>]*>(.*?)</title>", html, re.IGNORECASE | re.DOTALL
+            )
             if title_match:
                 description = title_match.group(1).strip()
 
