@@ -29,11 +29,14 @@ from supybot.commands import *
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 
+DEFAULT_USER_AGENT = (
+    "Limnoria-UrbanDictionary/1.0 (+https://github.com/Alcheri/UrbanDictionary)"
+)
+
 try:
     from supybot.i18n import PluginInternationalization
 
     _ = PluginInternationalization("UrbanDictionary")
-    DEFAULT_USER_AGENT = "Limnoria-UrbanDictionary/1.0 (+https://github.com/Alcheri/UrbanDictionary)"
 except ImportError:
     _ = lambda x: x
 
@@ -79,7 +82,9 @@ class UrbanDictionary(callbacks.Plugin):
         try:
             headers = {"User-Agent": DEFAULT_USER_AGENT, "Accept": "application/json"}
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=timeout, headers=headers) as response:
+                async with session.get(
+                    url, timeout=timeout, headers=headers
+                ) as response:
                     if response.status == 200:
                         return await response.text()
                     else:
