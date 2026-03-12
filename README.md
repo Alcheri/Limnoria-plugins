@@ -4,8 +4,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
-</p
+  <img src="https://img.shields.io/badge/License-BSD_3--Clause-blue.svg" alt="License">
+</p>
 
 <p align="center">
     <em>
@@ -51,6 +51,7 @@ To stop conflict with Limnorias' core 'ping' function do the following:
 
 <br><br>
 <p align="center">Copyright © MMXXV, Barry Suridge</p>
+
 
 
 
