@@ -22,6 +22,10 @@ MOCK_JSON_EMPTY_LIST = '{"list": []}'
 class UrbanDictionaryTestCase(PluginTestCase):
     plugins = ("UrbanDictionary",)
 
+    def setUp(self):
+        super().setUp()
+        conf.supybot.plugins.UrbanDictionary.preferDefinePage.setValue(False)
+
     @patch("UrbanDictionary.plugin.UrbanDictionary._fetch_url", new_callable=AsyncMock)
     def testUrbanDictionary(self, mock_fetch_url):
         mock_fetch_url.return_value = MOCK_JSON_WITH_DEFINITION
@@ -74,6 +78,30 @@ class UrbanDictionaryTestCase(PluginTestCase):
 
         self.assertRegexp("urbandictionary bogan", "Fallback definition text")
         mock_define_fallback.assert_called_once()
+
+    @patch("UrbanDictionary.plugin.UrbanDictionary._fetch_url", new_callable=AsyncMock)
+    @patch("UrbanDictionary.plugin.UrbanDictionary._fetch_url_fallback")
+    @patch("UrbanDictionary.plugin.UrbanDictionary._fetch_define_page_fallback")
+    def testUrbanDictionaryPreferDefinePage(
+        self, mock_define_fallback, mock_json_fallback, mock_fetch_url
+    ):
+        conf.supybot.plugins.UrbanDictionary.preferDefinePage.setValue(True)
+        mock_define_fallback.return_value = {
+            "list": [
+                {
+                    "definition": "Define page first",
+                    "example": "",
+                    "thumbs_up": 0,
+                    "thumbs_down": 0,
+                }
+            ],
+            "tags": [],
+        }
+
+        self.assertRegexp("urbandictionary bogan", "Define page first")
+        mock_define_fallback.assert_called_once()
+        mock_fetch_url.assert_not_called()
+        mock_json_fallback.assert_not_called()
 
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

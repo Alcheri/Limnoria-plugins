@@ -51,4 +51,15 @@ conf.registerGlobalValue(
     ),
 )
 
+conf.registerGlobalValue(
+    UrbanDictionary,
+    "preferDefinePage",
+    registry.Boolean(
+        False,
+        _(
+            """Prefer scraping the define page first instead of using the API endpoint."""
+        ),
+    ),
+)
+
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=250:

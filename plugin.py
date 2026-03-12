@@ -231,12 +231,22 @@ class UrbanDictionary(callbacks.Plugin):
         url = f"https://api.urbandictionary.com/v0/define?{query}"
         timeout = self.registryValue("requestTimeout")
 
-        json_data = self._run_coro(self._fetch_url(url, timeout))
-        if not json_data:
-            json_data = self._fetch_url_fallback(url, timeout)
+        prefer_define_page = self.registryValue("preferDefinePage")
+        json_data = None
         data = None
-        if not json_data:
+
+        if prefer_define_page:
             data = self._fetch_define_page_fallback(optterm, timeout)
+            if data is None:
+                json_data = self._run_coro(self._fetch_url(url, timeout))
+                if not json_data:
+                    json_data = self._fetch_url_fallback(url, timeout)
+        else:
+            json_data = self._run_coro(self._fetch_url(url, timeout))
+            if not json_data:
+                json_data = self._fetch_url_fallback(url, timeout)
+            if not json_data:
+                data = self._fetch_define_page_fallback(optterm, timeout)
 
         if not json_data and not data:
             irc.error(f"Could not retrieve data for '{optterm}'.", prefixNick=False)
