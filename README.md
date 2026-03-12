@@ -9,7 +9,7 @@ Forked from https://github.com/reticulatingspline/WorldTime
 Go into your Limnoria plugin dir, usually ~/runbot/plugins and run:
 
 ```plaintext
-https://github.com/Alcheri/WorldTime.git
+gh repo clone Alcheri/WorldTime
 ```
 
 To install additional requirements, run from /plugins/WorldTime folder:
