@@ -104,12 +104,19 @@ class UrbanDictionary(callbacks.Plugin):
         """Fallback fetch path using stdlib urllib when aiohttp fails."""
         headers = {"User-Agent": DEFAULT_USER_AGENT, "Accept": "application/json"}
         req = urllib.request.Request(url, headers=headers)
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as response:
-                return response.read().decode("utf-8", errors="replace")
-        except (urllib.error.URLError, TimeoutError, OSError) as e:
-            log.error("Fallback fetch failed for %s: %s", url, e)
-            return None
+        retry_timeout = max(timeout + 10, timeout * 2)
+        for current_timeout in (timeout, retry_timeout):
+            try:
+                with urllib.request.urlopen(req, timeout=current_timeout) as response:
+                    return response.read().decode("utf-8", errors="replace")
+            except (urllib.error.URLError, TimeoutError, OSError) as e:
+                log.error(
+                    "Fallback fetch failed for %s (timeout=%ss): %s",
+                    url,
+                    current_timeout,
+                    e,
+                )
+        return None
 
     def _run_coro(self, coro):
         """Run a coroutine in an isolated event loop.
