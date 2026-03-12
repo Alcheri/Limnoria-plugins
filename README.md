@@ -1,39 +1,79 @@
 # Wikipedia
 
-![Python versions](https://img.shields.io/badge/Python-version-blue) ![Supported Python versions](https://img.shields.io/badge/3.11%2C%203.12%2C%203.13-blue.svg) [![Code style: black](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black) ![Build Status](https://github.com/Alcheri/My-Limnoria-Plugins/blob/master/img/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg) [![CodeQL](https://github.com/Alcheri/Weather/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Alcheri/Weather/actions/workflows/github-code-scanning/codeql) [![Lint](https://github.com/Alcheri/Weather/actions/workflows/black.yml/badge.svg)](https://github.com/Alcheri/Weather/actions/workflows/black.yml)
-## Introduction
+Limnoria plugin to query and summarize Wikipedia articles.
 
-This is a Limnoria plugin to query and search Wikipedia.
+## Requirements
+
+- Python 3.10+
+- Limnoria
+- requests
+- beautifulsoup4
 
 ## Install
 
-Go into your Limnoria plugin dir, usually ~/runbot/plugins and run:
+From your Limnoria plugins directory:
 
-```plaintext
+```bash
 git clone https://github.com/Alcheri/Wikipedia.git
 ```
 
-To install additional requirements, run from plugins/Wikipedia:
+Install plugin dependencies:
 
-```plaintext
-pip install --upgrade -r requirements.txt 
+```bash
+cd Wikipedia
+pip install --upgrade -r requirements.txt
 ```
 
-Next, load the plugin:
+Load the plugin:
 
-```plaintext
+```text
 /msg bot load Wikipedia
 ```
 
-## Configuring
+## Configuration
 
-* **_config channel #channel plugins.Wikipedia.enabled True or False (On or Off)_**
+Enable in a channel:
 
-## Example Usage
-
-```plaintext
-<Barry> @wiki monty python
-<Borg> Monty Python (also collectively known as the Pythons)[2][3] were a British comedy troupe formed in 1969 consisting of Graham Chapman, John Cleese, Terry Gilliam, Eric Idle, Terry Jones, and Michael Palin.
+```text
+/msg bot config channel #channel plugins.Wikipedia.enabled True
 ```
 
-**_Inspired by: [andrewtryder/Wikipedia](https://github.com/andrewtryder/Wikipedia)_**
+Disable in a channel:
+
+```text
+/msg bot config channel #channel plugins.Wikipedia.enabled False
+```
+
+## Usage
+
+```text
+@wiki monty python
+```
+
+Example response:
+
+```text
+Monty Python (also collectively known as the Pythons) were a British comedy troupe formed in 1969.
+```
+
+## Behavior Notes
+
+- Returns a short summary (up to 2 paragraphs), truncated for IRC-friendly length.
+- Detects disambiguation pages and asks for a more specific topic.
+- Returns a friendly message when no article is found.
+- Honors channel enable/disable config, and can still be used in private messages.
+
+## Testing
+
+Run isolated Wikipedia plugin tests in WSL (without loading other plugins):
+
+```bash
+wsl -e bash -lc 'set -euo pipefail; cd /home/barry/supyplugins; source .venv-wsl/bin/activate; TMPDIR=$(mktemp -d); cp -a Wikipedia "$TMPDIR"/Wikipedia; supybot-test --plugins-dir="$TMPDIR" --disable-multiprocessing --no-network Wikipedia; STATUS=$?; rm -rf "$TMPDIR"; exit $STATUS'
+```
+
+Expected result:
+
+- 3 tests run
+- 0 failures
+
+Inspired by <https://github.com/andrewtryder/Wikipedia>

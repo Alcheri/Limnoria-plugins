@@ -6,9 +6,9 @@
 ###
 
 # supybot libs
-from supybot.commands import *
+from supybot.commands import wrap
 import supybot.callbacks as callbacks
-from supybot.i18n import PluginInternationalization, internationalizeDocstring
+from supybot.i18n import PluginInternationalization
 
 _ = PluginInternationalization("Wikipedia")
 
@@ -23,6 +23,7 @@ except ImportError as ie:
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:110.0) Gecko/20100101 Firefox/110.0"
 }
+REQUEST_TIMEOUT = 10
 
 
 class Wikipedia(callbacks.Plugin):
@@ -34,8 +35,7 @@ class Wikipedia(callbacks.Plugin):
     threaded = True
 
     def __init__(self, irc):
-        self.__parent = super(Wikipedia, self)
-        self.__parent.__init__(irc)
+        super().__init__(irc)
 
     @wrap(["text"])
     def wiki(self, irc, msg, args, subject):
@@ -48,15 +48,19 @@ class Wikipedia(callbacks.Plugin):
         If the topic is not found, it provides a message indicating that no entry was found for the given topic.
         """
 
-        # Check if the plugin is enabled in the channel
-        if not self.registryValue("enabled", msg.channel, irc.network):
+        # Only enforce channel enablement in channels; allow PM usage.
+        channel = getattr(msg, "channel", None)
+        if channel and not self.registryValue("enabled", channel, irc.network):
             return
 
-        # Normalize the subject input
-        subject = " ".join([word.capitalize() for word in subject.split()])
+        # Normalize spacing without changing user-provided capitalization.
+        subject = " ".join(subject.split())
+        if not subject:
+            irc.error("Please provide a topic to search.", Raise=True)
+            return
 
         url = "https://en.wikipedia.org/w/api.php"
-        PARAMS = {
+        params = {
             "action": "parse",
             "page": subject,
             "lang": "en",
@@ -66,40 +70,64 @@ class Wikipedia(callbacks.Plugin):
         }
 
         try:
-            response = requests.get(url, params=PARAMS, headers=HEADERS)
+            response = requests.get(
+                url,
+                params=params,
+                headers=HEADERS,
+                timeout=REQUEST_TIMEOUT,
+            )
             response.raise_for_status()
             data = response.json()
 
             if "error" in data:
                 error_message = data["error"].get("info", "Unknown error")
                 irc.reply(
-                    f"The page '{subject}' does not exist on Wikipedia. Please check your query or try a different topic.",
+                    f"No result for '{subject}' on Wikipedia ({error_message}).",
                     prefixNick=False,
                 )
                 return
 
-            raw_html = data["parse"]["text"]["*"]
+            raw_html = data.get("parse", {}).get("text", {}).get("*")
+            if not raw_html:
+                irc.reply(
+                    f"No readable summary available for '{subject}'.",
+                    prefixNick=False,
+                )
+                return
+
             soup = BeautifulSoup(raw_html, "html.parser")
-            text = ""
+            paragraphs = []
 
             for p in soup.find_all("p"):
-                if "may refer to:" in p.text:
+                paragraph_text = p.get_text(" ", strip=True)
+                if not paragraph_text:
+                    continue
+                if "may refer to:" in paragraph_text.lower():
                     irc.reply(
                         f"Disambiguation page found for '{subject}'. Please be more specific.",
                         prefixNick=False,
                     )
                     return
-                text += p.text
+                paragraphs.append(paragraph_text)
+                if len(paragraphs) >= 2:
+                    break
 
         except requests.exceptions.RequestException as e:
             irc.error(f"Network error: {e}", Raise=True)
             return
-        except Exception as e:
-            irc.error(f"{e}", Raise=True)
+        except (KeyError, TypeError, ValueError) as e:
+            irc.error(f"Unable to parse Wikipedia response: {e}", Raise=True)
+            return
+
+        if not paragraphs:
+            irc.reply(
+                f"No summary text found for '{subject}'.",
+                prefixNick=False,
+            )
             return
 
         # Return a longer summary or truncate if too long
-        summary = ". ".join(text.strip().split(".")[:2]) + "."
+        summary = " ".join(paragraphs)
         if len(summary) > 300:
             summary = summary[:297] + "... (truncated)"
         irc.reply(summary, prefixNick=False)

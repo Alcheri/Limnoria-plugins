@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-cd Wikipedia
 ###
 # Copyright © 2025, Barry Suridge
 # All rights reserved.
@@ -6,50 +5,64 @@
 # Credits: spline [https://github.com/andrewtryder] for the inspiration.
 ###
 
-import unittest
-from unittest.mock import patch, Mock
-from Wikipedia.plugin import Wikipedia
-
-# FILE: Wikipedia/test.py
+from supybot.test import *
+from unittest.mock import MagicMock, patch
 
 
-class TestWikipediaPlugin(unittest.TestCase):
+class WikipediaTestCase(PluginTestCase):
+    plugins = ("Wikipedia",)
+
+    @patch("Wikipedia.plugin.Wikipedia.registryValue", return_value=True)
     @patch("Wikipedia.plugin.requests.get")
-    def test_wiki_success(self, mock_get):
-        # Mock the API response
-        mock_response = Mock()
+    def test_wiki_success(self, mock_get, _mock_registry_value):
+        mock_response = MagicMock()
+        mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {
-            "parse": {"text": {"*": "<p>This is a test Wikipedia entry.</p>"}}
+            "parse": {
+                "text": {
+                    "*": "<p>This is a test Wikipedia entry.</p>",
+                }
+            }
         }
         mock_get.return_value = mock_response
 
-        # Create an instance of the Wikipedia plugin
-        plugin = Wikipedia()
+        self.assertResponse("wiki test", "This is a test Wikipedia entry.")
 
-        # Mock the irc.reply method
-        irc = Mock()
-        plugin.wiki(irc, None, None, "Test")
+    @patch("Wikipedia.plugin.Wikipedia.registryValue", return_value=True)
+    @patch("Wikipedia.plugin.requests.get")
+    def test_wiki_disambiguation(self, mock_get, _mock_registry_value):
+        mock_response = MagicMock()
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = {
+            "parse": {
+                "text": {
+                    "*": "<p>Mercury may refer to:</p>",
+                }
+            }
+        }
+        mock_get.return_value = mock_response
 
-        # Assert that irc.reply was called with the expected output
-        irc.reply.assert_called_once_with(
-            "This is a test Wikipedia entry.", prefixNick=False
+        self.assertResponse(
+            "wiki mercury",
+            "Disambiguation page found for 'mercury'. Please be more specific.",
         )
 
+    @patch("Wikipedia.plugin.Wikipedia.registryValue", return_value=True)
     @patch("Wikipedia.plugin.requests.get")
-    def test_wiki_exception(self, mock_get):
-        # Mock an exception during the API request
-        mock_get.side_effect = Exception("API request failed")
+    def test_wiki_no_result_error(self, mock_get, _mock_registry_value):
+        mock_response = MagicMock()
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = {
+            "error": {
+                "info": "missingtitle",
+            }
+        }
+        mock_get.return_value = mock_response
 
-        # Create an instance of the Wikipedia plugin
-        plugin = Wikipedia()
-
-        # Mock the irc.error method
-        irc = Mock()
-        plugin.wiki(irc, None, None, "Test")
-
-        # Assert that irc.error was called with the expected error message
-        irc.error.assert_called_once_with("Error: API request failed", Raise=True)
+        self.assertResponse(
+            "wiki topicthatdoesnotexist",
+            "No result for 'topicthatdoesnotexist' on Wikipedia (missingtitle).",
+        )
 
 
-if __name__ == "__main__":
-    unittest.main()
+# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

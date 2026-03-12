@@ -11,5 +11,6 @@ plugin_setup(
     "Wikipedia",
     install_requires=[
         "beautifulsoup4",
+        "requests",
     ],
 )
