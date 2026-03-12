@@ -29,6 +29,7 @@
 ###
 import shlex
 import subprocess
+import sys
 
 ###
 from supybot.commands import *
@@ -106,11 +107,14 @@ class MyPing(callbacks.Plugin):
                 (nick, _, host) = utils.splitHostmask(userHostmask)
             except KeyError:
                 pass
-        cmd = shlex.split(f"ping -c 1 -W 1 {host}")
+        if sys.platform.startswith("win"):
+            cmd = shlex.split(f"ping -n 1 -w 1000 {host}")
+        else:
+            cmd = shlex.split(f"ping -c 1 -W 1 {host}")
         try:
-            reply = subprocess.check_output(cmd).decode().strip()
+            reply = subprocess.check_output(cmd, text=True).strip()
             elapsed_loss = _elapsed_loss(reply)
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, FileNotFoundError):
             # Will print the command failed
             irc.reply(f"{red(cmd[-1])} is Not Reachable", prefixNick=False)
         else:
