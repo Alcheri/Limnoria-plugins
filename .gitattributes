@@ -1,0 +1,2 @@
+# Enforce LF endings for Python source files across platforms.
+*.py text eol=lf

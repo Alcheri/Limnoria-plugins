@@ -1,5 +1,6 @@
 .*
 !.gitignore
+!.gitattributes
 *.Identifier
 /__pycache__
 /local/__pycache__
