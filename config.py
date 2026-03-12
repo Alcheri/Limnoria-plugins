@@ -46,8 +46,6 @@ def configure(advanced):
 
 Weather = conf.registerPlugin("Weather")
 
-conf.registerGroup(Weather, "apikeys")
-
 conf.registerGlobalValue(
     Weather,
     "googlemapsAPI",
