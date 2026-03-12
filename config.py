@@ -46,7 +46,9 @@ conf.registerChannelValue(
 conf.registerGlobalValue(
     UrbanDictionary,
     "requestTimeout",
-    registry.Integer(10, _("""HTTP timeout in seconds for UrbanDictionary API requests.""")),
+    registry.Integer(
+        10, _("""HTTP timeout in seconds for UrbanDictionary API requests.""")
+    ),
 )
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=250:

@@ -58,8 +58,8 @@ Next, load the plugin:
 
 Notes:
 
-- API requests are sent over HTTPS.
-- Search terms are URL-encoded automatically.
+* API requests are sent over HTTPS.
+* Search terms are URL-encoded automatically.
 
 ## Example Usage
 
