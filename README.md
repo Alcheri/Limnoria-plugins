@@ -1,11 +1,14 @@
-# MyDNS
+<h1 align="center">MyDNS</h1>
 
-![Python versions](https://img.shields.io/badge/Python-version-blue)
-![Supported Python versions](https://img.shields.io/badge/3.9%2C%203.10%2C%203.11%2C%203.12%2C%203.13-blue.svg)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black)
-![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+</p>
 
-Alternative DNS lookup plugin for Limnoria with GeoIP enrichment.
+<p align="center">
+  Alternative DNS lookup plugin for Limnoria with GeoIP enrichment.
+</p>
 
 ## Features
 
@@ -127,3 +130,4 @@ config plugins.MyDNS.ipstackAPI your_api_key_here
 ```
 
 Copyright © MMXXVI, Barry Suridge
+
