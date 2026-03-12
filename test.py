@@ -41,7 +41,9 @@ class URLtitleTestCase(PluginTestCase):
         mock_get.return_value = mock_response
 
         result = self.plugin.fetch_title("https://example.com/no-title")
-        self.assertEqual(result, "Title for https://example.com/no-title: No title found")
+        self.assertEqual(
+            result, "Title for https://example.com/no-title: No title found"
+        )
 
     @patch("URLtitle.plugin.requests.get", side_effect=RequestException("boom"))
     def testFetchTitleRequestError(self, mock_get):
@@ -55,7 +57,9 @@ class URLtitleTestCase(PluginTestCase):
         fake_irc.network = "testnet"
 
         with patch.object(self.plugin, "registryValue", return_value=True):
-            with patch.object(self.plugin, "fetch_title", return_value="Example Domain") as mock_fetch:
+            with patch.object(
+                self.plugin, "fetch_title", return_value="Example Domain"
+            ) as mock_fetch:
                 self.plugin.doPrivmsg(fake_irc, msg)
 
         mock_fetch.assert_called_once_with("http://www.example.com")

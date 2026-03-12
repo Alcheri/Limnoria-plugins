@@ -52,7 +52,9 @@ class URLtitle(callbacks.Plugin):
 
         try:
             # Fetch the webpage
-            response = requests.get(url, headers=HEADERS, timeout=REQUEST_TIMEOUT_SECONDS)
+            response = requests.get(
+                url, headers=HEADERS, timeout=REQUEST_TIMEOUT_SECONDS
+            )
             response.raise_for_status()
 
             # Parse the HTML and extract the title
