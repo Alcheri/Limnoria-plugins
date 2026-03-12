@@ -12,7 +12,8 @@
 import json
 import urllib.error
 import urllib.request
-from urllib.parse import urlencode
+from urllib.parse import quote_plus, urlencode
+import re
 from typing import Any, Dict, List, Optional, Tuple
 
 # Third-party imports
@@ -118,6 +119,61 @@ class UrbanDictionary(callbacks.Plugin):
                 )
         return None
 
+    def _fetch_define_page_fallback(self, term: str, timeout: int) -> Optional[Dict[str, Any]]:
+        """Fallback to scraping the Urban Dictionary define page when API fetches fail."""
+        url = f"https://www.urbandictionary.com/define.php?term={quote_plus(term)}"
+        headers = {"User-Agent": DEFAULT_USER_AGENT, "Accept": "text/html"}
+        req = urllib.request.Request(url, headers=headers)
+        retry_timeout = max(timeout + 10, timeout * 2)
+        html = None
+        for current_timeout in (timeout, retry_timeout):
+            try:
+                with urllib.request.urlopen(req, timeout=current_timeout) as response:
+                    html = response.read().decode("utf-8", errors="replace")
+                    break
+            except (urllib.error.URLError, TimeoutError, OSError) as e:
+                log.error(
+                    "Define-page fallback failed for %s (timeout=%ss): %s",
+                    term,
+                    current_timeout,
+                    e,
+                )
+
+        if not html:
+            return None
+
+        # Try the most descriptive metadata first, then title as a last resort.
+        description_patterns = (
+            r'property="og:description" content="([^"]+)"',
+            r'name="description" content="([^"]+)"',
+        )
+        description = ""
+        for pattern in description_patterns:
+            match = re.search(pattern, html, re.IGNORECASE | re.DOTALL)
+            if match:
+                description = match.group(1).strip()
+                break
+
+        if not description:
+            title_match = re.search(r"<title[^>]*>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
+            if title_match:
+                description = title_match.group(1).strip()
+
+        if not description:
+            return None
+
+        return {
+            "list": [
+                {
+                    "definition": description,
+                    "example": "",
+                    "thumbs_up": 0,
+                    "thumbs_down": 0,
+                }
+            ],
+            "tags": [],
+        }
+
     def _run_coro(self, coro):
         """Run a coroutine in an isolated event loop.
 
@@ -174,17 +230,21 @@ class UrbanDictionary(callbacks.Plugin):
         json_data = self._run_coro(self._fetch_url(url, timeout))
         if not json_data:
             json_data = self._fetch_url_fallback(url, timeout)
-
+        data = None
         if not json_data:
+            data = self._fetch_define_page_fallback(optterm, timeout)
+
+        if not json_data and not data:
             irc.error(f"Could not retrieve data for '{optterm}'.", prefixNick=False)
             return
 
-        try:
-            data = json.loads(json_data)
-        except json.JSONDecodeError as e:
-            log.error(f"Error parsing JSON: {e}")
-            irc.error("Failed to parse Urban Dictionary data.", prefixNick=False)
-            return
+        if data is None:
+            try:
+                data = json.loads(json_data)
+            except json.JSONDecodeError as e:
+                log.error(f"Error parsing JSON: {e}")
+                irc.error("Failed to parse Urban Dictionary data.", prefixNick=False)
+                return
 
         definitions = data.get("list", [])
 

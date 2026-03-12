@@ -52,5 +52,28 @@ class UrbanDictionaryTestCase(PluginTestCase):
         self.assertRegexp("urbandictionary hello", ":: A greeting")
         mock_fallback.assert_called_once()
 
+    @patch("UrbanDictionary.plugin.UrbanDictionary._fetch_url", new_callable=AsyncMock)
+    @patch("UrbanDictionary.plugin.UrbanDictionary._fetch_url_fallback")
+    @patch("UrbanDictionary.plugin.UrbanDictionary._fetch_define_page_fallback")
+    def testUrbanDictionaryUsesDefinePageFallback(
+        self, mock_define_fallback, mock_json_fallback, mock_fetch_url
+    ):
+        mock_fetch_url.return_value = None
+        mock_json_fallback.return_value = None
+        mock_define_fallback.return_value = {
+            "list": [
+                {
+                    "definition": "Fallback definition text",
+                    "example": "",
+                    "thumbs_up": 0,
+                    "thumbs_down": 0,
+                }
+            ],
+            "tags": [],
+        }
+
+        self.assertRegexp("urbandictionary bogan", "Fallback definition text")
+        mock_define_fallback.assert_called_once()
+
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
