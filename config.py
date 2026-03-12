@@ -8,7 +8,7 @@
 
 import supybot.conf as conf
 import supybot.registry as registry
-from supybot.i18n import PluginInternationalization, internationalizeDocstring
+from supybot.i18n import PluginInternationalization
 
 _ = PluginInternationalization("UrbanDictionary")
 
@@ -41,6 +41,12 @@ conf.registerChannelValue(
     UrbanDictionary,
     "enabled",
     registry.Boolean(False, _("""Should plugin work in this channel?""")),
+)
+
+conf.registerGlobalValue(
+    UrbanDictionary,
+    "requestTimeout",
+    registry.Integer(10, _("""HTTP timeout in seconds for UrbanDictionary API requests.""")),
 )
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=250:

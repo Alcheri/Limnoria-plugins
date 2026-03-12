@@ -24,7 +24,6 @@ import supybot.world as world
 # in here if you're keeping the plugin in CVS or some similar system.
 __version__ = "28122024"
 
-# XXX Replace this with an appropriate author or supybot.Author instance.
 __author__ = supybot.Author("reticulatingspline", "spline", "")
 __maintainer__ = getattr(
     supybot.authors,

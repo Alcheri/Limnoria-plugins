@@ -10,6 +10,7 @@
 
 # Standard library imports
 import json
+from urllib.parse import urlencode
 from typing import Any, Dict, List, Optional, Tuple
 
 # Third-party imports
@@ -70,11 +71,11 @@ class UrbanDictionary(callbacks.Plugin):
         """Clean up JSON strings by removing unnecessary whitespace and escape characters."""
         return s.replace("\n", "").replace("\r", "").replace("\t", "").strip()
 
-    async def _fetch_url(self, url: str) -> Optional[str]:
+    async def _fetch_url(self, url: str, timeout: int) -> Optional[str]:
         """Fetch data from a URL asynchronously using aiohttp."""
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=10) as response:
+                async with session.get(url, timeout=timeout) as response:
                     if response.status == 200:
                         return await response.text()
                     else:
@@ -83,6 +84,17 @@ class UrbanDictionary(callbacks.Plugin):
         except Exception as e:
             log.error(f"Error fetching URL {url}: {e}")
             return None
+
+    def _run_coro(self, coro):
+        """Run a coroutine in an isolated event loop.
+
+        This avoids collisions with any event loop state in the host process.
+        """
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(coro)
+        finally:
+            loop.close()
 
     ####################
     # PUBLIC FUNCTIONS #
@@ -120,10 +132,11 @@ class UrbanDictionary(callbacks.Plugin):
             elif key == "showtags":
                 args["showTags"] = True
 
-        # Use the dynamic term directly.
-        url = f"http://api.urbandictionary.com/v0/define?term={optterm}"
+        query = urlencode({"term": optterm})
+        url = f"https://api.urbandictionary.com/v0/define?{query}"
+        timeout = self.registryValue("requestTimeout")
 
-        json_data = asyncio.run(self._fetch_url(url))
+        json_data = self._run_coro(self._fetch_url(url, timeout))
 
         if not json_data:
             irc.error(f"Could not retrieve data for '{optterm}'.", prefixNick=False)

@@ -30,6 +30,16 @@ class UrbanDictionaryTestCase(PluginTestCase):
         self.assertRegexp("urbandictionary spline", ":: A greeting")
 
     @patch("UrbanDictionary.plugin.UrbanDictionary._fetch_url", new_callable=AsyncMock)
+    def testUrbanDictionaryEncodesQueryAndTimeout(self, mock_fetch_url):
+        mock_fetch_url.return_value = MOCK_JSON_WITH_DEFINITION
+        conf.supybot.plugins.UrbanDictionary.requestTimeout.setValue(7)
+        self.assertRegexp('urbandictionary "hello world"', ":: A greeting")
+
+        called_url, called_timeout = mock_fetch_url.call_args.args
+        self.assertIn("term=hello+world", called_url)
+        self.assertEqual(called_timeout, 7)
+
+    @patch("UrbanDictionary.plugin.UrbanDictionary._fetch_url", new_callable=AsyncMock)
     def testUrbanDictionaryNoDefinition(self, mock_fetch_url):
         mock_fetch_url.return_value = MOCK_JSON_EMPTY_LIST
         self.assertError("urbandictionary unknownterm")
