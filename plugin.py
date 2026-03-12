@@ -63,8 +63,12 @@ HEADERS = {
 
 
 class WorldTime(callbacks.Plugin):
-    """Add the help for "@plugin help WorldTime" here
-    This should describe *how* to use this plugin."""
+    """Look up the current local time and timezone for any location.
+
+    Uses the Google Geocoding and Time Zone APIs. Requires a Google
+    Maps API key to be configured via 'config plugins.worldtime.mapsapikey'.
+    Users can store their location with the 'set' command and then call
+    'worldtime' without arguments."""
 
     threaded = True
 
@@ -157,7 +161,7 @@ class WorldTime(callbacks.Plugin):
         latlng = utils.web.urlquote(latlng)
         url = (
             "https://maps.googleapis.com/maps/api/timezone/json?location="
-            f"{latlng}&sensor=false&timestamp={int(time.time())}&key={api_key}"
+            f"{latlng}&timestamp={int(time.time())}&key={api_key}"
         )
 
         try:
@@ -187,6 +191,13 @@ class WorldTime(callbacks.Plugin):
         command. If --nick is given, try looking up the location for <nick>.
         """
         opts = dict(opts)
+        if not self.registryValue("mapsAPIkey"):
+            irc.error(
+                "No Google Maps API key configured. Set one with: "
+                "config plugins.worldtime.mapsapikey <key>",
+                prefixNick=False,
+                Raise=True,
+            )
         if not location:
             try:
                 nick = opts.get("nick", None)
@@ -213,7 +224,7 @@ class WorldTime(callbacks.Plugin):
                         prefixNick=False,
                         Raise=True,
                     )
-            except KeyError:
+            except (KeyError, IndexError):
                 irc.error(
                     "Unable to resolve nickname or hostmask. Ensure the nick is in the channel "
                     "or the bot has seen the user before.",
