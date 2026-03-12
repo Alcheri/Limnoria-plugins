@@ -6,14 +6,13 @@
 ###
 
 import supybot.conf as conf
-import supybot.utils as utils
 import supybot.registry as registry
 
 try:
     from supybot.i18n import PluginInternationalization
 
     _ = PluginInternationalization("URLtitle")
-except:
+except ImportError:
     # Placeholder that allows to run the plugin on a bot
     # without the i18n module
     _ = lambda x: x
@@ -35,7 +34,6 @@ URLtitle = conf.registerPlugin("URLtitle")
 # conf.registerGlobalValue(URLtitle, 'someConfigVariableName',
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
 
-# XXX Default: False
 conf.registerChannelValue(
     URLtitle,
     "enabled",

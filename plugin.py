@@ -6,10 +6,10 @@
 ###
 
 import re
-import requests
 import time
+import requests
+from requests import RequestException
 
-# XXX Third-party modules
 try:
     from bs4 import BeautifulSoup
 except ImportError as ie:
@@ -26,6 +26,9 @@ _ = PluginInternationalization("URLtitle")
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:110.0) Gecko/20100101 Firefox/110.0"
 }
+URL_PATTERN = re.compile(r"(https?://\S+|www\.\S+)")
+CACHE_TTL_SECONDS = 600
+REQUEST_TIMEOUT_SECONDS = 10
 
 
 class URLtitle(callbacks.Plugin):
@@ -41,15 +44,15 @@ class URLtitle(callbacks.Plugin):
         self.cache = {}  # Simple cache for storing URL titles
 
     def fetch_title(self, url):
-        # Check the cache
+        # Check the cache first to avoid duplicate network calls.
         if url in self.cache:
             title, timestamp = self.cache[url]
-            if time.time() - timestamp < 600:  # Cache expiration logic
+            if time.time() - timestamp < CACHE_TTL_SECONDS:
                 return title
 
         try:
             # Fetch the webpage
-            response = requests.get(url, headers=HEADERS, timeout=10)
+            response = requests.get(url, headers=HEADERS, timeout=REQUEST_TIMEOUT_SECONDS)
             response.raise_for_status()
 
             # Parse the HTML and extract the title
@@ -57,16 +60,16 @@ class URLtitle(callbacks.Plugin):
             title_tag = soup.find("title")
 
             if title_tag:
-                formatted_title = f"{title_tag.get_text(strip=True)}"
+                formatted_title = title_tag.get_text(strip=True)
             else:
                 formatted_title = f"Title for {url}: No title found"
 
             # Update the cache
             self.cache[url] = (formatted_title, time.time())
             return formatted_title
-        except Exception as e:
+        except RequestException as e:
             self.log.error(f"{e}")
-            return f"Error fetching {url}:"
+            return f"Error fetching {url}: {e}"
 
     def doPrivmsg(self, irc, msg):
         """
@@ -77,9 +80,7 @@ class URLtitle(callbacks.Plugin):
             return
         text = msg.args[1]
 
-        # Regular expression to detect URLs
-        url_pattern = r"(https?://\S+|www\.\S+)"
-        urls = re.findall(url_pattern, text)
+        urls = URL_PATTERN.findall(text)
 
         if urls:
             for url in urls:
