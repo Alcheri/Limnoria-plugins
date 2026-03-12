@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+  <img src="https://img.shields.io/badge/License-BSD_3--Clause-blue.svg" alt="License">
 </p>
 
 <p align="center">
@@ -130,4 +130,5 @@ config plugins.MyDNS.ipstackAPI your_api_key_here
 ```
 
 Copyright © MMXXVI, Barry Suridge
+
 
