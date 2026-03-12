@@ -11,5 +11,6 @@ plugin_setup(
     "IMDb",
     install_requires=[
         "beautifulsoup4",
+        "requests",
     ],
 )

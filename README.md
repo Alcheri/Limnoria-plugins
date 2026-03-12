@@ -1,45 +1,119 @@
 # IMDb
 
-![Python versions](https://img.shields.io/badge/Python-version-blue) ![Supported Python versions](https://img.shields.io/badge/3.11%2C%203.12%2C%203.13-blue.svg) [![Code style: black](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black) ![Build Status](https://github.com/Alcheri/My-Limnoria-Plugins/blob/master/img/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg) [![CodeQL](https://github.com/Alcheri/Weather/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Alcheri/Weather/actions/workflows/github-code-scanning/codeql) [![Lint](https://github.com/Alcheri/Weather/actions/workflows/black.yml/badge.svg)](https://github.com/Alcheri/Weather/actions/workflows/black.yml)
+![Python versions](https://img.shields.io/badge/Python-version-blue)
+![Supported Python versions](https://img.shields.io/badge/3.11%2C%203.12%2C%203.13-blue.svg)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black)
+![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
 
-A simple plugin to fetch movie details from the Internet Movie Database (IMDb)
+IMDb plugin for Limnoria that returns details for the top title match.
 
-## Install
+## Features
 
-Go into your Limnoria plugin dir, usually ~/runbot/plugins and run:
+- Looks up the top IMDb title match for a query.
+- Returns title, year, plot, genre/type, and main actors.
+- Gracefully falls back to suggestion data when IMDb blocks detailed page scraping.
 
-```plaintext
+## Installation
+
+From your Limnoria plugins directory (for example `~/runbot/plugins`):
+
+```bash
 git clone https://github.com/Alcheri/IMDb.git
 ```
 
-To install additional requirements, run from /plugins/IMDb:
+Install dependencies from the plugin directory:
 
-```plaintext
-pip install --upgrade -r requirements.txt 
+```bash
+pip install --upgrade -r requirements.txt
 ```
 
-Next, load the plugin:
+Load the plugin:
 
-```plaintext
+```text
 /msg bot load IMDb
 ```
 
-## Configuring
+## Configuration
 
-* **_config channel #channel plugins.IMDb.enabled True or False (On or Off)_**
+Enable per channel:
 
-## Using
-
-```plaintext
-<Barry> !imdb the witches of eastwick
-<Puss>  Top Match Details:
-<Puss>  Title: The Witches of Eastwick
-<Puss>  Year: 1987
-<Puss>  Plot: Three single women in a picturesque village have their wishes granted, at a cost, when a mysterious and
-        flamboyant man arrives in their lives.
-<Puss>  Genre: Comedy, Fantasy, Horror
->Puss>  Main Actors: Jack Nicholson, Cher, Susan Sarandon, Michelle Pfeiffer, Veronica Cartwright
+```text
+config channel #channel plugins.IMDb.enabled True
 ```
 
-<br><br>
-<p align="center">Copyright © MMXXIV, Barry Suridge</p>
+Disable per channel:
+
+```text
+config channel #channel plugins.IMDb.enabled False
+```
+
+## Usage
+
+```text
+<Barry> !imdb the witches of eastwick
+<Puss> Top Match Details:
+<Puss> Title: The Witches of Eastwick
+<Puss> Year: 1987
+<Puss> Plot: Three single women in a picturesque village have their wishes granted, at a cost, when a mysterious and flamboyant man arrives in their lives.
+<Puss> Genre: Comedy, Fantasy, Horror
+<Puss> Main Actors: Jack Nicholson, Cher, Susan Sarandon, Michelle Pfeiffer, Veronica Cartwright
+```
+
+## Notes
+
+- IMDb can return anti-bot/interstitial responses for full title pages.
+- When that happens, the plugin still returns a valid top match with available metadata.
+
+## Troubleshooting
+
+If `!imdb` is not returning expected output, check the following:
+
+1. Confirm the plugin is loaded.
+
+```text
+/msg bot list IMDb
+```
+
+1. Confirm it is enabled for the channel.
+
+```text
+config channel #channel plugins.IMDb.enabled
+```
+
+1. Reload after updates.
+
+```text
+/msg bot reload IMDb
+```
+
+1. Reinstall plugin dependencies.
+
+```bash
+pip install --upgrade -r requirements.txt
+```
+
+1. Test with a popular, unambiguous title.
+
+```text
+!imdb the matrix
+```
+
+1. Check Limnoria logs for request or parsing errors if output is still missing.
+
+### Expected Degraded Behavior
+
+When IMDb blocks full title-page details, the plugin should still return a valid top match using suggestion metadata.
+
+```text
+<Barry> !imdb the witches of eastwick
+<Puss> Top Match Details:
+<Puss> Title: The Witches of Eastwick
+<Puss> Year: 1987
+<Puss> Plot: Plot unavailable (IMDb blocked detailed page lookup).
+<Puss> Genre: feature
+<Puss> Main Actors: Jack Nicholson, Cher
+```
+
+This response indicates fallback mode is working as intended.
+
+<p align="center">Copyright © MMXXVI, Barry Suridge</p>
