@@ -1,11 +1,14 @@
-# IMDb
+<h1 align ="center">IMDb</h1>
 
-![Python versions](https://img.shields.io/badge/Python-version-blue)
-![Supported Python versions](https://img.shields.io/badge/3.11%2C%203.12%2C%203.13-blue.svg)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black)
-![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
+  <img src="https://img.shields.io/badge/License-BSD_3--Clause-blue.svg" alt="License">
+</p>
 
-IMDb plugin for Limnoria that returns details for the top title match.
+<p align="center">
+  <em>IMDb plugin for Limnoria that returns details for the top title match.</em>
+</p>
 
 ## Features
 
