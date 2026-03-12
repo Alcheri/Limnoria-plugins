@@ -36,5 +36,10 @@ Next, load the plugin:
 
     Should plugin work in this channel?
 
+* **supybot.plugins.URLtitle.userAgent**
+
+  User-Agent header sent when fetching URLs. Default is a plugin-specific
+  Limnoria URLtitle identifier.
+
 <br/><br/>
 <p align="center">Copyright © MMXXIV, Barry Suridge</p>

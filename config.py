@@ -40,4 +40,13 @@ conf.registerChannelValue(
     registry.Boolean(False, _("""Should plugin work in this channel?""")),
 )
 
+conf.registerGlobalValue(
+    URLtitle,
+    "userAgent",
+    registry.String(
+        "Limnoria-URLtitle/1.0 (+https://github.com/Alcheri/URLtitle)",
+        _("""User-Agent header sent when fetching URLs."""),
+    ),
+)
+
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

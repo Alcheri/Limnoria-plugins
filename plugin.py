@@ -23,9 +23,7 @@ from supybot.i18n import PluginInternationalization
 
 _ = PluginInternationalization("URLtitle")
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:110.0) Gecko/20100101 Firefox/110.0"
-}
+DEFAULT_USER_AGENT = "Limnoria-URLtitle/1.0 (+https://github.com/Alcheri/URLtitle)"
 URL_PATTERN = re.compile(r"(https?://\S+|www\.\S+)")
 CACHE_TTL_SECONDS = 600
 REQUEST_TIMEOUT_SECONDS = 10
@@ -43,6 +41,9 @@ class URLtitle(callbacks.Plugin):
         self.__parent.__init__(irc)
         self.cache = {}  # Simple cache for storing URL titles
 
+    def _request_headers(self):
+        return {"User-Agent": self.registryValue("userAgent")}
+
     def fetch_title(self, url):
         # Check the cache first to avoid duplicate network calls.
         if url in self.cache:
@@ -53,7 +54,7 @@ class URLtitle(callbacks.Plugin):
         try:
             # Fetch the webpage
             response = requests.get(
-                url, headers=HEADERS, timeout=REQUEST_TIMEOUT_SECONDS
+                url, headers=self._request_headers(), timeout=REQUEST_TIMEOUT_SECONDS
             )
             response.raise_for_status()
 

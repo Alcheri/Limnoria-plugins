@@ -6,6 +6,7 @@
 ###
 
 from supybot.test import *
+import supybot.conf as conf
 from unittest.mock import MagicMock, patch
 
 from requests import RequestException
@@ -21,6 +22,7 @@ class URLtitleTestCase(PluginTestCase):
     @patch("URLtitle.plugin.requests.get")
     @patch("URLtitle.plugin.time.time", side_effect=[1000.0, 1001.0, 1002.0])
     def testFetchTitleUsesCache(self, mock_time, mock_get):
+        conf.supybot.plugins.URLtitle.userAgent.setValue("URLtitle-Test/1.0")
         mock_response = MagicMock()
         mock_response.text = "<html><head><title>Example Domain</title></head></html>"
         mock_response.raise_for_status.return_value = None
@@ -32,6 +34,8 @@ class URLtitleTestCase(PluginTestCase):
         self.assertEqual(first, "Example Domain")
         self.assertEqual(second, "Example Domain")
         mock_get.assert_called_once()
+        _, kwargs = mock_get.call_args
+        self.assertEqual(kwargs["headers"]["User-Agent"], "URLtitle-Test/1.0")
 
     @patch("URLtitle.plugin.requests.get")
     def testFetchTitleNoTitleTag(self, mock_get):
