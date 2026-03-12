@@ -10,6 +10,8 @@
 
 # Standard library imports
 import json
+import urllib.error
+import urllib.request
 from urllib.parse import urlencode
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -31,6 +33,7 @@ try:
     from supybot.i18n import PluginInternationalization
 
     _ = PluginInternationalization("UrbanDictionary")
+    DEFAULT_USER_AGENT = "Limnoria-UrbanDictionary/1.0 (+https://github.com/Alcheri/UrbanDictionary)"
 except ImportError:
     _ = lambda x: x
 
@@ -74,15 +77,33 @@ class UrbanDictionary(callbacks.Plugin):
     async def _fetch_url(self, url: str, timeout: int) -> Optional[str]:
         """Fetch data from a URL asynchronously using aiohttp."""
         try:
+            headers = {"User-Agent": DEFAULT_USER_AGENT, "Accept": "application/json"}
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=timeout) as response:
+                async with session.get(url, timeout=timeout, headers=headers) as response:
                     if response.status == 200:
                         return await response.text()
                     else:
-                        log.error(f"Error fetching URL {url}: HTTP {response.status}")
+                        body = await response.text()
+                        log.error(
+                            "Error fetching URL %s: HTTP %s, body=%r",
+                            url,
+                            response.status,
+                            body[:200],
+                        )
                         return None
         except Exception as e:
             log.error(f"Error fetching URL {url}: {e}")
+            return None
+
+    def _fetch_url_fallback(self, url: str, timeout: int) -> Optional[str]:
+        """Fallback fetch path using stdlib urllib when aiohttp fails."""
+        headers = {"User-Agent": DEFAULT_USER_AGENT, "Accept": "application/json"}
+        req = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                return response.read().decode("utf-8", errors="replace")
+        except (urllib.error.URLError, TimeoutError, OSError) as e:
+            log.error("Fallback fetch failed for %s: %s", url, e)
             return None
 
     def _run_coro(self, coro):
@@ -92,8 +113,10 @@ class UrbanDictionary(callbacks.Plugin):
         """
         loop = asyncio.new_event_loop()
         try:
+            asyncio.set_event_loop(loop)
             return loop.run_until_complete(coro)
         finally:
+            asyncio.set_event_loop(None)
             loop.close()
 
     ####################
@@ -137,6 +160,8 @@ class UrbanDictionary(callbacks.Plugin):
         timeout = self.registryValue("requestTimeout")
 
         json_data = self._run_coro(self._fetch_url(url, timeout))
+        if not json_data:
+            json_data = self._fetch_url_fallback(url, timeout)
 
         if not json_data:
             irc.error(f"Could not retrieve data for '{optterm}'.", prefixNick=False)

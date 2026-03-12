@@ -44,5 +44,13 @@ class UrbanDictionaryTestCase(PluginTestCase):
         mock_fetch_url.return_value = MOCK_JSON_EMPTY_LIST
         self.assertError("urbandictionary unknownterm")
 
+    @patch("UrbanDictionary.plugin.UrbanDictionary._fetch_url", new_callable=AsyncMock)
+    @patch("UrbanDictionary.plugin.UrbanDictionary._fetch_url_fallback")
+    def testUrbanDictionaryUsesFallback(self, mock_fallback, mock_fetch_url):
+        mock_fetch_url.return_value = None
+        mock_fallback.return_value = MOCK_JSON_WITH_DEFINITION
+        self.assertRegexp("urbandictionary hello", ":: A greeting")
+        mock_fallback.assert_called_once()
+
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
