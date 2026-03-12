@@ -15,9 +15,10 @@ from typing import Any, Dict, List, Optional, Tuple
 # Third-party imports
 try:
     import aiohttp  # asynchronous HTTP client and server framework
-    import asyncio  # asynchronous I/O
 except ImportError as ie:
     raise ImportError(f"Cannot import module: {ie}")
+
+import asyncio  # asynchronous I/O
 
 # Supybot imports
 import supybot.log as log
@@ -122,8 +123,7 @@ class UrbanDictionary(callbacks.Plugin):
         # Use the dynamic term directly.
         url = f"http://api.urbandictionary.com/v0/define?term={optterm}"
 
-        loop = asyncio.get_event_loop()
-        json_data = loop.run_until_complete(self._fetch_url(url))
+        json_data = asyncio.run(self._fetch_url(url))
 
         if not json_data:
             irc.error(f"Could not retrieve data for '{optterm}'.", prefixNick=False)

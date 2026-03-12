@@ -11,6 +11,5 @@ plugin_setup(
     "UrbanDictionary",
     install_requires=[
         "aiohttp",
-        "asyncio",
     ],
 )
