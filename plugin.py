@@ -36,8 +36,6 @@ try:
 except ImportError as e:
     raise ImportError(f"Cannot import module: {e}")
 
-from urllib3.exceptions import HTTPError
-
 # URL handling module for python
 from urllib.parse import urlparse
 
@@ -59,9 +57,9 @@ try:
 except ImportError:
     _ = lambda x: x
 
-    ###############
-    #  FUNCTIONS  #
-    ###############
+###############
+#  FUNCTIONS  #
+###############
 
 dns = bold(teal("DNS: "))
 loc = bold(teal("LOC: "))
@@ -75,29 +73,42 @@ special_chars = ('-', '[', ']', '\\', '`', '^', '{', '}', '_')
 def format_location(data, address):
     parts = []
 
-    if data["city"]:
-        parts.append(f"City: {data['city']} ")
+    city = data.get("city")
+    if city:
+        parts.append(f"City: {city} ")
 
-    if data["region_name"]:
-        parts.append(f"State: {data['region_name']} ")
+    region_name = data.get("region_name")
+    if region_name:
+        parts.append(f"State: {region_name} ")
 
-    if data["longitude"]:
-        parts.append(f"Long: {data['longitude']} ")
+    longitude = data.get("longitude")
+    if longitude is not None:
+        parts.append(f"Long: {longitude} ")
 
-    if data["latitude"]:
-        parts.append(f"Lat: {data['latitude']} ")
+    latitude = data.get("latitude")
+    if latitude is not None:
+        parts.append(f"Lat: {latitude} ")
 
-    if data["country_code"]:
-        parts.append(f"Country Code: {data['country_code']} ")
+    country_code = data.get("country_code")
+    if country_code:
+        parts.append(f"Country Code: {country_code} ")
 
-    if data["country_name"]:
-        parts.append(f"Country: {data['country_name']} ")
+    country_name = data.get("country_name")
+    if country_name:
+        parts.append(f"Country: {country_name} ")
 
+    # Prefer provider-supplied flag emoji, then fall back to country code.
+    flag = ""
     if "location" in data and "country_flag_emoji" in data["location"]:
-        parts.append(data["location"]["country_flag_emoji"])
+        flag = data["location"].get("country_flag_emoji") or ""
+    if not flag and country_code:
+        flag = country_code_to_flag(country_code)
+    if flag:
+        parts.append(f"{flag} ")
 
-    if data["zip"]:
-        parts.append(f" Post/Zip Code: {data['zip']}")
+    zip_code = data.get("zip")
+    if zip_code:
+        parts.append(f" Post/Zip Code: {zip_code}")
 
     try:
         return "".join(parts)
@@ -113,6 +124,9 @@ def is_nick(nick):
     that it may consist of any combination of letters, numbers, or allowed
     special characters.
     """
+    if not nick:
+        return False
+
     if not nick[0].isalpha() and nick[0] not in special_chars:
         return False
     for char in nick[1:]:
@@ -132,12 +146,148 @@ def is_ip(s):
         return False
 
 
+def normalize_lookup_target(target):
+    """Extract a host from raw input (hostname, URL, or host:port)."""
+    value = (target or "").strip()
+    if not value:
+        return ""
+
+    parsed = urlparse(value)
+    if parsed.scheme:
+        host = parsed.hostname or parsed.netloc
+    elif "/" in value:
+        parsed = urlparse(f"//{value}")
+        host = parsed.hostname or parsed.netloc or value.split("/")[0]
+    else:
+        parsed = urlparse(f"//{value}")
+        host = parsed.hostname or value
+
+    return (host or "").strip("[]")
+
+
+def pick_best_ip(addresses):
+    """Prefer globally-routable IPs for more useful geolocation results."""
+    valid = []
+    for address in addresses:
+        try:
+            valid.append((address, ipaddress.ip_address(address)))
+        except ValueError:
+            continue
+
+    if not valid:
+        return addresses[0] if addresses else None
+
+    for address, parsed in valid:
+        if parsed.is_global:
+            return address
+
+    for address, parsed in valid:
+        if not (parsed.is_loopback or parsed.is_link_local or parsed.is_unspecified):
+            return address
+
+    return valid[0][0]
+
+
+def is_public_ip(address):
+    try:
+        return ipaddress.ip_address(address).is_global
+    except ValueError:
+        return False
+
+
+def country_code_to_flag(country_code):
+    if not country_code or len(country_code) != 2:
+        return ""
+    code = country_code.upper()
+    if not code.isalpha():
+        return ""
+    return chr(127397 + ord(code[0])) + chr(127397 + ord(code[1]))
+
+
+def score_geoip_result(data):
+    """Score GeoIP quality so we can pick the most complete provider result."""
+    score = 0
+    for key in ("city", "region_name", "country_name", "country_code", "zip"):
+        if data.get(key):
+            score += 1
+
+    if data.get("latitude") is not None:
+        score += 2
+    if data.get("longitude") is not None:
+        score += 2
+
+    return score
+
+
+def normalize_geoip(source, payload):
+    """Normalize provider responses to the format_location schema."""
+    if source == "ipstack":
+        return {
+            "city": payload.get("city"),
+            "region_name": payload.get("region_name"),
+            "longitude": payload.get("longitude"),
+            "latitude": payload.get("latitude"),
+            "country_code": payload.get("country_code"),
+            "country_name": payload.get("country_name"),
+            "zip": payload.get("zip"),
+            "location": {
+                "country_flag_emoji": (
+                    payload.get("location", {}).get("country_flag_emoji")
+                    or country_code_to_flag(payload.get("country_code"))
+                )
+            },
+            "_source": source,
+        }
+
+    if source == "ipapi":
+        code = payload.get("country_code")
+        return {
+            "city": payload.get("city"),
+            "region_name": payload.get("region"),
+            "longitude": payload.get("longitude"),
+            "latitude": payload.get("latitude"),
+            "country_code": code,
+            "country_name": payload.get("country_name"),
+            "zip": payload.get("postal"),
+            "location": {"country_flag_emoji": country_code_to_flag(code)},
+            "_source": source,
+        }
+
+    if source == "ip-api":
+        code = payload.get("countryCode")
+        return {
+            "city": payload.get("city"),
+            "region_name": payload.get("regionName"),
+            "longitude": payload.get("lon"),
+            "latitude": payload.get("lat"),
+            "country_code": code,
+            "country_name": payload.get("country"),
+            "zip": payload.get("zip"),
+            "location": {"country_flag_emoji": country_code_to_flag(code)},
+            "_source": source,
+        }
+
+    return {}
+
+
+PROVIDER_ALIASES = {
+    "ipstack": "ipstack",
+    "ipapi": "ipapi",
+    "ipapi.co": "ipapi",
+    "ip-api": "ip-api",
+    "ip_api": "ip-api",
+    "ip-api.com": "ip-api",
+}
+
+
 class MyDNS(callbacks.Plugin):
     """An alternative to Supybot's DNS function."""
 
     def __init__(self, irc):
         self.__parent = super(MyDNS, self)
         self.__parent.__init__(irc)
+        # Reuse the connection pool instead of creating one per request.
+        self.http = urllib3.PoolManager()
 
     threaded = True
 
@@ -159,6 +309,11 @@ class MyDNS(callbacks.Plugin):
 
         self.log.info("MyDNS: running on %s/%s", irc.network, msg.channel)
 
+        address = (address or "").strip()
+        if not address:
+            irc.error("Please provide a hostname, URL, nick, or IP.", prefixNick=False)
+            return
+
         if is_ip(address):
             irc.reply(self.gethostbyaddr(address), prefixNick=False)
         elif is_nick(address):  # Valid nick?
@@ -168,21 +323,88 @@ class MyDNS(callbacks.Plugin):
                 (nick, _, host) = utils.splitHostmask(
                     userHostmask
                 )  # Returns the nick and host of a user hostmask.
-                irc.reply(self.gethostbyaddr(host), prefixNick=False)
+                if is_ip(host):
+                    irc.reply(self.gethostbyaddr(host), prefixNick=False)
+                else:
+                    irc.reply(self.getaddrinfo(host), prefixNick=False)
             except KeyError:
-                irc.reply(f"[{nick}] is unknown.", prefixNick=False)
+                # Could be a hostname that matches nick syntax.
+                irc.reply(self.getaddrinfo(address), prefixNick=False)
         else:  # Neither IP or IRC user nick.
             irc.reply(self.getaddrinfo(address), prefixNick=False)
+
+    def _request_json(self, uri, timeout=2.5):
+        try:
+            response = self.http.request(
+                "GET",
+                uri,
+                timeout=timeout,
+                headers={"Accept": "application/json", "User-Agent": "MyDNS/1.0"},
+            )
+        except Exception as err:
+            self.log.warning("MyDNS: HTTP request failed for %s: %s", uri, err)
+            return None
+
+        if response.status != 200:
+            return None
+
+        try:
+            return json.loads(response.data.decode("utf-8"))
+        except (TypeError, ValueError):
+            return None
+
+    def _geoip_ipstack(self, address, apikey):
+        for scheme in ("https", "http"):
+            uri = f"{scheme}://api.ipstack.com/{address}?access_key={apikey}"
+            payload = self._request_json(uri, timeout=3.0)
+            if not payload:
+                continue
+            if payload.get("success") is False:
+                continue
+            return normalize_geoip("ipstack", payload)
+        return None
+
+    def _geoip_ipapi(self, address):
+        uri = f"https://ipapi.co/{address}/json/"
+        payload = self._request_json(uri, timeout=2.5)
+        if not payload or payload.get("error"):
+            return None
+        return normalize_geoip("ipapi", payload)
+
+    def _geoip_ip_api(self, address):
+        fields = "status,message,country,countryCode,regionName,city,zip,lat,lon"
+        uri = f"http://ip-api.com/json/{address}?fields={fields}"
+        payload = self._request_json(uri, timeout=2.5)
+        if not payload or payload.get("status") != "success":
+            return None
+        return normalize_geoip("ip-api", payload)
+
+    def _get_provider_order(self):
+        raw = self.registryValue("geoipProviderOrder")
+        if not raw:
+            return ["ipstack", "ipapi", "ip-api"]
+
+        providers = []
+        for item in raw.split(","):
+            name = item.strip().lower()
+            if not name:
+                continue
+            provider = PROVIDER_ALIASES.get(name)
+            if provider and provider not in providers:
+                providers.append(provider)
+
+        if not providers:
+            return ["ipstack", "ipapi", "ip-api"]
+
+        return providers
 
     def getaddrinfo(self, host):
         """Get host information. Use returned IP address
         to find the (approximate) geolocation of the host.
         """
-        host = host.lower()
-        d = urlparse(host)
-
-        if d.scheme:
-            host = d.netloc
+        host = normalize_lookup_target(host).lower()
+        if not host:
+            return "Could not resolve empty host."
 
         try:
             result = socket.getaddrinfo(host, None)
@@ -190,13 +412,20 @@ class MyDNS(callbacks.Plugin):
             self.log.error("MyDNS: Could not resolve  %s: %s", host, err)
             return f"Could not resolve {host}: {err}"
 
-        ipaddress = result[0][4][0]
-        geoip = self.geoip(ipaddress)
+        addresses = [item[4][0] for item in result if item and item[4]]
+        selected_ip = pick_best_ip(addresses)
+        if not selected_ip:
+            return f"Could not resolve {host}: no usable IP address found"
 
-        return f"{dns}{host} resolves to [{ipaddress}] {loc}{geoip}"
+        geoip = self.geoip(selected_ip)
+
+        return f"{dns}{host} resolves to [{selected_ip}] {loc}{geoip}"
 
     def gethostbyaddr(self, ip):
         """Do a reverse lookup for ip."""
+        if not is_ip(ip):
+            return self.getaddrinfo(ip)
+
         try:
             (hostname, _, address) = socket.gethostbyaddr(ip)
             hostname = hostname + " <> " + address[0]
@@ -213,28 +442,40 @@ class MyDNS(callbacks.Plugin):
         """
         apikey = self.registryValue("ipstackAPI")
 
-        if not apikey:
-            raise callbacks.Error(
-                "Please configure the ipstack API key in config plugins.MyDNS.ipstackAPI"
+        if not is_public_ip(address):
+            return "Non-public IP address (geolocation unavailable)."
+
+        provider_order = self._get_provider_order()
+        candidates = []
+
+        for provider in provider_order:
+            if provider == "ipstack":
+                if not apikey:
+                    continue
+                result = self._geoip_ipstack(address, apikey)
+            elif provider == "ipapi":
+                result = self._geoip_ipapi(address)
+            elif provider == "ip-api":
+                result = self._geoip_ip_api(address)
+            else:
+                result = None
+
+            if result:
+                candidates.append(result)
+
+        if not candidates:
+            if apikey:
+                return "GeoIP lookup failed."
+            return (
+                "GeoIP lookup failed. Configure plugins.MyDNS.ipstackAPI "
+                "for improved provider coverage."
             )
 
-        # Creating a PoolManager instance for sending requests.
-        http = urllib3.PoolManager()
+        best = max(candidates, key=score_geoip_result)
+        if score_geoip_result(best) == 0:
+            return "GeoIP unavailable for this IP."
 
-        # Set the URI
-        uri = "http://api.ipstack.com/" + address + "?access_key=" + apikey
-
-        # Sending a GET request and getting back response as HTTPResponse object
-        response = http.request("GET", uri, timeout=1)
-
-        # 'OK', 'Request fulfilled, document follows'
-        if response.status != 200:
-            raise HTTPError(
-                "Request failed with status {0}".format(response.status),
-            )
-        else:
-            data = json.loads(response.data.decode("utf-8"))
-        return f"{format_location(data, address)}"
+        return f"{format_location(best, address)}"
 
 
 Class = MyDNS

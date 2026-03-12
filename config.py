@@ -42,6 +42,17 @@ conf.registerGlobalValue(
     "ipstackAPI",
     registry.String("", _("""Sets the API key for ipstack."""), private=True),
 )
+conf.registerGlobalValue(
+    MyDNS,
+    "geoipProviderOrder",
+    registry.String(
+        "ipstack,ipapi,ip-api",
+        _(
+            """Comma-separated GeoIP provider order. Supported values: "
+            "ipstack, ipapi, ip-api."""
+        ),
+    ),
+)
 conf.registerChannelValue(
     MyDNS,
     "enable",

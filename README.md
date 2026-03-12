@@ -1,65 +1,129 @@
 # MyDNS
 
-![Python versions](https://img.shields.io/badge/Python-version-blue) ![Supported Python versions](https://img.shields.io/badge/3.9%2C%203.10%2C%203.11%2C%203.12%2C%203.13-blue.svg) [![Code style: black](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black) ![Build Status](https://github.com/Alcheri/My-Limnoria-Plugins/blob/master/img/status.svg) ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg) [![CodeQL](https://github.com/Alcheri/Weather/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Alcheri/Weather/actions/workflows/github-code-scanning/codeql) [![Lint](https://github.com/Alcheri/Weather/actions/workflows/black.yml/badge.svg)](https://github.com/Alcheri/Weather/actions/workflows/black.yml)
+![Python versions](https://img.shields.io/badge/Python-version-blue)
+![Supported Python versions](https://img.shields.io/badge/3.9%2C%203.10%2C%203.11%2C%203.12%2C%203.13-blue.svg)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black)
+![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
 
-## Description
+Alternative DNS lookup plugin for Limnoria with GeoIP enrichment.
 
-An alternative to Limnoria's DNS function.
+## Features
 
-Returns the ip of <hostname | URL | nick | IPv4 or IPv6> or the reverse DNS hostname of \<ip\> using Python's socket library.
+* Resolves hostnames, URLs, nick hostmasks, IPv4, and IPv6.
+* Performs reverse DNS for IP addresses.
+* Uses multiple GeoIP providers and selects the most complete result.
+* Prefers globally-routable addresses when multiple DNS answers are available.
+* Displays country flags using Unicode emoji derived from country code.
 
-This plugin uses ipstack to get data. An API (free) key is required.\
-Get an API key: [ipstack](https://ipstack.com/)
+## Installation
 
-Unload the Internet plugin as it conflicts with this plugin
+From your Limnoria plugins directory (for example, ~/runbot/plugins):
 
-```plaintext
-/msg yourbot unload Internet
-```
-
-## Install
-
-Go into your Limnoria plugin dir, usually ~/runbot/plugins and run:
-
-```plaintext
+```bash
 git clone https://github.com/Alcheri/MyDNS.git
 ```
 
-To install additional requirements, run from /plugins/URLtitle:
+Install dependencies from the plugin directory:
 
-```plaintext
-pip install --upgrade -r requirements.txt 
-```
-Next, load the plugin:
-
-```plaintext
-/msg bot load URLtitle
+```bash
+pip install --upgrade -r requirements.txt
 ```
 
-## Configuring
+If needed, unload the built-in Internet plugin to avoid command overlap:
 
-* **_config plugins.MyDNS.ipstackAPI [your_key_here]_**
+```text
+/msg yourbot unload Internet
+```
 
-* **_config channel #channel plugins.MyDNS.enable True or False (On or Off)_**
+Load the plugin:
 
-Using
+```text
+/msg yourbot load MyDNS
+```
 
-```plaintext
-@dns [hostname | URL | nick | IPv4 or IPv6]
+## Configuration
+
+Optional API key (recommended for better provider coverage):
+
+```text
+config plugins.MyDNS.ipstackAPI your_api_key_here
+```
+
+Provider order (comma-separated). Default:
+
+```text
+config plugins.MyDNS.geoipProviderOrder ipstack,ipapi,ip-api
+```
+
+Example with free providers first:
+
+```text
+config plugins.MyDNS.geoipProviderOrder ipapi,ip-api,ipstack
+```
+
+Enable per channel:
+
+```text
+config channel #channel plugins.MyDNS.enable True
+```
+
+Disable per channel:
+
+```text
+config channel #channel plugins.MyDNS.enable False
+```
+
+## Usage
+
+```text
+@dns <hostname | URL | nick | IPv4 | IPv6>
 ```
 
 ## Example
 
-> \<Barry\> @dns crawl-203-208-60-1.googlebot.com\
-> \<Borg\>  **${\textsf{\color{teal}DNS: }}$** crawl-203-208-60-1.googlebot.com resolves to [203.208.60.1] **${\textsf{\color{teal}LOC: }}$** City:Beijing State:Beijing Long:116.37922668457031
-  Lat:39.91175842285156 Country Code:CN Country:China <img src="local/china.png" width="17" height="17"> Post/Zip Code:100000
->
-> \<Barry\> @dns 203.7.22.140\
-> \<Borg\>  **${\textsf{\color{teal}DNS: }}$** <203-7-22-140> [203-7-22-140.dyn.iinet.net.au <> 203.7.22.140] **${\textsf{\color{teal}LOC: }}$** City: Ballarat State: Victoria Long: 143.8470458984375 Lat: -37.56332015991211 Country Code: AU Country: Australia <img src="local/australia.png" width="17" height="17"> Post/Zip Code: 3350
->
-> \<Barry\> @dns Alice\
-> \<Borg\>  **${\textsf{\color{teal}DNS: }}$** [Alice.Bot.mrbenc.net <> 2001:19f0:9002:1806:dead:beef:0:cafe] **${\textsf{\color{teal}LOC: }}$** City: Flagami State: Florida Long: -80.31195831298828 Lat: 25.762859344482422 Country Code: US Country: United States <img src="local/usa.png" width="17" height="17"> Post/Zip Code: 33144
->
+```text
+<Barry> @dns example.com
+<Borg> DNS: example.com resolves to [93.184.216.34] LOC: City: Los Angeles State: California Long: -118.2437 Lat: 34.0522 Country Code: US Country: United States 🇺🇸 Post/Zip Code: 90012
 
-<br><br>
-<p align="center">Copyright © MMXXV, Barry Suridge</p>
+<Barry> @dns 203.7.22.140
+<Borg> DNS: <203-7-22-140> [203-7-22-140.dyn.iinet.net.au <> 203.7.22.140] LOC: City: Ballarat State: Victoria Long: 143.8470 Lat: -37.5633 Country Code: AU Country: Australia 🇦🇺 Post/Zip Code: 3350
+```
+
+## Accuracy Notes
+
+* GeoIP is approximate and may differ from the host's physical location.
+* Private, loopback, link-local, and unroutable IPs cannot be geolocated reliably.
+* Best quality usually comes from globally-routable public IP addresses.
+* Results can vary between providers and over time.
+* Provider order is configurable with plugins.MyDNS.geoipProviderOrder.
+* Some IRC clients may not render flag emoji; country code is still shown.
+
+## Troubleshooting
+
+If lookups fail or seem inaccurate:
+
+1. Confirm the plugin is loaded.
+
+```text
+/msg yourbot list MyDNS
+```
+
+1. Confirm the plugin is enabled in the current channel.
+
+```text
+config channel #channel plugins.MyDNS.enable
+```
+
+1. Reload after changes.
+
+```text
+/msg yourbot reload MyDNS
+```
+
+1. Add or verify your ipstack API key.
+
+```text
+config plugins.MyDNS.ipstackAPI your_api_key_here
+```
+
+Copyright © MMXXVI, Barry Suridge
