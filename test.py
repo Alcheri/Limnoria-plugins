@@ -5,31 +5,32 @@
 #
 ###
 
-from supybot.test import *
-import supybot.conf as conf
+import unittest
 from unittest.mock import MagicMock, patch
 
-from requests import RequestException
+from requests import RequestException, ReadTimeout
+
+from .plugin import URLtitle
 
 
-class URLtitleTestCase(PluginTestCase):
-    plugins = ("URLtitle",)
+class URLtitleTestCase(unittest.TestCase):
 
     def setUp(self):
-        super().setUp()
-        self.plugin = self.irc.getCallback("URLtitle")
+        self.plugin = URLtitle(MagicMock())
 
     @patch("URLtitle.plugin.requests.get")
     @patch("URLtitle.plugin.time.time", side_effect=[1000.0, 1001.0, 1002.0])
     def testFetchTitleUsesCache(self, mock_time, mock_get):
-        conf.supybot.plugins.URLtitle.userAgent.setValue("URLtitle-Test/1.0")
         mock_response = MagicMock()
         mock_response.text = "<html><head><title>Example Domain</title></head></html>"
         mock_response.raise_for_status.return_value = None
         mock_get.return_value = mock_response
 
-        first = self.plugin.fetch_title("https://example.com")
-        second = self.plugin.fetch_title("https://example.com")
+        with patch.object(
+            self.plugin, "registryValue", return_value="URLtitle-Test/1.0"
+        ):
+            first = self.plugin.fetch_title("https://example.com")
+            second = self.plugin.fetch_title("https://example.com")
 
         self.assertEqual(first, "Example Domain")
         self.assertEqual(second, "Example Domain")
@@ -44,15 +45,32 @@ class URLtitleTestCase(PluginTestCase):
         mock_response.raise_for_status.return_value = None
         mock_get.return_value = mock_response
 
-        result = self.plugin.fetch_title("https://example.com/no-title")
+        with patch.object(
+            self.plugin, "registryValue", return_value="URLtitle-Test/1.0"
+        ):
+            result = self.plugin.fetch_title("https://example.com/no-title")
         self.assertEqual(
             result, "Title for https://example.com/no-title: No title found"
         )
 
     @patch("URLtitle.plugin.requests.get", side_effect=RequestException("boom"))
     def testFetchTitleRequestError(self, mock_get):
-        result = self.plugin.fetch_title("https://bad.example")
-        self.assertIn("Error fetching https://bad.example:", result)
+        with patch.object(
+            self.plugin, "registryValue", return_value="URLtitle-Test/1.0"
+        ):
+            result = self.plugin.fetch_title("https://bad.example")
+        self.assertEqual(result, "Error fetching https://bad.example: boom")
+
+    @patch("URLtitle.plugin.requests.get", side_effect=ReadTimeout("too slow"))
+    def testFetchTitleTimeoutError(self, mock_get):
+        with patch.object(
+            self.plugin, "registryValue", return_value="URLtitle-Test/1.0"
+        ):
+            result = self.plugin.fetch_title("https://slow.example")
+        self.assertEqual(
+            result,
+            "Error fetching https://slow.example: request timed out after 10s",
+        )
 
     def testDoPrivmsgAddsSchemeAndReplies(self):
         msg = MagicMock()

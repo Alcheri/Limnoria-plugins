@@ -8,7 +8,7 @@
 import re
 import time
 import requests
-from requests import RequestException
+from requests import RequestException, Timeout
 
 try:
     from bs4 import BeautifulSoup
@@ -44,6 +44,16 @@ class URLtitle(callbacks.Plugin):
     def _request_headers(self):
         return {"User-Agent": self.registryValue("userAgent")}
 
+    def _format_request_error(self, url, error):
+        if isinstance(error, Timeout):
+            return (
+                f"Error fetching {url}: request timed out after "
+                f"{REQUEST_TIMEOUT_SECONDS}s"
+            )
+
+        error_message = str(error).strip() or error.__class__.__name__
+        return f"Error fetching {url}: {error_message}"
+
     def fetch_title(self, url):
         # Check the cache first to avoid duplicate network calls.
         if url in self.cache:
@@ -71,8 +81,8 @@ class URLtitle(callbacks.Plugin):
             self.cache[url] = (formatted_title, time.time())
             return formatted_title
         except RequestException as e:
-            self.log.error(f"{e}")
-            return f"Error fetching {url}: {e}"
+            self.log.error(f"Error fetching {url}: {e}")
+            return self._format_request_error(url, e)
 
     def doPrivmsg(self, irc, msg):
         """
