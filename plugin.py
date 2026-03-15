@@ -13,6 +13,7 @@ from supybot.i18n import PluginInternationalization
 _ = PluginInternationalization("Dictionary")
 
 import json
+from urllib.parse import quote
 
 from builtins import dict  # Ensure the built-in dict is used
 
@@ -35,8 +36,14 @@ class Dictionary(callbacks.Plugin):
         """<word>
         Gives the meaning of the word.
         """
-        input = input.lower()
-        base_url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{input}"
+        input = input.strip().lower()
+
+        # Remove wrapping quotes from IRC input like 'word' or "word".
+        if len(input) >= 2 and input[0] == input[-1] and input[0] in ('"', "'"):
+            input = input[1:-1].strip()
+
+        encoded_input = quote(input, safe="")
+        base_url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{encoded_input}"
 
         try:
             # Fetch data from the API
@@ -64,7 +71,11 @@ class Dictionary(callbacks.Plugin):
         except json.JSONDecodeError:
             irc.error("Failed to parse the API's JSON response.", prefixNick=False)
         except utils.web.Error as e:
-            irc.error(f"No Definitions Found: {e}", prefixNick=False)
+            error_text = str(e)
+            if "404" in error_text:
+                irc.error(f"No definitions found for: {input}", prefixNick=False)
+            else:
+                irc.error(f"Lookup failed: {e}", prefixNick=False)
         except Exception as e:
             irc.error(f"An unexpected error occurred: {e}", prefixNick=False)
 
