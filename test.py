@@ -14,7 +14,6 @@ from .plugin import URLtitle
 
 
 class URLtitleTestCase(unittest.TestCase):
-
     def setUp(self):
         self.plugin = URLtitle(MagicMock())
 
