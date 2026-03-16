@@ -35,7 +35,14 @@ reload(config)
 reload(plugin)
 
 if world.testing:
-    from . import test
+    try:
+        from . import test
+    except ImportError as e:
+        # Allow plugin loading when a local test module doesn't exist,
+        # but surface unrelated import failures from inside test.py.
+        missing_names = {"test", f"{__name__}.test"}
+        if getattr(e, "name", None) not in missing_names:
+            raise
 
 Class = plugin.Class
 configure = config.configure

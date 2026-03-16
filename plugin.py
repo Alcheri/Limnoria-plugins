@@ -57,9 +57,10 @@ except ImportError:
 filename = conf.supybot.directories.data.dirize("WorldTime.json")
 
 HEADERS = {
-    "User-agent": "Mozilla/5.0 (compatible; Supybot/Limnoria %s; WorldTime plugin)"
+    "User-Agent": "Limnoria-WorldTime/1.0 (Supybot/Limnoria %s; +https://github.com/andrewtryder/WorldTime)"
     % conf.version
 }
+REQUEST_TIMEOUT = 10
 
 
 class WorldTime(callbacks.Plugin):
@@ -138,7 +139,7 @@ class WorldTime(callbacks.Plugin):
         )
 
         try:
-            response = utils.web.getUrl(url, headers=HEADERS)
+            response = utils.web.getUrl(url, headers=HEADERS, timeout=REQUEST_TIMEOUT)
         except utils.web.Error as e:
             log.debug(f"WorldTime: Error fetching URL: {e}")
             return None
@@ -165,7 +166,7 @@ class WorldTime(callbacks.Plugin):
         )
 
         try:
-            response = utils.web.getUrl(url, headers=HEADERS)
+            response = utils.web.getUrl(url, headers=HEADERS, timeout=REQUEST_TIMEOUT)
         except utils.web.Error as e:
             log.debug(f"WorldTime: Error fetching URL: {e}")
             return None
