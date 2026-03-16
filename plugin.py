@@ -44,8 +44,8 @@ except ImportError:
 
 class UrbanDictionary(callbacks.Plugin):
     """
-    Add the help for "@plugin help UrbanDictionary" here
-    This should describe *how* to use this plugin.
+    Limnoria / Supybot plugin for UrbanDictionary to display definitions
+    on http://www.urbandict.com
     """
 
     threaded = False
