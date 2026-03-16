@@ -18,8 +18,9 @@ from urllib.parse import quote
 from builtins import dict  # Ensure the built-in dict is used
 
 headers = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:110.0) Gecko/20100101 Firefox/110.0"
+    "User-Agent": "Limnoria-Dictionary/1.0 (+https://github.com/Alcheri/Dictionary)"
 }
+REQUEST_TIMEOUT = 10
 
 
 class Dictionary(callbacks.Plugin):
@@ -47,7 +48,9 @@ class Dictionary(callbacks.Plugin):
 
         try:
             # Fetch data from the API
-            raw_response = utils.web.getUrl(base_url, headers=headers).decode("utf-8")
+            raw_response = utils.web.getUrl(
+                base_url, headers=headers, timeout=REQUEST_TIMEOUT
+            ).decode("utf-8")
             data = json.loads(raw_response, strict=False)
 
             if not isinstance(data, list):  # Valid check
