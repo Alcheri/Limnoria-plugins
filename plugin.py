@@ -35,7 +35,7 @@ DEGREE_SIGN = "\N{DEGREE SIGN}"
 PERCENT_SIGN = "\N{PERCENT SIGN}"
 QUOTATION_MARK = "\N{QUOTATION MARK}"
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:110.0) Gecko/20100101 Firefox/110.0"
+    "User-Agent": "Limnoria- Weather/1.0 (+https://github.com/Alcheri/Weather)"
 }
 FILENAME = conf.supybot.directories.data.dirize("Weather.json")
 
@@ -60,8 +60,8 @@ def handle_error(
 
 class Weather(callbacks.Plugin):
     """
-    Add the help for "@plugin help Weather" here
-    This should describe *how* to use this plugin.
+    Get the current weather for the specified location,
+    or a default location.
     """
 
     threaded = False
