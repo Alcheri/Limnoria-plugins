@@ -29,8 +29,10 @@ def handle_error(
     error: Exception, context: str = None, user_message: str = "An error occurred."
 ):
     """Log and handle errors gracefully."""
-
-    raise callbacks.Error(user_message)
+    message = user_message
+    if user_message == "An error occurred." and error:
+        message = str(error)
+    raise callbacks.Error(message)
 
 
 # Clean Output Utility
@@ -47,8 +49,7 @@ class GoogleMaps(callbacks.Plugin):
     threaded = False
 
     def __init__(self, irc):
-        self.__parent = super(GoogleMaps, self)
-        self.__parent.__init__(irc)
+        super().__init__(irc)
         self.irc = irc
 
     async def process_arguments(self, optlist: dict, user_input: str) -> dict:
