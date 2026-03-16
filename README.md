@@ -36,23 +36,23 @@ Next, load the plugin:
 
 ## Configuring
 
-* **_supybot.plugins.UrbanDictionary.maxNumberOfDefinitions_**
+* **_config supybot.plugins.UrbanDictionary.maxNumberOfDefinitions_**
 
     Number of definition and examples in output. Max 10.
 
-* **_supybot.plugins.UrbanDictionary.disableANSI_**
+* **_config supybot.plugins.UrbanDictionary.disableANSI_**
 
     Do not display any ANSI formatting codes in output. Default is _False_
 
-* **_supybot.plugins.UrbanDictionary.enabled_**
+* **_config supybot.plugins.UrbanDictionary.enabled_**
 
     Should plugin work in this channel?
 
-* **_supybot.plugins.UrbanDictionary.requestTimeout_**
+* **_config supybot.plugins.UrbanDictionary.requestTimeout_**
 
     HTTP timeout in seconds for API requests. Default is _10_.
   
-* **_supybot.plugins.UrbanDictionary.preferDefinePage_**
+* **_config supybot.plugins.UrbanDictionary.preferDefinePage_**
 
     Prefer scraping the define page first instead of using the API endpoint.
   
