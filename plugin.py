@@ -40,8 +40,7 @@ def clean_output(text: str) -> str:
 
 class GoogleMaps(callbacks.Plugin):
     """
-    Add the help for "@plugin help Asyncio" here
-    This should describe *how* to use this plugin.
+    Interact with the Google Maps API to retrieve map information based on user input.
     """
 
     threaded = False
