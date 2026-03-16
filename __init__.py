@@ -47,7 +47,8 @@ if world.testing:
         from . import test
     except ImportError as e:
         missing_names = {"test", f"{__name__}.test"}
-        if getattr(e, "name", None) not in missing_names:
+        missing_test_import = "cannot import name 'test'" in str(e)
+        if getattr(e, "name", None) not in missing_names and not missing_test_import:
             raise
 
 Class = plugin.Class
