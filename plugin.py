@@ -34,7 +34,8 @@ APOSTROPHE = "\N{APOSTROPHE}"
 DEGREE_SIGN = "\N{DEGREE SIGN}"
 PERCENT_SIGN = "\N{PERCENT SIGN}"
 QUOTATION_MARK = "\N{QUOTATION MARK}"
-HEADERS = {"User-Agent": "Limnoria- Weather/1.0 (+https://github.com/Alcheri/Weather)"}
+HEADERS = {"User-Agent": "Limnoria-Weather/1.0 (+https://github.com/Alcheri/Weather)"}
+REQUEST_TIMEOUT_SECONDS = 10
 FILENAME = conf.supybot.directories.data.dirize("Weather.json")
 
 
@@ -227,7 +228,8 @@ class Weather(callbacks.Plugin):
             dict: Parsed JSON response.
         """
         try:
-            async with aiohttp.ClientSession(headers=HEADERS) as session:
+            timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
+            async with aiohttp.ClientSession(headers=HEADERS, timeout=timeout) as session:
                 async with session.get(url, params=params) as response:
                     response.raise_for_status()
                     return await response.json()

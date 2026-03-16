@@ -57,8 +57,6 @@ __url__ = "https://github.com/Alcheri/Weather"
 
 from . import config
 from . import plugin
-from . import config
-from . import plugin
 from importlib import reload
 
 # In case we're being reloaded.
@@ -69,7 +67,14 @@ reload(plugin)
 # reloaded when this plugin is reloaded.  Don't forget to import them as well!
 
 if world.testing:
-    from . import test
+    try:
+        from . import test
+    except ImportError as e:
+        # Allow plugin loading when a local test module doesn't exist,
+        # but surface unrelated import failures from inside test.py.
+        missing_names = {"test", f"{__name__}.test"}
+        if getattr(e, "name", None) not in missing_names:
+            raise
 
 Class = plugin.Class
 configure = config.configure
