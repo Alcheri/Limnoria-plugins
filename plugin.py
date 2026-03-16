@@ -152,8 +152,7 @@ def get_movie_details_by_id(imdb_id, fallback_details=None):
 
 class IMDb(callbacks.Plugin):
     """
-    Add the help for "@plugin help IMDb" here
-    This should describe *how* to use this plugin.
+    A simple plugin to fetch movie details from the Internet Movie Database (IMDb)
     """
 
     threaded = True
