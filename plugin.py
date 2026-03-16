@@ -28,8 +28,7 @@ REQUEST_TIMEOUT = 10
 
 class Wikipedia(callbacks.Plugin):
     """
-    Add the help for "@plugin help Wikipedia" here
-    This should describe *how* to use this plugin.
+    Limnoria plugin for Wikipedia searching and fetching of documents.
     """
 
     threaded = True
