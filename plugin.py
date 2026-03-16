@@ -21,6 +21,7 @@ from supybot.i18n import PluginInternationalization
 _ = PluginInternationalization("GoogleMaps")
 
 nest_asyncio.apply()  # Allow nested asyncio event loops
+REQUEST_TIMEOUT_SECONDS = 10
 
 
 # Global Error Routine
@@ -57,7 +58,8 @@ class GoogleMaps(callbacks.Plugin):
             raise ValueError("Google Maps API key is missing.")
 
         base_url = "https://maps.googleapis.com/maps/api/"
-        async with aiohttp.ClientSession() as session:
+        timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             if "address" in optlist:
                 url = f"{base_url}geocode/json"
                 params = {"address": user_input, "key": apikey}

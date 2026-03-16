@@ -1,4 +1,3 @@
 aiohttp
-asyncio
 nest_asyncio
 

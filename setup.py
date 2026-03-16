@@ -12,6 +12,5 @@ plugin_setup(
     install_requires=[
         "aiohttp",
         "nest_asyncio",
-        "asyncio",
     ],
 )
