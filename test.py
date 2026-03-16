@@ -29,11 +29,15 @@ class TestGoogleMaps(PluginTestCase):
     def test_process_address(self, mock_get):
         mock_response = AsyncMock()
         mock_response.status = 200
-        mock_response.json = AsyncMock(return_value={
-            "results": [
-                {"formatted_address": "1600 Amphitheatre Parkway, Mountain View, CA"}
-            ]
-        })
+        mock_response.json = AsyncMock(
+            return_value={
+                "results": [
+                    {
+                        "formatted_address": "1600 Amphitheatre Parkway, Mountain View, CA"
+                    }
+                ]
+            }
+        )
         mock_context = AsyncMock()
         mock_context.__aenter__.return_value = mock_response
         mock_get.return_value = mock_context
@@ -55,9 +59,9 @@ class TestGoogleMaps(PluginTestCase):
     def test_process_reverse_geocoding(self, mock_get):
         mock_response = AsyncMock()
         mock_response.status = 200
-        mock_response.json = AsyncMock(return_value={
-            "results": [{"formatted_address": "Some Location"}]
-        })
+        mock_response.json = AsyncMock(
+            return_value={"results": [{"formatted_address": "Some Location"}]}
+        )
         mock_context = AsyncMock()
         mock_context.__aenter__.return_value = mock_response
         mock_get.return_value = mock_context
@@ -76,20 +80,22 @@ class TestGoogleMaps(PluginTestCase):
     def test_process_directions(self, mock_get):
         mock_response = AsyncMock()
         mock_response.status = 200
-        mock_response.json = AsyncMock(return_value={
-            "routes": [
-                {
-                    "legs": [
-                        {
-                            "start_address": "Moscow",
-                            "end_address": "Vladivostok",
-                            "distance": {"text": "9000 km"},
-                            "duration": {"text": "100 hours"},
-                        }
-                    ]
-                }
-            ]
-        })
+        mock_response.json = AsyncMock(
+            return_value={
+                "routes": [
+                    {
+                        "legs": [
+                            {
+                                "start_address": "Moscow",
+                                "end_address": "Vladivostok",
+                                "distance": {"text": "9000 km"},
+                                "duration": {"text": "100 hours"},
+                            }
+                        ]
+                    }
+                ]
+            }
+        )
         mock_context = AsyncMock()
         mock_context.__aenter__.return_value = mock_response
         mock_get.return_value = mock_context
