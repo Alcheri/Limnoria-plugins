@@ -23,9 +23,7 @@ from supybot.i18n import PluginInternationalization
 _ = PluginInternationalization("IMDb")
 
 # Set a stable plugin-specific user agent for API requests.
-headers = {
-    "User-Agent": "Limnoria-IMDb/1.0 (+https://github.com/Alcheri/IMDb)"
-}
+headers = {"User-Agent": "Limnoria-IMDb/1.0 (+https://github.com/Alcheri/IMDb)"}
 
 
 def search_imdb_title(movie_name):
