@@ -22,10 +22,9 @@ from supybot.i18n import PluginInternationalization
 
 _ = PluginInternationalization("IMDb")
 
-# Set headers to mimic a browser
+# Set a stable plugin-specific user agent for API requests.
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)\
-        Chrome/91.0.4472.124 Safari/537.36"
+    "User-Agent": "Limnoria-IMDb/1.0 (+https://github.com/Alcheri/IMDb)"
 }
 
 
