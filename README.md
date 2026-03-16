@@ -74,4 +74,3 @@ Notes:
 One which doesn't exist, but you should ask [the stoner] people how it's doing anyways.
 Example: Hey [Maya], how's your spline doing? What? Not to well? Oh, [I'm sorry] to [hear] that.
 ```
-
