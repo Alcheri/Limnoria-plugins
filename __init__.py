@@ -43,7 +43,12 @@ reload(plugin)
 # reloaded when this plugin is reloaded.  Don't forget to import them as well!
 
 if world.testing:
-    from . import test
+    try:
+        from . import test
+    except ImportError as e:
+        missing_names = {"test", f"{__name__}.test"}
+        if getattr(e, "name", None) not in missing_names:
+            raise
 
 Class = plugin.Class
 configure = config.configure
