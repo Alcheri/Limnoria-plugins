@@ -1,4 +1,3 @@
-asyncio
 openai
 python-dotenv
 

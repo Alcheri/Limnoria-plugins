@@ -37,11 +37,20 @@ from .cooldown import CooldownManager
 # Environment / API Setup
 # ----------------------------
 load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    raise ValueError("OPENAI_API_KEY not set in environment.")
+client = None
 
-client = OpenAI(api_key=api_key)
+
+def _ensure_openai_client():
+    global client
+    if client is not None:
+        return client
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY not set in environment.")
+
+    client = OpenAI(api_key=api_key)
+    return client
 
 
 # ----------------------------
@@ -177,7 +186,10 @@ def irc_send_chunked_preserve_newlines(irc, text, chunk_size=350):
 @lru_cache(maxsize=512)
 def _moderation_cache(text):
     try:
-        response = client.moderations.create(model="omni-moderation-latest", input=text)
+        openai_client = _ensure_openai_client()
+        response = openai_client.moderations.create(
+            model="omni-moderation-latest", input=text
+        )
         return response.results[0].flagged
     except Exception as e:
         log.warning("[Asyncio] Moderation error (fail-open): {}".format(e))
@@ -240,8 +252,9 @@ async def chat_with_model(user_message, context_key, config):
         history = USER_HISTORIES[context_key]
 
     try:
+        openai_client = _ensure_openai_client()
         response = await asyncio.to_thread(
-            client.chat.completions.create,
+            openai_client.chat.completions.create,
             model="gpt-4o-mini",
             messages=history,
             max_tokens=max_tokens,
@@ -311,6 +324,15 @@ class Asyncio(callbacks.Plugin):
             return
 
         # Show processing only if we're actually proceeding
+        try:
+            _ensure_openai_client()
+        except ValueError:
+            irc.reply(
+                "OPENAI_API_KEY is not configured. Set it in your environment or .env file.",
+                prefixNick=False,
+            )
+            return
+
         irc.reply("Processing your message...", prefixNick=False)
 
         try:
