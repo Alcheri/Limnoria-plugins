@@ -21,7 +21,7 @@ except ImportError as ie:
     raise ImportError(f"Cannot import module: {ie}")
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:110.0) Gecko/20100101 Firefox/110.0"
+    "User-Agent": "Limnoria-Wikipedia/1.0 (+https://github.com/andrewtryder/Wikipedia)"
 }
 REQUEST_TIMEOUT = 10
 
