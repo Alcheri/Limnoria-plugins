@@ -5,3 +5,6 @@
 /__pycache__
 /local/__pycache__
 *.bak
+
+__pycache__/
+*.py[cod]
