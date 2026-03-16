@@ -34,9 +34,7 @@ APOSTROPHE = "\N{APOSTROPHE}"
 DEGREE_SIGN = "\N{DEGREE SIGN}"
 PERCENT_SIGN = "\N{PERCENT SIGN}"
 QUOTATION_MARK = "\N{QUOTATION MARK}"
-HEADERS = {
-    "User-Agent": "Limnoria- Weather/1.0 (+https://github.com/Alcheri/Weather)"
-}
+HEADERS = {"User-Agent": "Limnoria- Weather/1.0 (+https://github.com/Alcheri/Weather)"}
 FILENAME = conf.supybot.directories.data.dirize("Weather.json")
 
 
