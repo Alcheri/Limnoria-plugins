@@ -97,7 +97,7 @@ class Weather(callbacks.Plugin):
 
     # XXX Utilities
 
-    # adapted from https://www.epa.gov/enviro/uv-index-description
+    # adapted from https://www.bom.gov.au/resources/learn-and-explore/uv-knowledge-centre/about-the-uv-index#bom-anchor-list__item-the-uv-index
     @staticmethod
     def colour_uvi(uvi: float) -> str:
         """
