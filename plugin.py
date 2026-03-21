@@ -26,17 +26,29 @@ import time
 import random
 import re
 import os
+import importlib
 from functools import lru_cache
 
-from openai import OpenAI
-from dotenv import load_dotenv
 from .cooldown import CooldownManager
 
 
 # ----------------------------
 # Environment / API Setup
 # ----------------------------
-load_dotenv()
+
+
+def _load_dotenv_if_available():
+    try:
+        dotenv = importlib.import_module("dotenv")
+        load_dotenv = getattr(dotenv, "load_dotenv", None)
+        if callable(load_dotenv):
+            load_dotenv()
+    except Exception:
+        # Optional dependency; environment variables may already be set.
+        pass
+
+
+_load_dotenv_if_available()
 client = None
 
 
@@ -49,7 +61,15 @@ def _ensure_openai_client():
     if not api_key:
         raise ValueError("OPENAI_API_KEY not set in environment.")
 
-    client = OpenAI(api_key=api_key)
+    try:
+        openai_module = importlib.import_module("openai")
+        openai_ctor = getattr(openai_module, "OpenAI")
+    except Exception as e:
+        raise ImportError(
+            "The 'openai' package is required. Install it from requirements.txt."
+        ) from e
+
+    client = openai_ctor(api_key=api_key)
     return client
 
 
@@ -66,7 +86,10 @@ def _unwrap_value(value, default=None):
 
 def _to_int(value, default):
     try:
-        return int(_unwrap_value(value, default))
+        v = _unwrap_value(value, default)
+        if v is None:
+            return default
+        return int(v)
     except Exception:
         return default
 
@@ -87,15 +110,30 @@ def _to_str(value, default=""):
 
 
 def get_config():
-    plugin_conf = conf.supybot.plugins.Asyncio
+    default_config = {
+        "max_tokens": 512,
+        "cooldown": 5,
+        "irc_chunk": 350,
+        "botnick": "Assistant",
+        "language": "British",
+        "debug": False,
+    }
+
+    supybot_conf = getattr(conf, "supybot", None)
+    plugins_conf = getattr(supybot_conf, "plugins", None)
+    plugin_conf = getattr(plugins_conf, "Asyncio", None)
+    if plugin_conf is None:
+        return default_config
 
     return {
-        "max_tokens": _to_int(plugin_conf.maxUserTokens(), 512),
-        "cooldown": _to_int(plugin_conf.cooldownSeconds(), 5),
-        "irc_chunk": _to_int(plugin_conf.ircChunkSize(), 350),
-        "botnick": _to_str(plugin_conf.botnick(), "Assistant"),
-        "language": _to_str(plugin_conf.language(), "British"),
-        "debug": _to_bool(plugin_conf.debugMode(), False),
+        "max_tokens": _to_int(
+            plugin_conf.maxUserTokens(), default_config["max_tokens"]
+        ),
+        "cooldown": _to_int(plugin_conf.cooldownSeconds(), default_config["cooldown"]),
+        "irc_chunk": _to_int(plugin_conf.ircChunkSize(), default_config["irc_chunk"]),
+        "botnick": _to_str(plugin_conf.botnick(), default_config["botnick"]),
+        "language": _to_str(plugin_conf.language(), default_config["language"]),
+        "debug": _to_bool(plugin_conf.debugMode(), default_config["debug"]),
     }
 
 
@@ -350,10 +388,12 @@ class Asyncio(callbacks.Plugin):
                 log.info("[Asyncio DEBUG] {}: {}".format(context_key, response))
 
         except Exception as e:
-            log.error("[Asyncio] Exception in chat command: {}".format(e), exc_info=True)
+            log.error(
+                "[Asyncio] Exception in chat command: {}".format(e), exc_info=True
+            )
             irc.reply("An unexpected error occurred. Check logs.", prefixNick=False)
 
-    def reset(self, irc, msg, args):
+    def resetCommand(self, irc, msg, args):
         """Reset your conversation memory for this channel (or PM)."""
         context_key = _context_key(msg)
 
@@ -368,13 +408,9 @@ class Asyncio(callbacks.Plugin):
             prefixNick=False,
         )
 
-    reset = wrap(reset)
+    reset = wrap(resetCommand)  # pyright: ignore[reportAssignmentType]
 
 
 Class = Asyncio
 
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
-
-
-
-
