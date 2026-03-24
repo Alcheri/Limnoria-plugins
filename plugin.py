@@ -34,9 +34,8 @@ APOSTROPHE = "\N{APOSTROPHE}"
 DEGREE_SIGN = "\N{DEGREE SIGN}"
 PERCENT_SIGN = "\N{PERCENT SIGN}"
 QUOTATION_MARK = "\N{QUOTATION MARK}"
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:110.0) Gecko/20100101 Firefox/110.0"
-}
+HEADERS = {"User-Agent": "Limnoria-Weather/1.0 (+https://github.com/Alcheri/Weather)"}
+REQUEST_TIMEOUT_SECONDS = 10
 FILENAME = conf.supybot.directories.data.dirize("Weather.json")
 
 
@@ -64,6 +63,8 @@ class Weather(callbacks.Plugin):
     OpenWeather and Google Maps APIs.  Use 'weather <location>' for current
     conditions, 'weather --forecast <location>' for a 5-day forecast, and
     'set <location>' to save a default location for your hostmask.
+    Get the current weather for the specified location,
+    or a default location.
     """
 
     threaded = True
@@ -119,7 +120,7 @@ class Weather(callbacks.Plugin):
 
     # XXX Utilities
 
-    # adapted from https://www.epa.gov/enviro/uv-index-description
+    # adapted from https://www.bom.gov.au/resources/learn-and-explore/uv-knowledge-centre/about-the-uv-index#bom-anchor-list__item-the-uv-index
     @staticmethod
     def colour_uvi(uvi: float) -> str:
         """
@@ -253,6 +254,13 @@ class Weather(callbacks.Plugin):
             async with self._session.get(url, params=params) as response:
                 response.raise_for_status()
                 return await response.json()
+            timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
+            async with aiohttp.ClientSession(
+                headers=HEADERS, timeout=timeout
+            ) as session:
+                async with session.get(url, params=params) as response:
+                    response.raise_for_status()
+                    return await response.json()
         except aiohttp.ClientResponseError as e:
             handle_error(e, context=f"HTTP error for {url}")
         except Exception as e:
