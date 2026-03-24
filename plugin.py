@@ -59,21 +59,35 @@ def handle_error(
 
 class Weather(callbacks.Plugin):
     """
+    Provides current weather conditions and multi-day forecasts using the
+    OpenWeather and Google Maps APIs.  Use 'weather <location>' for current
+    conditions, 'weather --forecast <location>' for a 5-day forecast, and
+    'set <location>' to save a default location for your hostmask.
     Get the current weather for the specified location,
     or a default location.
     """
 
-    threaded = False
+    threaded = True
 
     def __init__(self, irc):
         super().__init__(irc)
         self.db = {}
         self.load_db()
         world.flushers.append(self.flush_db)
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
+        try:
+            self._session = self._loop.run_until_complete(self._create_session())
+        except Exception as e:
+            log.error(f"Weather: failed to create aiohttp session: {e}")
+            self._session = None
+
+    async def _create_session(self):
+        return aiohttp.ClientSession(headers=HEADERS)
 
     def load_db(self):
         try:
-            with open(FILENAME, "r") as f:
+            with open(FILENAME, "r", encoding="utf-8") as f:
                 self.db = json.load(f)
         except FileNotFoundError:
             self.db = {}
@@ -85,12 +99,21 @@ class Weather(callbacks.Plugin):
 
     def flush_db(self):
         try:
-            with open(FILENAME, "w") as f:
+            with open(FILENAME, "w", encoding="utf-8") as f:
                 json.dump(self.db, f, indent=4)
         except Exception as e:
             log.warning(f"Unable to save database: {e}")
 
     def die(self):
+        if self._session is not None:
+            try:
+                self._loop.run_until_complete(self._session.close())
+            except Exception as e:
+                log.warning(f"Weather: error closing aiohttp session: {e}")
+        try:
+            self._loop.close()
+        except Exception as e:
+            log.warning(f"Weather: error closing event loop: {e}")
         self.flush_db()
         world.flushers.remove(self.flush_db)
         super().die()
@@ -228,6 +251,9 @@ class Weather(callbacks.Plugin):
             dict: Parsed JSON response.
         """
         try:
+            async with self._session.get(url, params=params) as response:
+                response.raise_for_status()
+                return await response.json()
             timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
             async with aiohttp.ClientSession(
                 headers=HEADERS, timeout=timeout
@@ -236,9 +262,9 @@ class Weather(callbacks.Plugin):
                     response.raise_for_status()
                     return await response.json()
         except aiohttp.ClientResponseError as e:
-            handle_error(e, context=f"HTTP error for {url} with {params}")
+            handle_error(e, context=f"HTTP error for {url}")
         except Exception as e:
-            handle_error(e, context=f"Fetching data from {url} with {params}")
+            handle_error(e, context=f"Fetching data from {url}")
 
     async def google_maps(self, address: str) -> tuple:
         """Get location data from Google Maps API."""
@@ -251,7 +277,7 @@ class Weather(callbacks.Plugin):
         url = "https://maps.googleapis.com/maps/api/geocode/json"
         params = {"address": address, "key": apikey}
 
-        log.debug(f"Using Google Maps API with {url} and params: {params}")
+        log.debug(f"Using Google Maps API with {url}")
 
         data = await self.fetch_data(url, params)
         if data.get("status") != "OK":
@@ -292,7 +318,7 @@ class Weather(callbacks.Plugin):
             "appid": apikey,
             "units": "metric",
         }
-        log.debug(f"Weather: using URL {url} with params {params} (openweather)")
+        log.debug(f"Weather: using URL {url} (openweather)")
 
         data = await self.fetch_data(url, params)
         return data
@@ -333,6 +359,7 @@ class Weather(callbacks.Plugin):
 
         # Handle user-specific location
         if not location:
+            ident_host = None
             try:
                 if "user" in optlist:
                     host = irc.state.nickToHostmask(optlist["user"])
@@ -341,13 +368,19 @@ class Weather(callbacks.Plugin):
                 ident_host = host.split("!")[1]
                 location = self.db[ident_host]
             except KeyError:
-                irc.error(
-                    f"No location for %s is set. Use the \u2018set\u2019 command "
-                    f"to set a location for your current hostmask, or call \u2018weather\u2019 "
-                    f"with <location> as an argument."
-                    % ircutils.bold("*!" + ident_host),
-                    Raise=True,
-                )
+                if ident_host is None:
+                    irc.error(
+                        f"Nickname {ircutils.bold(optlist['user'])} not found in channel.",
+                        Raise=True,
+                    )
+                else:
+                    irc.error(
+                        f"No location for %s is set. Use the \u2018set\u2019 command "
+                        f"to set a location for your current hostmask, or call \u2018weather\u2019 "
+                        f"with <location> as an argument."
+                        % ircutils.bold("*!" + ident_host),
+                        Raise=True,
+                    )
         location = location.lower()
 
         async def process_weather():
@@ -376,7 +409,7 @@ class Weather(callbacks.Plugin):
 
         # Run the async process
         try:
-            result = asyncio.run(process_weather())
+            result = self._loop.run_until_complete(process_weather())
             if result:
                 irc.reply(result, prefixNick=False)
         except Exception as e:
@@ -424,23 +457,7 @@ class Weather(callbacks.Plugin):
                     e, context=f"Processing Google command for location: {location}"
                 )
 
-        asyncio.run(process_google())
-
-    @wrap(["text"])
-    def help(self, irc, msg, args):
-        """
-        [--user <nick>] [--forecast] [-- <location>]
-
-        [set location] | [unset]
-
-        Get the current weather information for a town, city or address.
-
-        [city <(Alpha-2) country code>] [<postcode, (Alpha-2) country code>] <address>
-
-        I.E. 'weather' Ballarat or Ballarat AU OR 3350 AU or 'weather' 38.9071923 -77.036870
-
-         | 'google' [city <(Alpha-2) country code>] to get latitude and longitude of a city/town.
-        """
+        self._loop.run_until_complete(process_google())
 
 
 Class = Weather
