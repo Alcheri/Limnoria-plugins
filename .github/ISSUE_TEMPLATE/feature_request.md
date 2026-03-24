@@ -1,9 +1,10 @@
 ---
-name: ✨ Feature Request
+name: "✨ Feature Request"
 about: Suggest an improvement or new feature
 title: "[FEATURE] "
 labels: enhancement
-assignees: BarrySuridge
+assignees: ''
+
 ---
 
 # ✨ Feature Request – Asyncio Plugin

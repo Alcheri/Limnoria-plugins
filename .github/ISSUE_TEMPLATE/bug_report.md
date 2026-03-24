@@ -1,9 +1,10 @@
 ---
-name: 🐛 Bug Report
+name: "\U0001F41B Bug Report"
 about: Report a bug in the Asyncio Limnoria plugin
 title: "[BUG] "
 labels: bug
-assignees: BarrySuridge
+assignees: ''
+
 ---
 
 # 🐛 Bug Report – Asyncio Plugin
