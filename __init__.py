@@ -13,7 +13,7 @@ import sys
 import supybot
 from supybot import world
 
-__version__ = "12032026"
+__version__ = "1.0.0"
 
 __author__ = supybot.Author("Barry Suridge", "Alcheri", "barry.suridge@gmail.com")
 
