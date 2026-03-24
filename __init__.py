@@ -19,7 +19,7 @@ if sys.version_info < (3, 10):
 import supybot
 from supybot import world
 
-__version__ = "05012025"
+__version__ = "1.0.0"
 
 __author__ = supybot.Author("Barry Suridge", "Alcheri", "")
 
