@@ -1,6 +1,8 @@
 ```mermaid
 flowchart TD
-    subgraph CMD[Command Layer]
+
+    subgraph CMD
+        title Command Layer
         C1[weather command with options and location text]
         C2{user option provided}
         C3[Resolve hostmask from nick]
@@ -13,7 +15,8 @@ flowchart TD
         C10[Run async pipeline on event loop]
     end
 
-    subgraph GEO[Geocoding Layer]
+    subgraph GEO
+        title Geocoding Layer
         G1{Google Maps API key configured}
         G2[Raise handled error missing Google Maps key]
         G3[Fetch geocode data]
@@ -22,7 +25,8 @@ flowchart TD
         G6[Extract lat lon postcode place id formatted address]
     end
 
-    subgraph WX[Weather Layer]
+    subgraph WX
+        title Weather Layer
         W1{OpenWeather API key configured}
         W2[Raise handled error missing OpenWeather key]
         W3[Fetch onecall weather data]
@@ -31,7 +35,8 @@ flowchart TD
         W6[Return weather data]
     end
 
-    subgraph FMT[Formatting Layer]
+    subgraph FMT
+        title Formatting Layer
         F1{Forecast option enabled}
         F2[Format current weather result]
         F3[Format current condition details]
@@ -43,7 +48,8 @@ flowchart TD
         F9[Build forecast reply text]
     end
 
-    subgraph OUT[Output Layer]
+    subgraph OUT
+        title Output Layer
         O1[Send irc reply]
         O2[Handled exception path]
         O3[Done]
