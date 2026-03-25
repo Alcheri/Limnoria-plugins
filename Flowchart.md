@@ -1,8 +1,5 @@
 ```mermaid
 flowchart TD
-    %% =========================
-    %% Weather Plugin Flow (source-aligned)
-    %% =========================
     subgraph CMD[Command Layer]
         C1[weather command with options and location text]
         C2{user option provided}
