@@ -2,6 +2,9 @@
 !.gitignore
 !.gitattributes
 *.Identifier
+puppeteer*.json
+mermaid*.json
+*.mmd
 /__pycache__
 /local/__pycache__
 *.bak
