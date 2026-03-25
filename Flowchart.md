@@ -1,60 +1,57 @@
 ```mermaid
-flowchart LR
+flowchart TD
     %% =========================
     %% Weather Plugin Flow (source-aligned)
     %% =========================
-
     subgraph CMD[Command Layer]
-        C1[weather command\n@wrap getopts user/forecast + text]
-        C2{opts.user provided?}
-        C3[hostmask = irc.state.nickToHostmask(opts.user)]
-        C4[hostmask = msg.prefix]
-        C5{location arg provided?}
-        C6[location = arg]
-        C7[location = self.db[hostmask]]
-        C8{location found?}
-        C9[irc.error: no saved location]
-        C10[Run async pipeline on self._loop]
+        C1[weather command with options and location text]
+        C2{user option provided}
+        C3[Resolve hostmask from nick]
+        C4[Use message prefix as hostmask]
+        C5{location argument provided}
+        C6[Use location argument]
+        C7[Load saved location from db by hostmask]
+        C8{location found}
+        C9[Reply error no saved location]
+        C10[Run async pipeline on event loop]
     end
 
-    subgraph GEO[Geocoding Layer: google_maps(address)]
-        G1{registryValue googlemapsAPI set?}
-        G2[handle_error missing Google Maps API key]
-        G3[fetch_data geocode endpoint\nmaps.googleapis.com/geocode/json]
-        G4{data.status == OK?}
-        G5[handle_error geocode failed]
-        G6[Extract lat/lng/postcode/place_id/formatted_address]
+    subgraph GEO[Geocoding Layer]
+        G1{Google Maps API key configured}
+        G2[Raise handled error missing Google Maps key]
+        G3[Fetch geocode data]
+        G4{Geocode status is OK}
+        G5[Raise handled error geocode failed]
+        G6[Extract lat lon postcode place id formatted address]
     end
 
-    subgraph WX[Weather Layer: openweather(lat, lon)]
-        W1{registryValue openweatherAPI set?}
-        W2[handle_error missing OpenWeather API key]
-        W3[fetch_data onecall endpoint\napi.openweathermap.org/data/3.0/onecall]
-        W4{HTTP+JSON success?}
-        W5[handle_error from fetch_data]
-        W6[Return weather_data]
+    subgraph WX[Weather Layer]
+        W1{OpenWeather API key configured}
+        W2[Raise handled error missing OpenWeather key]
+        W3[Fetch onecall weather data]
+        W4{Weather fetch succeeded}
+        W5[Raise handled error weather fetch failed]
+        W6[Return weather data]
     end
 
     subgraph FMT[Formatting Layer]
-        F1{opts.forecast?}
-        F2[format_weather_results location + weather_data]
-        F3[format_current_conditions current block]
-        F4[colour_temperature / colour_uvi / _get_wind_direction]
-        F5[dd2dms + format_location]
-        F6[Compose current-conditions reply]
-
-        F7[format_forecast_results location + weather_data]
-        F8[Iterate daily entries]
-        F9[Compose multi-day forecast reply]
+        F1{Forecast option enabled}
+        F2[Format current weather result]
+        F3[Format current condition details]
+        F4[Apply colour temperature UV and wind direction helpers]
+        F5[Format location using DMS]
+        F6[Build current weather reply text]
+        F7[Format forecast result]
+        F8[Iterate daily forecast entries]
+        F9[Build forecast reply text]
     end
 
-    subgraph OUT[Output + Error Layer]
-        O1[irc.reply response]
-        O2[callbacks.Error raised by handle_error]
+    subgraph OUT[Output Layer]
+        O1[Send irc reply]
+        O2[Handled exception path]
         O3[Done]
     end
 
-    %% Command flow
     C1 --> C2
     C2 -->|yes| C3
     C2 -->|no| C4
@@ -68,7 +65,6 @@ flowchart LR
     C6 --> C10
     C9 --> O3
 
-    %% Async pipeline: geocode then weather
     C10 --> G1
     G1 -->|no| G2
     G1 -->|yes| G3
@@ -83,7 +79,6 @@ flowchart LR
     W4 -->|no| W5
     W4 -->|yes| W6
 
-    %% Formatting split
     W6 --> F1
     F1 -->|no| F2
     F2 --> F3
@@ -97,7 +92,6 @@ flowchart LR
     F8 --> F9
     F9 --> O1
 
-    %% Error propagation
     G2 --> O2
     G5 --> O2
     W2 --> O2
