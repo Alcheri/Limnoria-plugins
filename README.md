@@ -66,6 +66,6 @@ git subtree pull --prefix=plugins/WorldTime worldtime Limnoria-WorldTime
 
 ## Licensing
 
-Each plugin may have its own license. Check each plugin directory for a `LICENCE`/`LICENCE.md` file.
+Each plugin may have its own licence. Check each plugin directory for a `LICENCE`/`LICENCE.md` file.
 
 If a plugin directory includes a `LICENCE.md`, that file governs the plugin.
