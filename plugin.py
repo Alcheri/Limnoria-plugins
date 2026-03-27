@@ -254,13 +254,6 @@ class Weather(callbacks.Plugin):
             async with self._session.get(url, params=params) as response:
                 response.raise_for_status()
                 return await response.json()
-            timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
-            async with aiohttp.ClientSession(
-                headers=HEADERS, timeout=timeout
-            ) as session:
-                async with session.get(url, params=params) as response:
-                    response.raise_for_status()
-                    return await response.json()
         except aiohttp.ClientResponseError as e:
             handle_error(e, context=f"HTTP error for {url}")
         except Exception as e:
