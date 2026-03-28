@@ -9,7 +9,6 @@ from supybot import utils, plugins, ircutils, callbacks, log
 from supybot.commands import *
 from supybot.i18n import PluginInternationalization
 
-
 _ = PluginInternationalization("Dictionary")
 
 import json
