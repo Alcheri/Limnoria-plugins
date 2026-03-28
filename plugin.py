@@ -104,7 +104,7 @@ class MyPing(callbacks.Plugin):
             try:
                 userHostmask = irc.state.nickToHostmask(nick)
                 # Returns the nick and host of a user hostmask.
-                (nick, _, host) = utils.splitHostmask(userHostmask)
+                nick, _, host = utils.splitHostmask(userHostmask)
             except KeyError:
                 pass
         if sys.platform.startswith("win"):
