@@ -20,7 +20,6 @@ from supybot import callbacks
 from supybot.commands import *
 from supybot.i18n import PluginInternationalization
 
-
 _ = PluginInternationalization("URLtitle")
 
 DEFAULT_USER_AGENT = "Limnoria-URLtitle/1.0 (+https://github.com/Alcheri/URLtitle)"

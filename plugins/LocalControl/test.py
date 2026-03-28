@@ -9,7 +9,7 @@ from supybot.test import *
 
 
 class LocalControlTestCase(PluginTestCase):
-    plugins = ('LocalControl',)
+    plugins = ("LocalControl",)
 
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

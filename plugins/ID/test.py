@@ -32,7 +32,7 @@ from supybot.test import *
 
 
 class IDTestCase(PluginTestCase):
-    plugins = ('ID',)
+    plugins = ("ID",)
 
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

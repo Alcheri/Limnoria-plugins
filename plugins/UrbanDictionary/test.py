@@ -10,7 +10,6 @@ from supybot.test import *
 import supybot.conf as conf
 from unittest.mock import AsyncMock, patch
 
-
 MOCK_JSON_WITH_DEFINITION = (
     '{"list": [{"definition": "A greeting", "example": "hello there", '
     '"thumbs_up": 5, "thumbs_down": 1}], "tags": ["greeting"]}'

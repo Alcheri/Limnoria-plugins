@@ -9,7 +9,6 @@ from supybot import callbacks, ircmsgs, ircutils, log, world
 from supybot.commands import *
 from supybot.i18n import PluginInternationalization
 
-
 _ = PluginInternationalization("LocalControl")
 
 import os
