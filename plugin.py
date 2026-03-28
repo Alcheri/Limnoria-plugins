@@ -34,7 +34,6 @@ from supybot.i18n import PluginInternationalization
 
 from . import config as plugin_config
 
-
 _ = PluginInternationalization("ID")
 
 
@@ -66,8 +65,9 @@ class ID(callbacks.Plugin):
             irc.error("NickServ password is not configured.")
             return
         nickservIdentify(irc)
-        
-        irc.reply("The operation succeeded.") 
+
+        irc.reply("The operation succeeded.")
+
 
 Class = ID
 
