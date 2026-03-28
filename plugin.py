@@ -19,7 +19,6 @@ from supybot import callbacks
 from supybot.commands import *
 from supybot.i18n import PluginInternationalization
 
-
 _ = PluginInternationalization("IMDb")
 
 # Set a stable plugin-specific user agent for API requests.
