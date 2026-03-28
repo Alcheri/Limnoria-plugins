@@ -3,6 +3,7 @@ from supybot import conf, registry
 
 try:
     from supybot.i18n import PluginInternationalization
+
     _ = PluginInternationalization("Asyncio")
 except Exception:
     _ = lambda x: x
@@ -11,6 +12,7 @@ except Exception:
 def configure(advanced):
     # Limnoria convention: keep this even if unused for now.
     from supybot.questions import expect, anything, something, yn  # noqa: F401
+
     conf.registerPlugin("Asyncio", True)
 
 

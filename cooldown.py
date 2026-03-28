@@ -8,6 +8,7 @@
 # Designed to be simple, predictable, and difficult to misuse.
 ###
 
+
 class CooldownManager(object):
     """
     Per-context cooldown tracker.
@@ -29,7 +30,7 @@ class CooldownManager(object):
         if cd <= 0.0:
             return None
 
-# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
+        # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
 
         last_time = float(self._store.get(context_key, 0.0))
         delta = float(now) - last_time

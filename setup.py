@@ -8,9 +8,9 @@
 from supybot.setup import plugin_setup
 
 plugin_setup(
-    'Asyncio',
+    "Asyncio",
     install_requires=[
-        'openai',
-        'python-dotenv',
+        "openai",
+        "python-dotenv",
     ],
 )
