@@ -1,5 +1,8 @@
 name: Tests
 
+permissions:
+  contents: read
+
 on:
   push:
   pull_request:
@@ -7,8 +10,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
@@ -16,8 +17,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: IMDb
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -25,9 +24,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
+        shell: bash
         run: |
+          python -m pip install --upgrade pip
           pip install limnoria
-          pip install -r IMDb/requirements.txt
+          PLUGIN_NAME="${GITHUB_REPOSITORY#*/}"
+          if [ -f "${PLUGIN_NAME}/requirements.txt" ]; then
+            pip install -r "${PLUGIN_NAME}/requirements.txt"
+          fi
 
       - name: Run tests
-        run: supybot-test IMDb
+        shell: bash
+        run: |
+          PLUGIN_NAME="${GITHUB_REPOSITORY#*/}"
+          supybot-test "${PLUGIN_NAME}"
