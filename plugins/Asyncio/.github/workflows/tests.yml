@@ -17,8 +17,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: Asyncio
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -26,9 +24,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
+        shell: bash
         run: |
+          python -m pip install --upgrade pip
           pip install limnoria
-          pip install -r Asyncio/requirements.txt
+          PLUGIN_NAME="${GITHUB_REPOSITORY#*/}"
+          if [ -f "${PLUGIN_NAME}/requirements.txt" ]; then
+            pip install -r "${PLUGIN_NAME}/requirements.txt"
+          fi
 
       - name: Run tests
-        run: supybot-test Asyncio
+        shell: bash
+        run: |
+          PLUGIN_NAME="${GITHUB_REPOSITORY#*/}"
+          supybot-test "${PLUGIN_NAME}"

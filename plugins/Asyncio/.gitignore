@@ -1,6 +1,22 @@
 
+# Python cache
 __pycache__/
-*.pyc
-.env
-*.log
+local/__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.Identifier
