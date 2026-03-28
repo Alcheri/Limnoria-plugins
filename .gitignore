@@ -1,6 +1,8 @@
 .*
 !.gitignore
 *.Identifier
+!.github/
+!.github/**
 /__pycache__
 /local/__pycache__
 *.bak
