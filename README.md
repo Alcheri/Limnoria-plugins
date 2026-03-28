@@ -75,7 +75,12 @@ Next, load the plugin:
 @weather help -- Plugin help - accepts no arguments.
 ```
 
+## Diagram Notes
+
+Some Chromium-based Markdown previewers may not render Mermaid diagrams
+correctly. A PNG render of the flowchart is included for compatibility.
+
+The Mermaid source remains available for editing.
+
 <br/><br/>
 <p align="center">Copyright © MMXXIV, Barry Suridge</p>
-
-
