@@ -320,7 +320,7 @@ class MyDNS(callbacks.Plugin):
             nick = address
             try:
                 userHostmask = irc.state.nickToHostmask(nick)
-                (nick, _, host) = utils.splitHostmask(
+                nick, _, host = utils.splitHostmask(
                     userHostmask
                 )  # Returns the nick and host of a user hostmask.
                 if is_ip(host):
@@ -427,7 +427,7 @@ class MyDNS(callbacks.Plugin):
             return self.getaddrinfo(ip)
 
         try:
-            (hostname, _, address) = socket.gethostbyaddr(ip)
+            hostname, _, address = socket.gethostbyaddr(ip)
             hostname = hostname + " <> " + address[0]
             geoip = self.geoip(address[0])
             shortname = hostname.split(".")[0]
