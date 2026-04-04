@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "limnoria-iso"
+version = "1.0.0"
+description = "ISO lookup plugin for Limnoria."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENCE.md" }
+authors = [{ name = "Barry Suridge" }]
+dependencies = ["iso3166"]
+classifiers = [
+    "Environment :: Plugins",
+    "Programming Language :: Python :: 3",
+    "Topic :: Communications :: Chat",
+]
+
+[project.entry-points.'limnoria.plugins']
+ISO = "limnoria_iso"
+
+[tool.setuptools.package-dir]
+"limnoria_iso" = "."
+"limnoria_iso.local" = "local/"
+
+[tool.setuptools.package-data]
+"limnoria_iso" = ["locales/*.po"]
+
+[project.urls]
+Homepage = "https://github.com/Alcheri/ISO"
+Source = "https://github.com/Alcheri/ISO"
+Issues = "https://github.com/Alcheri/ISO/issues"
