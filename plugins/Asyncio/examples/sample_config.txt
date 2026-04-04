@@ -1,0 +1,4 @@
+@config plugins.Asyncio.maxUserTokens 512
+@config plugins.Asyncio.cooldownSeconds 5
+@config plugins.Asyncio.botnick Puss
+@config plugins.Asyncio.language British

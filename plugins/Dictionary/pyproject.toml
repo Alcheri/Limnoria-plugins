@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "limnoria-dictionary"
+version = "1.0.0"
+description = "A Limnoria plugin providing dictionary lookups with clean, expressive output."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "BSD-3-Clause" }
+
+authors = [{ name = "Alcheri", email = "barry.suridge@gmail.com" }]
+
+keywords = ["limnoria", "supybot", "plugin", "dictionary"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: BSD 3-Clause License",
+  "Operating System :: OS Independent",
+]
+
+dependencies = ["requests>=2.31"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "black", "ruff", "mypy"]
+
+[project.urls]
+Homepage = "https://github.com/Alcheri/Dictionary"
+Issues = "https://github.com/Alcheri/Dictionary/issues"
+
+[tool.setuptools]
+package-dir = { "" = "." }
+
+[tool.setuptools.packages.find]
+include = ["Dictionary"]
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --disable-warnings"
+testpaths = ["tests"]

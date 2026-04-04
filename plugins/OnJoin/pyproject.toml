@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "limnoria-onjoin"
+version = "1.0.0"
+description = "Send a notice to all users entering a channel."
+readme = "README.md"
+requires-python = ">=3.6"
+license = { file = "LICENCE.md" }
+authors = [{ name = "Barry Suridge" }]
+classifiers = [
+    "Environment :: Plugins",
+    "Programming Language :: Python :: 3",
+    "Topic :: Communications :: Chat",
+]
+
+[project.entry-points.'limnoria.plugins']
+OnJoin = "limnoria_onjoin"
+
+[tool.setuptools.package-dir]
+"limnoria_onjoin" = "."
+"limnoria_onjoin.local" = "local/"
+
+[tool.setuptools.package-data]
+"limnoria_onjoin" = ["locales/*.po"]
+
+[project.urls]
+Homepage = "https://github.com/Alcheri/OnJoin"
+Source = "https://github.com/Alcheri/OnJoin"
+Issues = "https://github.com/Alcheri/OnJoin/issues"

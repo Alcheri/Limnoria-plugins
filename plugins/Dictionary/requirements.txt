@@ -1,0 +1,2 @@
+# Intentionally empty.
+# This repo uses only stdlib; file exists to enable pip caching in GitHub Actions.
