@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "limnoria-mydns"
+version = "1.1.0"
+description = "An alternative to Supybot's DNS function."
+readme = "README.md"
+requires-python = ">=3.6"
+license = { file = "LICENCE.md" }
+authors = [{ name = "Barry Suridge" }]
+dependencies = ["urllib3"]
+classifiers = [
+    "Environment :: Plugins",
+    "Programming Language :: Python :: 3",
+    "Topic :: Communications :: Chat",
+]
+
+[project.entry-points.'limnoria.plugins']
+MyDNS = "limnoria_mydns"
+
+[tool.setuptools.package-dir]
+"limnoria_mydns" = "."
+"limnoria_mydns.local" = "local/"
+
+[tool.setuptools.package-data]
+"limnoria_mydns" = ["locales/*.po"]
+
+[project.urls]
+Homepage = "https://github.com/Alcheri/MyDNS"
+Source = "https://github.com/Alcheri/MyDNS"
+Issues = "https://github.com/Alcheri/MyDNS/issues"
