@@ -86,7 +86,7 @@ or set `requiredCapability` to `admin` / `owner`.
 | `maxConcurrentPerChannel` | `1` | Max in-flight Geminoria requests per channel |
 | `maxReplyChars` | `350` | Maximum response length sent back to IRC |
 | `historyToolsChannelAllowlist` | `''` (empty) | Space-separated channels allowed to use `search_last`/`search_urls`; empty means all channels |
-  `searchLastChannelAllowlist` | `''` (empty) | Space-separated channels allowed for `search_last`; if set, overrides shared history allowlist for this tool |
+| `searchLastChannelAllowlist` | `''` (empty) | Space-separated channels allowed for `search_last`; if set, overrides shared history allowlist for this tool |
 | `searchUrlsChannelAllowlist` | `''` (empty) | Space-separated channels allowed for `search_urls`; if set, overrides shared history allowlist for this tool |
 | `allowSearchLast` (channel) | `True` | Allow `search_last` in a given channel |
 | `allowSearchUrls` (channel) | `True` | Allow `search_urls` in a given channel |
