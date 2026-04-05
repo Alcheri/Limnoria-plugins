@@ -1,3 +1,5 @@
+<!--  Alternative DNS lookup plugin for Limnoria with GeoIP enrichment. -->
+
 <h1 align="center">MyDNS</h1>
 
 <!-- README_HEADER:start -->
