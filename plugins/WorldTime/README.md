@@ -1,3 +1,5 @@
+<!-- Retrieve current time and time zone information for various locations. -->
+
 # Limnoria plugin for WorldTime
 
 Retrieve current time and time zone information for various locations.
