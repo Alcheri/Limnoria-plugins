@@ -1,3 +1,5 @@
+<!-- Limnoria plugin to query and summarize Wikipedia articles. -->
+
 # Wikipedia
 
 Limnoria plugin to query and summarize Wikipedia articles.
