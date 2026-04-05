@@ -1,3 +1,4 @@
+<!-- Returns the ping result of <hostname | ip or IPv6> using Python's shlex library. -->
 
 <h1 align="center">An alternative to Limnorias' PING function </h1>
 
