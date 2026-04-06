@@ -105,6 +105,18 @@ _Default_: "Assistant"
 _Options_: American, Australian, British, Canadian\
 _Default_: British
 
+OpenAI model fallback
+
+* Chat uses an automatic fallback chain to reduce breakage if a model is retired.
+* Default order: `gpt-4o-mini`, `gpt-4.1-mini`, `gpt-4.1`, `gpt-4o`
+* You can override this order with an environment variable:
+
+```plaintext
+OPENAI_CHAT_MODELS="gpt-4o-mini,gpt-4.1-mini,gpt-4.1,gpt-4o"
+```
+
+The plugin will try models left-to-right and switch to the first available one.
+
 Usage Examples
 
 ```plaintext

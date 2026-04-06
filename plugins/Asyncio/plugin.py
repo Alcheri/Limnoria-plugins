@@ -49,6 +49,71 @@ def _load_dotenv_if_available():
 
 _load_dotenv_if_available()
 client = None
+ACTIVE_CHAT_MODEL = None
+
+
+def _chat_model_candidates():
+    """Ordered model fallback list for chat completions."""
+    env_value = os.getenv("OPENAI_CHAT_MODELS", "")
+    if env_value.strip():
+        models = [m.strip() for m in env_value.split(",") if m.strip()]
+        if models:
+            return models
+
+    # Default chain: keep low-cost first, then broader compatibility options.
+    return ["gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]
+
+
+def _is_model_unavailable_error(error):
+    text = str(error).lower()
+    signals = [
+        "model",
+        "does not exist",
+        "not found",
+        "invalid model",
+        "deprecated",
+        "decommissioned",
+        "no longer available",
+        "is not available",
+    ]
+    return "model" in text and any(sig in text for sig in signals[1:])
+
+
+def _create_chat_completion_with_fallback(openai_client, **kwargs):
+    """Try candidate models in order, persisting a known-good winner."""
+    global ACTIVE_CHAT_MODEL
+
+    candidates = _chat_model_candidates()
+    if ACTIVE_CHAT_MODEL and ACTIVE_CHAT_MODEL in candidates:
+        candidates = [ACTIVE_CHAT_MODEL] + [
+            m for m in candidates if m != ACTIVE_CHAT_MODEL
+        ]
+
+    last_error = None
+    for model_name in candidates:
+        try:
+            response = openai_client.chat.completions.create(
+                model=model_name,
+                **kwargs,
+            )
+            if ACTIVE_CHAT_MODEL != model_name:
+                log.warning("[Asyncio] Chat model switched to '{}'".format(model_name))
+            ACTIVE_CHAT_MODEL = model_name
+            return response
+        except Exception as e:
+            last_error = e
+            if _is_model_unavailable_error(e):
+                log.warning(
+                    "[Asyncio] Chat model '{}' unavailable, trying next fallback: {}".format(
+                        model_name, e
+                    )
+                )
+                continue
+            raise
+
+    if last_error:
+        raise last_error
+    raise RuntimeError("No chat model candidates configured.")
 
 
 def _ensure_openai_client():
@@ -291,8 +356,8 @@ async def chat_with_model(user_message, context_key, config):
     try:
         openai_client = _ensure_openai_client()
         response = await asyncio.to_thread(
-            openai_client.chat.completions.create,
-            model="gpt-4o-mini",
+            _create_chat_completion_with_fallback,
+            openai_client,
             messages=history,
             max_tokens=max_tokens,
             temperature=temperature,
