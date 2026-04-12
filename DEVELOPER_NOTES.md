@@ -137,6 +137,8 @@ Precision is not required for IRC safety.
 
 # 🛡 Moderation Strategy
 
+Implementation reference: [omni-moderation-latest.md](omni-moderation-latest.md)
+
 Moderation characteristics:
 
 - Cached using lru_cache
