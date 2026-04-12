@@ -31,6 +31,8 @@ from functools import lru_cache
 
 from .cooldown import CooldownManager
 
+from . import __version__ as PLUGIN_VERSION
+
 # ----------------------------
 # Environment / API Setup
 # ----------------------------
@@ -474,6 +476,17 @@ class Asyncio(callbacks.Plugin):
 
     reset = wrap(resetCommand)  # pyright: ignore[reportAssignmentType]
 
+    def chatversion(self, irc, msg, args) -> None:
+        """takes no arguments
+
+        Show the currently loaded Asyncio plugin version.
+        """
+        _ = (msg, args)
+        irc.reply(
+            f"Asyncio version: {PLUGIN_VERSION}", prefixNick=False
+        )
+
+    chatversion = wrap(chatversion)  # pyright: ignore[reportAssignmentType]
 
 Class = Asyncio
 
