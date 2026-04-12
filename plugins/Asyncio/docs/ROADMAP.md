@@ -92,6 +92,7 @@ For:
 - Output truncation detection warning
 
 ## 🧪 Proposed Milestones
+
 v1.2-alpha
 
 `maxHistoryLength`
@@ -131,6 +132,3 @@ Asyncio will prioritise:
 Maintainer: Barry Suridge
 Project: Asyncio Limnoria AI Plugin
 License: MIT
-
-
-
