@@ -51,7 +51,8 @@
 [Roadmap](docs/ROADMAP.md) •
 [Changelog](CHANGELOG.md) •
 [Developer Notes](DEVELOPER_NOTES.md) •
-[Architecture](docs/architecture.md)
+[Architecture](docs/architecture.md) •
+[Moderation Model Notes](omni-moderation-latest.md)
 
 </div>
 
