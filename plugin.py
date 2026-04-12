@@ -481,12 +481,16 @@ class Asyncio(callbacks.Plugin):
 
         Show the currently loaded Asyncio plugin version.
         """
+        global ACTIVE_CHAT_MODEL
         _ = (msg, args)
+        model_label = ACTIVE_CHAT_MODEL if ACTIVE_CHAT_MODEL else "not selected yet"
         irc.reply(
-            f"Asyncio version: {PLUGIN_VERSION}", prefixNick=False
+            f"Asyncio version: {PLUGIN_VERSION} | model: {model_label}",
+            prefixNick=False,
         )
 
     chatversion = wrap(chatversion)  # pyright: ignore[reportAssignmentType]
+
 
 Class = Asyncio
 
