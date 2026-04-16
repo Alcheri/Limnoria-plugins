@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+
 from supybot import conf, registry
+
+from .runtime import get_config
 
 try:
     from supybot.i18n import PluginInternationalization
@@ -13,6 +16,7 @@ def configure(advanced):
     # Limnoria convention: keep this even if unused for now.
     from supybot.questions import expect, anything, something, yn  # noqa: F401
 
+    _ = advanced
     conf.registerPlugin("Asyncio", True)
 
 
@@ -60,4 +64,5 @@ conf.registerGlobalValue(
     registry.Integer(350, _("Max characters per IRC reply chunk")),
 )
 
-# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
+
+__all__ = ["configure", "get_config"]

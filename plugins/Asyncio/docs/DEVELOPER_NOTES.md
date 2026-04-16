@@ -258,20 +258,20 @@ User-facing behaviour must remain unchanged.
 
 ## 🧩 Layered Architecture (Proposed)
 
-    plugin.py      → IRC command interface only
-    core.py        → Conversation orchestration
-    services.py    → External API interactions
-    memory.py      → Context memory handling
-    cooldown.py    → Cooldown tracking
-    errors.py      → Exception hierarchy
-    utils.py       → Pure helper functions
+    plugin.py              → IRC command interface only
+    core/chat.py           → Conversation orchestration
+    services/openai_*.py   → External API interactions
+    state/memory.py        → Context memory handling
+    cooldown.py            → Cooldown tracking
+    errors.py              → Exception hierarchy
+    core/text.py           → Pure helper functions
 
 Rules:
 
 - plugin.py must not call APIs directly
-- services.py must not call irc.reply()
-- memory.py must not contain business logic
-- core.py orchestrates but does not perform raw I/O
+- services/* must not call irc.reply()
+- state/memory.py must not contain business logic
+- core/chat.py orchestrates but does not perform raw I/O
 
 ---
 
@@ -360,18 +360,18 @@ No coroutine objects may escape scope.
 
 ## Phase 1 – Structural Refactor
 
-- [ ] Extract ConversationMemory to memory.py
-- [ ] Extract CooldownManager to cooldown.py
+- [x] Extract ConversationMemory to memory.py
+- [x] Extract CooldownManager to cooldown.py
 - [ ] Implement errors.py hierarchy
-- [ ] Replace raw dictionary access
-- [ ] Preserve identical behaviour
+- [x] Replace raw dictionary access
+- [x] Preserve identical behaviour
 
 ## Phase 2 – Layer Enforcement
 
-- [ ] Remove API calls from plugin.py
-- [ ] Remove IRC references from services.py
-- [ ] Ensure core.py orchestrates cleanly
-- [ ] Confirm no blocking I/O exists
+- [x] Remove API calls from plugin.py
+- [x] Remove IRC references from services.py
+- [x] Ensure core.py orchestrates cleanly
+- [x] Confirm no blocking I/O exists
 
 ## Phase 3 – Observability
 
@@ -393,11 +393,11 @@ No coroutine objects may escape scope.
 
 Before tagging v1.2:
 
-Multi-Channel Isolation  
-Cooldown Behaviour  
-Failure Modes  
-Memory Trimming  
-Restart Behaviour  
+Multi-Channel Isolation
+Cooldown Behaviour
+Failure Modes
+Memory Trimming
+Restart Behaviour
 
 No regression is acceptable.
 
@@ -405,10 +405,10 @@ No regression is acceptable.
 
 # 📌 Versioning Philosophy
 
-v1.1 → Production-stable architecture  
-v1.2 → Structural refinement and internal hardening  
-v1.3 → Optional capability expansion  
-v2.0 → Major architectural shift only  
+v1.1 → Production-stable architecture
+v1.2 → Structural refinement and internal hardening
+v1.3 → Optional capability expansion
+v2.0 → Major architectural shift only
 
 ---
 
@@ -428,6 +428,6 @@ The current architecture reflects what has proven reliable under real-world IRC 
 
 ---
 
-Maintained by: Barry Suridge  
-Plugin: Asyncio for Limnoria IRC  
+Maintained by: Barry Suridge
+Plugin: Asyncio for Limnoria IRC
 Status: Production-stable architecture

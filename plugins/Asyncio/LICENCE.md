@@ -13,7 +13,7 @@ GNU AGPL v3, provided that corresponding source and license notices are
 preserved and AGPL obligations are met, including for network use.
 
 A copy of the full license text is available at:
-https://www.gnu.org/licenses/agpl-3.0.txt
+[GNU Affero General Public Licence](https://www.gnu.org/licenses/agpl-3.0.html#license-text)
 
 If you distribute this project, include this license file and provide the
 complete corresponding source as required by the AGPL.
