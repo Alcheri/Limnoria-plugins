@@ -11,8 +11,6 @@ docs:
   - changed-files:
       - any-glob-to-any-file:
           - README.md
-          - CHANGELOG.md
-          - DEVELOPER_NOTES.md
           - LICENCE.md
           - docs/**
 
@@ -37,4 +35,3 @@ ci:
       - any-glob-to-any-file:
           - .github/workflows/**
           - .github/labeler.yml
-

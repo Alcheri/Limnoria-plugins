@@ -131,4 +131,4 @@ Asyncio will prioritise:
 
 Maintainer: Barry Suridge
 Project: Asyncio Limnoria AI Plugin
-License: MIT
+License: AGPL-3.0-only
