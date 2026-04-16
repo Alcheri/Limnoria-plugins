@@ -1,21 +1,24 @@
-MIT License
+GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
 
-Copyright (c) 2026 Barry Suridge
+Copyright (C) 2026 Barry Suridge
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+SPDX-License-Identifier: AGPL-3.0-only
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Asyncio is licensed under the GNU Affero General Public License version 3 only
+(AGPL-3.0-only).
+
+You may copy, modify, and redistribute this software under the terms of the
+GNU AGPL v3, provided that corresponding source and license notices are
+preserved and AGPL obligations are met, including for network use.
+
+A copy of the full license text is available at:
+https://www.gnu.org/licenses/agpl-3.0.txt
+
+If you distribute this project, include this license file and provide the
+complete corresponding source as required by the AGPL.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. TO THE EXTENT PERMITTED
+BY LAW, THE AUTHORS ARE NOT LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY.

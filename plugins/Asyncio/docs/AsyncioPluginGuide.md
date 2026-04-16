@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
   <img src="https://img.shields.io/badge/OpenAI-powered-8A2BE2.svg" alt="OpenAI">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="Licence">
+  <img src="https://img.shields.io/badge/license-AGPLv3-green.svg" alt="Licence">
 </p>
 
 <p align="center">

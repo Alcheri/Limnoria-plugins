@@ -26,8 +26,8 @@
   <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/code%20style-black-black" alt="Code style: black">
   <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
-  <a href="https://opensource.org/licenses/MIT">
-    <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
+  <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">
+    <img src="https://img.shields.io/badge/License-AGPLv3-blue.svg" alt="License">
   </a>
 </p>
 
