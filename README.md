@@ -49,10 +49,10 @@
 
 [Manual](docs/AsyncioPluginGuide.md) •
 [Roadmap](docs/ROADMAP.md) •
-[Changelog](CHANGELOG.md) •
-[Developer Notes](DEVELOPER_NOTES.md) •
+[Changelog](docs/CHANGELOG.md) •
+[Developer Notes](docs/DEVELOPER_NOTES.md) •
 [Architecture](docs/architecture.md) •
-[Moderation Model Notes](omni-moderation-latest.md)
+[Moderation Model Notes](docs/omni-moderation-latest.md)
 
 </div>
 
