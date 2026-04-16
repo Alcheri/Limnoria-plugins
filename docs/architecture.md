@@ -14,11 +14,11 @@ All diagrams represent v1.2 architecture intent.
 flowchart TD
     IRC[IRC User] --> Plugin[plugin.py<br/>IRC Interface]
 
-    Plugin --> Core[core.py<br/>Orchestrator]
+    Plugin --> Core[core/chat.py<br/>Orchestrator]
 
-    Core --> Memory[memory.py<br/>ConversationMemory]
+    Core --> Memory[state/memory.py<br/>ConversationMemory]
     Core --> Cooldown[cooldown.py<br/>CooldownManager]
-    Core --> Services[services.py<br/>Async API Layer]
+    Core --> Services[services/*<br/>Async API Layer]
 
     Services --> External[(External APIs)]
 ```
@@ -27,9 +27,9 @@ flowchart TD
 `Plugin` --> `IRC`
 
 * `plugin.py` is the ONLY layer allowed to interact with IRC.
-* `core.py` orchestrates but does not directly perform I/O.
-* `services.py` performs async network operations only.
-* `memory.py` handles context state only.
+* `core/chat.py` orchestrates but does not directly perform I/O.
+* `services/*` performs async network operations only.
+* `state/memory.py` handles context state only.
 * `cooldown.py` handles rate limiting only.
 
 # 2️⃣ Request Lifecycle
@@ -44,9 +44,9 @@ flowchart TD
 
     D --> E[ConversationMemory.get_context]
 
-    E --> F[core.py Orchestration]
+    E --> F[core/chat.py Orchestration]
 
-    F --> G[services.py Async Call]
+    F --> G[services/* Async Call]
 
     G --> H[Process API Response]
 
@@ -68,10 +68,10 @@ Guarantees
 ```mermaid
 flowchart LR
     Plugin[plugin.py]
-    Core[core.py]
-    Memory[memory.py]
+    Core[core/chat.py]
+    Memory[state/memory.py]
     Cooldown[cooldown.py]
-    Services[services.py]
+    Services[services/*]
     External[(External APIs)]
 
     Plugin --> Core
@@ -82,9 +82,9 @@ flowchart LR
 ```
 Forbidden Directions
 
-* `services.py` → `plugin.py`
-* `memory.py` → `services.py`
-* `cooldown.py` → `services.py`
+* `services/*` → `plugin.py`
+* `state/memory.py` → `services/*`
+* `cooldown.py` → `services/*`
 * Any layer directly accessing IRC except `plugin.py`
 
 These restrictions prevent architectural drift.

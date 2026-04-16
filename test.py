@@ -7,6 +7,12 @@ import unittest
 
 from supybot.test import *
 
+from .tests.test_core_chat import CoreChatTestCase
+from .tests.test_core_text import CoreTextTestCase
+from .tests.test_services_moderation import ServicesModerationTestCase
+from .tests.test_services_openai_client import ServicesOpenAIClientTestCase
+from .tests.test_state_memory import StateMemoryTestCase
+
 
 class AsyncioTestCase(PluginTestCase):
     plugins = ("Asyncio",)
