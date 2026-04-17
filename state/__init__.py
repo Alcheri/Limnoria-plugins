@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from .memory import (
     clear_context_history,
     clear_history,

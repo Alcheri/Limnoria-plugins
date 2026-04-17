@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import unittest
 
 from ..core.chat import execute_chat_with_input_moderation

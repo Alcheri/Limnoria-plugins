@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from supybot import conf, registry
 
 from .runtime import get_config
