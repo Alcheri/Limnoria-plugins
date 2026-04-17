@@ -1,5 +1,5 @@
 ###
-# Copyright (c) 2021, Barry Suridge
+# Copyright (c) 2020 - 2026, Barry Suridge
 # All rights reserved.
 #
 #

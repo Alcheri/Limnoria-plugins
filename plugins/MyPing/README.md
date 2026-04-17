@@ -20,13 +20,12 @@
 </p>
 <!-- README_HEADER:end -->
 
-
 <p align="center">
     <em>
         Returns the ping result of <hostname | ip or IPv6> using Python's shlex library.
     </em>
 </p>
-        
+
 # Install
 
 Download the plugin:
@@ -64,8 +63,4 @@ To stop conflict with Limnorias' core 'ping' function do the following:
 \<Borg\>  ${\texttt{\color{red}2a01:4f9:c011:33a2::20}}$ is Reachable ~ Time elapsed: ${\texttt{\color{teal}(0.0, 167.0)}}$ seconds/milliseconds Packet Loss: ${\texttt{\color{teal}0\%}}$
 
 <br><br>
-<p align="center">Copyright © MMXXV, Barry Suridge</p>
-
-
-
-
+<p align="center">Copyright © 2020 - 2026, Barry Suridge</p>
