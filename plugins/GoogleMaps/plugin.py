@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ###
 # Copyright © 2024, Barry KW Suridge
 # All rights reserved.
