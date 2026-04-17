@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+###
+# Copyright (c) 2020 - 2026, Barry Suridge
+# All rights reserved.
+#
+
 ##############
 # FORMATTING #
 ##############
