@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ###
 # Asyncio Cooldown Manager
 #
@@ -30,8 +29,6 @@ class CooldownManager(object):
         if cd <= 0.0:
             return None
 
-        # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
-
         last_time = float(self._store.get(context_key, 0.0))
         delta = float(now) - last_time
 
@@ -53,3 +50,6 @@ class CooldownManager(object):
 
     def clear_all(self):
         self._store.clear()
+
+
+# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

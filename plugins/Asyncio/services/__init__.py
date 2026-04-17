@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from .moderation import check_moderation_flag
 from .openai_client import (
     create_chat_completion_with_fallback,

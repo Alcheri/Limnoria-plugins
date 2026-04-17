@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ###
 # Asyncio ChatGPT Plugin for Limnoria (Production Final)
 # - Per-user + per-channel memory
