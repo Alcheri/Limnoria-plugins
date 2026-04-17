@@ -1,5 +1,5 @@
 ###
-# Copyright (c) 2020, Barry Suridge
+# Copyright (c) 2020 - 2026, Barry Suridge
 # All rights reserved.
 #
 #
@@ -8,8 +8,6 @@
 from supybot.test import *
 from unittest.mock import patch
 import subprocess
-
-
 class MyPingTestCase(ChannelPluginTestCase):
     plugins = ("MyPing",)
     config = {"supybot.plugins.myping.enable": True}

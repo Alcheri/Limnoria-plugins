@@ -1,5 +1,5 @@
 ###
-# Copyright (c) 2016 - 2021, Barry Suridge
+# Copyright (c) 2020 - 2026, Barry Suridge
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
