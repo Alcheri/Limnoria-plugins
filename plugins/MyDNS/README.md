@@ -20,7 +20,6 @@
 </p>
 <!-- README_HEADER:end -->
 
-
 <p align="center">
   Alternative DNS lookup plugin for Limnoria with GeoIP enrichment.
 </p>
@@ -144,6 +143,6 @@ config channel #channel plugins.MyDNS.enable
 config plugins.MyDNS.ipstackAPI your_api_key_here
 ```
 
-Copyright © MMXXVI, Barry Suridge
+Copyright © 2016 - 2026, Barry Suridge
 
-
+Licensed under the BSD 3-Clause License. See [LICENCE](LICENCE.md) for details.
