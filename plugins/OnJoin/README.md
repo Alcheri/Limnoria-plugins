@@ -13,3 +13,8 @@ Send a random (humorous) notice to a user entering an IRC channel.
 ## Setting up
 
 ** No setting up required.
+
+## Python Source Header Policy
+
+- In Python 3 files, do not add `# -*- coding: utf-8 -*-` unless a non-default source encoding is required.
+- Use `#!/usr/bin/env python3` only for executable scripts, not import-only modules.
