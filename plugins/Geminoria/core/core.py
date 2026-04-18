@@ -580,6 +580,8 @@ class GeminoriaCore:
             answer = ircutils.stripFormatting(answer)
         else:
             answer = highlight_config_keys(answer)
-        answer = truncate(answer, max(1, int(cfg.max_reply_chars)))
+        max_reply_chars = int(cfg.max_reply_chars)
+        if max_reply_chars > 0:
+            answer = truncate(answer, max_reply_chars)
         log.debug("Geminoria: replying text=%r", loggable_text(answer, cfg))
         return answer
