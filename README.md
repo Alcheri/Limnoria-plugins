@@ -1,6 +1,6 @@
-<!-- Geminoria 1.1.0-beta.3 – Gemini-powered agentic search plugin for Limnoria. -->
+<!-- Geminoria 1.1.0-beta.4 – Gemini-powered agentic search plugin for Limnoria. -->
 
-# Geminoria v1.1.0-beta.3
+# Geminoria v1.1.0-beta.4
 
 A Gemini-powered agentic search plugin for [Limnoria](https://github.com/progval/Limnoria).
 
@@ -85,14 +85,14 @@ or set `requiredCapability` to `admin` / `owner`.
 | `logSensitiveData` | `False` | Log raw query/tool payloads in debug logs (disabled by default) |
 | `cooldownSeconds` | `10` | Minimum delay between calls from the same user hostmask |
 | `maxConcurrentPerChannel` | `1` | Max in-flight Geminoria requests per channel |
-| `maxReplyChars` | `350` | Maximum response length sent back to IRC |
+| `maxReplyChars` | `350` | Maximum response length sent back to IRC (`0` disables plugin-side truncation so Limnoria `more` paging can handle long replies) |
 | `progressIndicatorEnabled` | `True` | Enable delayed one-line "working" status on non-cached runs |
 | `progressIndicatorDelayMs` | `1200` | Delay before status line appears (milliseconds) |
 | `progressIndicatorStyle` | `dots` | Status style: `dots` or `plain` |
 | `progressIndicatorMessage` | `''` (empty) | Optional custom status text; empty uses style default |
-| `historyToolsChannelAllowlist` | `''` (empty) | Space-separated channels allowed to use `search_last`/`search_urls`; empty means all channels |
-| `searchLastChannelAllowlist` | `''` (empty) | Space-separated channels allowed for `search_last`; if set, overrides shared history allowlist for this tool |
-| `searchUrlsChannelAllowlist` | `''` (empty) | Space-separated channels allowed for `search_urls`; if set, overrides shared history allowlist for this tool |
+| `historyToolsChannelAllowlist` (network) | `''` (empty) | Per-network space-separated channels allowed to use `search_last`/`search_urls`; empty means all channels |
+| `searchLastChannelAllowlist` (network) | `''` (empty) | Per-network space-separated channels allowed for `search_last`; if set, overrides shared history allowlist for this tool |
+| `searchUrlsChannelAllowlist` (network) | `''` (empty) | Per-network space-separated channels allowed for `search_urls`; if set, overrides shared history allowlist for this tool |
 | `allowSearchLast` (channel) | `True` | Allow `search_last` in a given channel |
 | `allowSearchUrls` (channel) | `True` | Allow `search_urls` in a given channel |
 | `cacheEnabled` | `True` | Enable persistent SQLite query-history cache |
@@ -106,11 +106,11 @@ or set `requiredCapability` to `admin` / `owner`.
 Channel policy examples:
 
 ```text
-@config plugins.Geminoria.historyToolsChannelAllowlist #ops #support
-@config plugins.Geminoria.searchLastChannelAllowlist #ops
-@config plugins.Geminoria.searchUrlsChannelAllowlist #support
-@config channel plugins.Geminoria.allowSearchLast True or False (or On or Off)
-@config channel plugins.Geminoria.allowSearchUrls True or False (or On or Off)
+@config network <Network> plugins.Geminoria.historyToolsChannelAllowlist #ops #support
+@config network <Network> plugins.Geminoria.searchLastChannelAllowlist #ops
+@config network <Network> plugins.Geminoria.searchUrlsChannelAllowlist #support
+@config plugins.Geminoria.allowSearchLast True or False (or On or Off)
+@config plugins.Geminoria.allowSearchUrls True or False (or On or Off)
 @config plugins.Geminoria.progressIndicatorEnabled True
 @config plugins.Geminoria.progressIndicatorDelayMs 1200
 @config plugins.Geminoria.progressIndicatorStyle dots
@@ -134,6 +134,12 @@ Admin cache commands:
 ```text
 @gemcache stats
 @gemcache clear
+```
+
+Owner diagnostics:
+
+```text
+@gemdiag
 ```
 
 ## Licence

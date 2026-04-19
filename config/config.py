@@ -134,7 +134,11 @@ conf.registerGlobalValue(
     "maxReplyChars",
     registry.Integer(
         350,
-        _("Maximum final reply length sent to IRC (characters)."),
+        _(
+            "Maximum final reply length sent to IRC (characters). "
+            "Set to 0 to disable Geminoria-side truncation and rely on "
+            "Limnoria's reply.mores paging."
+        ),
     ),
 )
 
@@ -176,38 +180,41 @@ conf.registerGlobalValue(
     ),
 )
 
-conf.registerGlobalValue(
+conf.registerNetworkValue(
     Geminoria,
     "historyToolsChannelAllowlist",
     registry.SpaceSeparatedSetOfStrings(
         [],
         _(
-            "Optional space-separated channel allowlist for history-based tools "
-            "(search_last/search_urls). If empty, all channels are eligible."
+            "Optional per-network, space-separated channel allowlist for "
+            "history-based tools (search_last/search_urls). If empty, all "
+            "channels are eligible."
         ),
     ),
 )
 
-conf.registerGlobalValue(
+conf.registerNetworkValue(
     Geminoria,
     "searchLastChannelAllowlist",
     registry.SpaceSeparatedSetOfStrings(
         [],
         _(
-            "Optional space-separated channel allowlist for search_last only. "
-            "If empty, search_last falls back to historyToolsChannelAllowlist."
+            "Optional per-network, space-separated channel allowlist for "
+            "search_last only. If empty, search_last falls back to "
+            "historyToolsChannelAllowlist."
         ),
     ),
 )
 
-conf.registerGlobalValue(
+conf.registerNetworkValue(
     Geminoria,
     "searchUrlsChannelAllowlist",
     registry.SpaceSeparatedSetOfStrings(
         [],
         _(
-            "Optional space-separated channel allowlist for search_urls only. "
-            "If empty, search_urls falls back to historyToolsChannelAllowlist."
+            "Optional per-network, space-separated channel allowlist for "
+            "search_urls only. If empty, search_urls falls back to "
+            "historyToolsChannelAllowlist."
         ),
     ),
 )
