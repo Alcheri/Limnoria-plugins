@@ -24,7 +24,17 @@
   <em>This is a straightforward (simple) English Dictionary plugin for Limnoria.</em>
 </p>
 
+## Installation
+
+Navigate to your Limnoria plugin directory (usually ~/runbot/plugins) and clone the repository:
+
+`git clone https://github.com/Alcheri/Dictionary.git`
+
+Load the plugin into your bot:
+
 `/msg yourbot load dictionary`
+
+## Usage
 
 >\<Barry\> @dict antidisestablishmentarianism
 >
@@ -33,6 +43,6 @@
 
 **Note:**
 
-If Limnoria's Dict module is loaded then, unload it `@unload dict`
+If Limnoria's Dict module is loaded then, unload it: `@unload dict`
 <br/><br/>
-<p align="center">Copyright © MMXXVI, Barry Suridge</p>
+<p align="center">Copyright © 2024 - 2026, Barry Suridge</p>
