@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools"]
+
+[project]
+name = "limnoria-mem"
+version = "1.0.0"
+authors = [
+    { name = "Barry Suridge" }
+]
+readme = "README.md"
+dependencies = [
+    "limnoria",
+    "psutil",
+]
+classifiers = [
+    'Environment :: Plugins',
+    'Programming Language :: Python :: 3',
+    'Topic :: Communications :: Chat',
+]
+
+[project.entry-points.'limnoria.plugins']
+Mem = "limnoria_mem"
+
+[tool.setuptools.package-dir]
+"limnoria_mem" = "."
+"limnoria_mem.local" = "local/"
+
+[tool.setuptools.package-data]
+"limnoria_mem" = ["locales/*.po"]
