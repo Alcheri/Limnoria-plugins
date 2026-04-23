@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools"]
+
+[project]
+name = "limnoria-messageslog"
+version = "1.0.0"
+authors = [
+    { name = "Barry Suridge" }
+]
+readme = "README.md"
+dependencies = [
+    "limnoria",
+]
+classifiers = [
+    'Environment :: Plugins',
+    'Programming Language :: Python :: 3',
+    'Topic :: Communications :: Chat',
+]
+
+[project.entry-points.'limnoria.plugins']
+MessagesLog = "limnoria_messageslog"
+
+[tool.setuptools.package-dir]
+"limnoria_messageslog" = "."
+"limnoria_messageslog.local" = "local/"
+
+[tool.setuptools.package-data]
+"limnoria_messageslog" = ["locales/*.po"]
