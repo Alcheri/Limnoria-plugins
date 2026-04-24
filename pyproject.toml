@@ -19,6 +19,20 @@ classifiers = [
 [project.entry-points.'limnoria.plugins']
 MyPing = "limnoria_myping"
 
+[tool.black]
+target-version = ["py36"]
+extend-exclude = '''
+/(
+    backup
+  | conf
+  | data
+  | logs
+  | tmp
+  | __pycache__
+  | \.pytest_cache
+)/
+'''
+
 [tool.setuptools.package-dir]
 "limnoria_myping" = "."
 "limnoria_myping.local" = "local/"

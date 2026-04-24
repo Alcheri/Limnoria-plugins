@@ -8,6 +8,8 @@
 from supybot.test import *
 from unittest.mock import patch
 import subprocess
+
+
 class MyPingTestCase(ChannelPluginTestCase):
     plugins = ("MyPing",)
     config = {"supybot.plugins.myping.enable": True}
