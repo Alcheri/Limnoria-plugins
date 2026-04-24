@@ -20,6 +20,20 @@ classifiers = [
 [project.entry-points.'limnoria.plugins']
 WorldTime = "limnoria_worldtime"
 
+[tool.black]
+target-version = ["py311"]
+extend-exclude = '''
+/(
+    backup
+  | conf
+  | data
+  | logs
+  | tmp
+  | __pycache__
+  | \.pytest_cache
+)/
+'''
+
 [tool.setuptools.package-dir]
 "limnoria_worldtime" = "."
 "limnoria_worldtime.local" = "local/"
