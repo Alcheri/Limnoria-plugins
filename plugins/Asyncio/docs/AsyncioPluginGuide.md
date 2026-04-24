@@ -25,30 +25,30 @@
 <hr style="width:65%; margin:auto;">
 
 <p align="center">
-Asyncio is a production-ready AI chat plugin for Limnoria IRC bots.  
-It provides natural conversation with OpenAI models while ensuring  
+Asyncio is a production-ready AI chat plugin for Limnoria IRC bots.
+It provides natural conversation with OpenAI models while ensuring
 safe multi-user behaviour, isolated memory, and stable long-running operation.
 </p>
 
 <hr style="width:65%; margin:auto;">
 
-**Bot Name:** Puss  
-**Plugin:** Asyncio — Asynchronous AI Chat for Limnoria IRC  
-**Author:** Barry Suridge  
-**Version:** 1.1  
+**Bot Name:** Puss
+**Plugin:** Asyncio — Asynchronous AI Chat for Limnoria IRC
+**Author:** Barry Suridge
+**Version:** 1.1
 **Date:** 2026-02-26
 
 ---
 
 ## 📖 Table of Contents
 
-1. Commands Cheat Sheet  
-2. Conversation Memory  
-3. Plugin Configuration  
-4. Best Practices  
-5. Optional Tips  
-6. Operator Notes  
-7. Exporting to PDF  
+1. [Commands Cheat Sheet](#1️⃣-commands-cheat-sheet)
+2. [Conversation Memory](#2️⃣-conversation-memory)
+3. [Plugin Configuration](#3️⃣-plugin-configuration)
+4. [Best Practices](#4️⃣-best-practices)
+5. [Optional Tips](#5️⃣-optional-tips)
+6. [Operator Notes](#6️⃣-operator-notes)
+7. [Exporting to PDF](#7️⃣-exporting-to-pdf)
 
 ---
 
@@ -69,10 +69,10 @@ The plugin maintains conversation history per **user AND channel**.
 
 This ensures:
 
-• Conversations in different channels stay separate  
-• Private messages are treated as their own context  
-• Users do not share memory with each other  
-• History auto-trims to prevent growth  
+• Conversations in different channels stay separate
+• Private messages are treated as their own context
+• Users do not share memory with each other
+• History auto-trims to prevent growth
 
 ### Example
 
@@ -89,7 +89,7 @@ Bot does **not** remember.
 
 ---
 
-# 3️⃣ Plugin Configuration (`@config`)
+# 3️⃣ Plugin Configuration
 
 | Setting | Example | Description |
 |---------|--------|-------------|
@@ -151,26 +151,26 @@ This plugin is designed for production IRC use.
 
 It includes:
 
-• Async-safe execution (non-blocking bot behaviour)  
-• Built-in moderation filtering  
-• Token length protection  
-• Per-user + per-channel memory isolation  
-• Automatic history trimming  
-• Safe cooldown enforcement  
+• Async-safe execution (non-blocking bot behaviour)
+• Built-in moderation filtering
+• Token length protection
+• Per-user + per-channel memory isolation
+• Automatic history trimming
+• Safe cooldown enforcement
 
 The design prevents:
 
-• Cross-channel memory leakage  
-• One user affecting another’s context  
-• Excessive API usage  
-• Runaway memory growth  
+• Cross-channel memory leakage
+• One user affecting another’s context
+• Excessive API usage
+• Runaway memory growth
 
 Optional future upgrades include:
 
-• Persistent memory to disk  
-• Admin control commands  
-• Usage statistics  
-• Channel enable/disable toggles  
+• Persistent memory to disk
+• Admin control commands
+• Usage statistics
+• Channel enable/disable toggles
 
 ---
 
@@ -183,8 +183,7 @@ Optional future upgrades include:
 pandoc AsyncioPluginGuide.md -o AsyncioPluginGuide.pdf \
     --pdf-engine=xelatex \
     -V geometry:margin=1in
+```
+---
 
-© License
-
-Copyright © MMXXIV Barry Suridge
-All rights reserved.
+Maintained by: Barry Suridge Plugin: Asyncio for Limnoria IRC Status: Production-stable architecture, v1.0 released 2024-06-01
