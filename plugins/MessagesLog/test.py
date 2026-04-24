@@ -11,7 +11,7 @@ import unittest
 from unittest import mock
 
 from supybot import ircmsgs
-from supybot.test import *
+from supybot import test as supybot_test
 
 try:
     from . import plugin
@@ -19,7 +19,9 @@ except ImportError:  # pragma: no cover - allows direct unittest execution.
     import plugin
 
 
-class MessagesLogTestCase(PluginTestCase):
+class MessagesLogTestCase(supybot_test.PluginTestCase):
+    __test__ = False
+
     plugins = ("MessagesLog",)
 
 

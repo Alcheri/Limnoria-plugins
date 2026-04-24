@@ -26,3 +26,6 @@ MessagesLog = "limnoria_messageslog"
 
 [tool.setuptools.package-data]
 "limnoria_messageslog" = ["locales/*.po"]
+
+[tool.pytest.ini_options]
+python_files = ["test.py"]
