@@ -21,6 +21,20 @@ classifiers = [
 [project.entry-points.'limnoria.plugins']
 Mem = "limnoria_mem"
 
+[tool.black]
+target-version = ["py311"]
+extend-exclude = '''
+/(
+    backup
+  | conf
+  | data
+  | logs
+  | tmp
+  | __pycache__
+  | \.pytest_cache
+)/
+'''
+
 [tool.setuptools.package-dir]
 "limnoria_mem" = "."
 "limnoria_mem.local" = "local/"

@@ -35,20 +35,20 @@ class MemTestCase(PluginTestCase):
 
 class MemInternalTestCase(unittest.TestCase):
     def test_tracemalloc_already_tracing(self):
-        with mock.patch.object(
-            plugin.callbacks.Plugin, "__init__", return_value=None
-        ), mock.patch.object(
-            plugin.tracemalloc, "is_tracing", return_value=True
-        ), mock.patch.object(plugin.tracemalloc, "start") as mock_start:
+        with (
+            mock.patch.object(plugin.callbacks.Plugin, "__init__", return_value=None),
+            mock.patch.object(plugin.tracemalloc, "is_tracing", return_value=True),
+            mock.patch.object(plugin.tracemalloc, "start") as mock_start,
+        ):
             plugin.Mem(mock.sentinel.irc)
             mock_start.assert_not_called()
 
     def test_tracemalloc_not_tracing(self):
-        with mock.patch.object(
-            plugin.callbacks.Plugin, "__init__", return_value=None
-        ), mock.patch.object(
-            plugin.tracemalloc, "is_tracing", return_value=False
-        ), mock.patch.object(plugin.tracemalloc, "start") as mock_start:
+        with (
+            mock.patch.object(plugin.callbacks.Plugin, "__init__", return_value=None),
+            mock.patch.object(plugin.tracemalloc, "is_tracing", return_value=False),
+            mock.patch.object(plugin.tracemalloc, "start") as mock_start,
+        ):
             plugin.Mem(mock.sentinel.irc)
             mock_start.assert_called_once_with()
 
@@ -80,7 +80,9 @@ class MemInternalTestCase(unittest.TestCase):
             mem_plugin = plugin.Mem.__new__(plugin.Mem)
             mem_plugin._top(mock_irc, 5)
 
-        mock_irc.reply.assert_called_once_with("No allocation statistics available yet.")
+        mock_irc.reply.assert_called_once_with(
+            "No allocation statistics available yet."
+        )
 
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
