@@ -11,8 +11,8 @@ import psutil
 from supybot import callbacks, commands
 from supybot.i18n import PluginInternationalization
 
-
 _ = PluginInternationalization("Mem")
+
 
 class Mem(callbacks.Plugin):
     """Provides memory usage and allocation statistics."""
@@ -83,6 +83,7 @@ class Mem(callbacks.Plugin):
         data = getattr(mem, "data", 0) // 1024 // 1024
 
         irc.reply(f"RSS: {rss} MB; VMS: {vms} MB; Shared: {shared} MB; Data: {data} MB")
+
 
 Class = Mem
 
