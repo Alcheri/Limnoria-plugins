@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import List
 
 from supybot import callbacks
+from supybot import ircmsgs
 from supybot.commands import *
 from supybot.i18n import PluginInternationalization
 
@@ -37,9 +38,9 @@ class MessagesLog(callbacks.Plugin):
         Reads lines from the end of messages.log. If <line count> is not
         provided, uses the configured default.
         """
-        self._tail_impl(irc, line_count=line_count)
+        self._tail_impl(irc, msg, line_count=line_count)
 
-    def _tail_impl(self, irc, line_count=None):
+    def _tail_impl(self, irc, msg, line_count=None):
         requested_line_count = (
             int(line_count)
             if line_count is not None
@@ -62,9 +63,11 @@ class MessagesLog(callbacks.Plugin):
             irc.reply(_("Log file is empty."))
             return
 
-        irc.replies(lines, prefixNick=False, oneToOne=False)
+        for line in lines:
+            irc.sendMsg(ircmsgs.notice(msg.nick, line))
+        irc.reply(_("Sent %s log lines by notice.") % len(lines))
 
-    tail = wrap(tail, [optional("positiveInt")])
+    tail = wrap(tail, [("checkCapability", "admin"), optional("positiveInt")])
 
 
 Class = MessagesLog

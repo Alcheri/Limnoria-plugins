@@ -10,6 +10,7 @@ from pathlib import Path
 import unittest
 from unittest import mock
 
+from supybot import ircmsgs
 from supybot.test import *
 
 try:
@@ -44,15 +45,21 @@ class TestMessagesLogInternal(unittest.TestCase):
         messages_log._log_path = mock.Mock(return_value=Path("/tmp/messages.log"))
         messages_log._read_last_lines = mock.Mock(return_value=["entry1", "entry2"])
         irc = mock.Mock()
+        msg = mock.Mock(nick="Barry")
 
-        messages_log._tail_impl(irc)
+        messages_log._tail_impl(irc, msg)
 
         messages_log._read_last_lines.assert_called_once_with(
             Path("/tmp/messages.log"), 20
         )
-        irc.replies.assert_called_once_with(
-            ["entry1", "entry2"], prefixNick=False, oneToOne=False
+        self.assertEqual(
+            irc.sendMsg.call_args_list,
+            [
+                mock.call(ircmsgs.notice("Barry", "entry1")),
+                mock.call(ircmsgs.notice("Barry", "entry2")),
+            ],
         )
+        irc.reply.assert_called_once_with("Sent 2 log lines by notice.")
 
     def test_tail_reports_missing_file(self):
         messages_log = plugin.MessagesLog.__new__(plugin.MessagesLog)
@@ -65,11 +72,12 @@ class TestMessagesLogInternal(unittest.TestCase):
         messages_log._log_path = mock.Mock(return_value=Path("/tmp/messages.log"))
         messages_log._read_last_lines = mock.Mock(side_effect=FileNotFoundError)
         irc = mock.Mock()
+        msg = mock.Mock(nick="Barry")
 
-        messages_log._tail_impl(irc)
+        messages_log._tail_impl(irc, msg)
 
         irc.error.assert_called_once()
-        irc.replies.assert_not_called()
+        irc.sendMsg.assert_not_called()
 
     def test_tail_uses_argument_override_when_provided(self):
         messages_log = plugin.MessagesLog.__new__(plugin.MessagesLog)
@@ -82,15 +90,15 @@ class TestMessagesLogInternal(unittest.TestCase):
         messages_log._log_path = mock.Mock(return_value=Path("/tmp/messages.log"))
         messages_log._read_last_lines = mock.Mock(return_value=["entry1"])
         irc = mock.Mock()
+        msg = mock.Mock(nick="Barry")
 
-        messages_log._tail_impl(irc, line_count=7)
+        messages_log._tail_impl(irc, msg, line_count=7)
 
         messages_log._read_last_lines.assert_called_once_with(
             Path("/tmp/messages.log"), 7
         )
-        irc.replies.assert_called_once_with(
-            ["entry1"], prefixNick=False, oneToOne=False
-        )
+        irc.sendMsg.assert_called_once_with(ircmsgs.notice("Barry", "entry1"))
+        irc.reply.assert_called_once_with("Sent 1 log lines by notice.")
 
     def test_tail_caps_argument_to_max_line_count(self):
         messages_log = plugin.MessagesLog.__new__(plugin.MessagesLog)
@@ -103,8 +111,9 @@ class TestMessagesLogInternal(unittest.TestCase):
         messages_log._log_path = mock.Mock(return_value=Path("/tmp/messages.log"))
         messages_log._read_last_lines = mock.Mock(return_value=["entry1"])
         irc = mock.Mock()
+        msg = mock.Mock(nick="Barry")
 
-        messages_log._tail_impl(irc, line_count=50)
+        messages_log._tail_impl(irc, msg, line_count=50)
 
         messages_log._read_last_lines.assert_called_once_with(
             Path("/tmp/messages.log"), 10
