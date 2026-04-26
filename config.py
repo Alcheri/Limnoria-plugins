@@ -35,4 +35,15 @@ conf.registerChannelValue(
     registry.Boolean(False, """Should plugin work in this channel?"""),
 )
 
+conf.registerChannelValue(
+    GoogleMaps,
+    "cooldownSeconds",
+    registry.NonNegativeInteger(
+        5,
+        _(
+            """Sets the per-user Google Maps lookup cooldown for this channel, in seconds."""
+        ),
+    ),
+)
+
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

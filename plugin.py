@@ -12,6 +12,11 @@ try:
 except ImportError as ie:
     raise ImportError(f"Cannot import module: {ie}")
 
+import re
+import threading
+import time
+from urllib.parse import urlencode
+
 import supybot.log as log
 from supybot import callbacks
 from supybot.commands import *
@@ -21,6 +26,9 @@ _ = PluginInternationalization("GoogleMaps")
 
 nest_asyncio.apply()  # Allow nested asyncio event loops
 REQUEST_TIMEOUT_SECONDS = 10
+CONTROL_CHARS_RE = re.compile(r"[\x00-\x1f\x7f]")
+USAGE_MESSAGE = "Use --address, --reverse, or --directions."
+MAP_OPTIONS = frozenset(("address", "reverse", "directions"))
 
 
 # Global Error Routine
@@ -37,7 +45,52 @@ def handle_error(
 # Clean Output Utility
 def clean_output(text: str) -> str:
     """Clean and simplify text output for user readability."""
-    return text.replace("\x02", "").replace("\n", " ")
+    return CONTROL_CHARS_RE.sub(" ", str(text)).strip()
+
+
+def validate_coordinates(user_input: str) -> str:
+    """Validate and normalise a latitude,longitude pair."""
+    try:
+        latitude_text, longitude_text = map(str.strip, user_input.split(","))
+        latitude = float(latitude_text)
+        longitude = float(longitude_text)
+    except (AttributeError, ValueError):
+        raise ValueError(
+            "Invalid format for reverse geocoding. Use: 'latitude,longitude'"
+        )
+
+    if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+        raise ValueError(
+            "Invalid coordinates. Latitude must be -90 to 90 and longitude -180 to 180."
+        )
+
+    return f"{latitude:.6f},{longitude:.6f}"
+
+
+def build_directions_url(origin: str, destination: str) -> str:
+    """Build a Google Maps directions URL with encoded user input."""
+    query = urlencode({"api": "1", "origin": origin, "destination": destination})
+    return f"https://www.google.com/maps/dir/?{query}"
+
+
+class CooldownTracker:
+    """Track per-user command cooldowns."""
+
+    def __init__(self):
+        self._seen = {}
+        self._lock = threading.Lock()
+
+    def remaining(self, key, cooldown_seconds):
+        if not cooldown_seconds:
+            return 0
+
+        now = time.monotonic()
+        with self._lock:
+            last_seen = self._seen.get(key)
+            if last_seen is None or now - last_seen >= cooldown_seconds:
+                self._seen[key] = now
+                return 0
+            return max(1, int(cooldown_seconds - (now - last_seen)))
 
 
 class GoogleMaps(callbacks.Plugin):
@@ -50,9 +103,13 @@ class GoogleMaps(callbacks.Plugin):
     def __init__(self, irc):
         super().__init__(irc)
         self.irc = irc
+        self.cooldowns = CooldownTracker()
 
     async def process_arguments(self, optlist: dict, user_input: str) -> dict:
         """Handle and process different argument-based requests."""
+        if not MAP_OPTIONS.intersection(optlist):
+            raise ValueError(f"Invalid option provided. {USAGE_MESSAGE}")
+
         apikey = self.registryValue("googlemapsAPI")
         if not apikey:
             raise ValueError("Google Maps API key is missing.")
@@ -64,13 +121,7 @@ class GoogleMaps(callbacks.Plugin):
                 url = f"{base_url}geocode/json"
                 params = {"address": user_input, "key": apikey}
             elif "reverse" in optlist:
-                try:
-                    latitude, longitude = map(str.strip, user_input.split(","))
-                    latlng = f"{latitude},{longitude}"
-                except ValueError:
-                    raise ValueError(
-                        "Invalid format for reverse geocoding. Use: 'latitude,longitude'"
-                    )
+                latlng = validate_coordinates(user_input)
 
                 url = f"{base_url}geocode/json"
                 params = {"latlng": latlng, "key": apikey}
@@ -87,9 +138,7 @@ class GoogleMaps(callbacks.Plugin):
                 url = f"{base_url}directions/json"
                 params = {"destination": destination, "origin": origin, "key": apikey}
             else:
-                handle_error(
-                    ValueError("Invalid option provided."), "Argument Processing"
-                )
+                raise ValueError(f"Invalid option provided. {USAGE_MESSAGE}")
 
             async with session.get(url, params=params) as response:
                 if response.status != 200:
@@ -126,7 +175,15 @@ class GoogleMaps(callbacks.Plugin):
             return
 
         optlist = dict(optlist)
-        log.info(f"Processing user input: {user_input}")
+        log.info("Processing GoogleMaps request with options: %s", sorted(optlist))
+
+        cooldown = self._cooldown_remaining(irc, msg)
+        if cooldown:
+            irc.error(
+                f"Please wait {cooldown}s before sending another Google Maps request.",
+                prefixNick=False,
+            )
+            return
 
         try:
             loop = asyncio.get_event_loop()
@@ -148,11 +205,7 @@ class GoogleMaps(callbacks.Plugin):
                 duration = leg["duration"].get("text", "Unknown")
 
                 origin, destination = map(str.strip, user_input.split("|", 1))
-                directions_url = (
-                    f"https://www.google.com/maps/dir/?api=1"
-                    f"&origin={origin.replace(' ', '+')}"
-                    f"&destination={destination.replace(' ', '+')}"
-                )
+                directions_url = build_directions_url(origin, destination)
 
                 response = (
                     f"Route from \x02{start_address}\x02 to \x02{end_address}\x02:\n"
@@ -163,9 +216,7 @@ class GoogleMaps(callbacks.Plugin):
                 irc.reply(clean_response, prefixNick=False)
             elif "reverse" in optlist or "address" in optlist:
                 if not data.get("results"):
-                    log.error(
-                        f"No results found for input: {user_input}. Full response: {data}"
-                    )
+                    log.error("No results found in the API response.")
                     irc.error(
                         "No results found for the provided input. Please double-check your input.",
                         prefixNick=False,
@@ -191,17 +242,22 @@ class GoogleMaps(callbacks.Plugin):
                 irc.reply(clean_response, prefixNick=False)
             else:
                 irc.error(
-                    "Invalid option provided. Use --address, --reverse, or --directions.",
+                    f"Invalid option provided. {USAGE_MESSAGE}",
                     prefixNick=False,
                 )
         except ValueError as ve:
             log.error(f"Input validation error: {ve}")
             irc.error(str(ve), prefixNick=False)
-        except Exception as e:
-            log.error(f"Unexpected error: {e}")
+        except Exception:
+            log.exception("Unexpected GoogleMaps error.")
             irc.error(
                 "An unexpected error occurred. Please check the logs.", prefixNick=False
             )
+
+    def _cooldown_remaining(self, irc, msg):
+        cooldown = self.registryValue("cooldownSeconds", msg.channel, irc.network)
+        key = (irc.network, msg.channel, msg.prefix)
+        return self.cooldowns.remaining(key, cooldown)
 
 
 Class = GoogleMaps

@@ -37,6 +37,9 @@ extend-exclude = '''
 )/
 '''
 
+[tool.pytest.ini_options]
+python_files = ["test.py"]
+
 [tool.setuptools.package-dir]
 "limnoria_googlemaps" = "."
 "limnoria_googlemaps.local" = "local/"
