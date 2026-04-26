@@ -14,12 +14,17 @@ import supybot.world as world
 __version__ = "2024.12.26+git"
 
 __author__ = supybot.Author("reticulatingspline", "spline", "")
-
 __maintainer__ = getattr(
     supybot.authors,
     "Alcheri",
-    supybot.Author("Barry Suridge", "", "barry.suridge@gmail.com"),
+    supybot.Author("Barry Suridge", "Alcheri", "barry.suridge@gmail.com"),
 )
+
+__contributors__ = {
+    supybot.Author("Barry Suridge", "Alcheri", "barry.suridge@gmail.com"): [
+        "Maintenance"
+    ],
+}
 
 __url__ = "https://github.com/Alcheri/WorldTime"
 
