@@ -11,16 +11,17 @@ MyDNS: An alternative to Supybot's DNS function.
 
 import sys
 
-# Python 3.3 an above ONLY!!
-if sys.version_info <= (3, 6):
-    raise RuntimeError("This plugin requires Python 3.6 or above.")
+if sys.version_info < (3, 10):
+    raise RuntimeError(
+        "This plugin requires Python 3.10 or newer. Please upgrade your Python installation."
+    )
 
 import supybot
 import supybot.world as world
 
 # Use this for the version of this plugin.  You may wish to put a CVS keyword
 # in here if you're keeping the plugin in CVS or some similar system.
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 # XXX Replace this with an appropriate author or supybot.Author instance.
 __author__ = supybot.Author("Barry Suridge", "Alcheri", "barry.suridge@outlook.com")
@@ -33,11 +34,17 @@ __contributors__ = {}
 __url__ = "https://github.com/Alcheri/MyDNS"
 
 from . import config
+from . import cooldown
+from . import core
 from . import plugin
+from . import services
 from importlib import reload
 
 # In case we're being reloaded.
 reload(config)
+reload(cooldown)
+reload(core)
+reload(services)
 reload(plugin)
 # Add more reloads here if you add third-party modules and want them to be
 # reloaded when this plugin is reloaded.  Don't forget to import them as well!

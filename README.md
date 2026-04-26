@@ -13,7 +13,7 @@
   <a href="https://github.com/Alcheri/MyDNS/security/code-scanning">
     <img src="https://github.com/Alcheri/MyDNS/actions/workflows/codeql.yml/badge.svg" alt="CodeQL">
   </a>
-  <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black">
   <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
   <img src="https://img.shields.io/badge/License-BSD_3--Clause-blue.svg" alt="License">
@@ -69,13 +69,26 @@ config plugins.MyDNS.ipstackAPI your_api_key_here
 Provider order (comma-separated). Default:
 
 ```text
-config plugins.MyDNS.geoipProviderOrder ipstack,ipapi,ip-api
+config plugins.MyDNS.geoipProviderOrder ipstack,ipapi
 ```
 
 Example with free providers first:
 
 ```text
-config plugins.MyDNS.geoipProviderOrder ipapi,ip-api,ipstack
+config plugins.MyDNS.geoipProviderOrder ipapi,ipstack
+```
+
+The `ip-api` provider uses plaintext HTTP and is disabled by default. To opt in:
+
+```text
+config plugins.MyDNS.allowInsecureGeoIP True
+config plugins.MyDNS.geoipProviderOrder ipapi,ipstack,ip-api
+```
+
+Per-user channel cooldown in seconds. Default:
+
+```text
+config channel #channel plugins.MyDNS.cooldownSeconds 5
 ```
 
 Enable per channel:
@@ -113,6 +126,7 @@ config channel #channel plugins.MyDNS.enable False
 * Best quality usually comes from globally-routable public IP addresses.
 * Results can vary between providers and over time.
 * Provider order is configurable with plugins.MyDNS.geoipProviderOrder.
+* Plaintext GeoIP providers require plugins.MyDNS.allowInsecureGeoIP.
 * Some IRC clients may not render flag emoji; country code is still shown.
 
 ## Troubleshooting

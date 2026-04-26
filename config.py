@@ -46,9 +46,25 @@ conf.registerGlobalValue(
     MyDNS,
     "geoipProviderOrder",
     registry.String(
-        "ipstack,ipapi,ip-api",
+        "ipstack,ipapi",
         _("""Comma-separated GeoIP provider order. Supported values: "
             "ipstack, ipapi, ip-api."""),
+    ),
+)
+conf.registerGlobalValue(
+    MyDNS,
+    "allowInsecureGeoIP",
+    registry.Boolean(
+        False,
+        _("""Allows plaintext GeoIP providers such as ip-api. Disabled by default."""),
+    ),
+)
+conf.registerChannelValue(
+    MyDNS,
+    "cooldownSeconds",
+    registry.NonNegativeInteger(
+        5,
+        _("""Sets the per-user DNS lookup cooldown for this channel, in seconds."""),
     ),
 )
 conf.registerChannelValue(
