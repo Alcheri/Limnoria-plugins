@@ -2,6 +2,10 @@
 
 # Limnoria plugin for WorldTime
 
+[![Tests](https://github.com/Alcheri/WorldTime/actions/workflows/tests.yml/badge.svg?branch=Limnoria-WorldTime)](https://github.com/Alcheri/WorldTime/actions/workflows/tests.yml)
+[![Lint](https://github.com/Alcheri/WorldTime/actions/workflows/lint.yml/badge.svg?branch=Limnoria-WorldTime)](https://github.com/Alcheri/WorldTime/actions/workflows/lint.yml)
+[![CodeQL](https://github.com/Alcheri/WorldTime/actions/workflows/codeql.yml/badge.svg?branch=Limnoria-WorldTime)](https://github.com/Alcheri/WorldTime/actions/workflows/codeql.yml)
+
 Retrieve current time and time zone information for various locations.
 
 Forked from [reticulatingspline/WorldTime](https://github.com/reticulatingspline/WorldTime).
@@ -10,43 +14,36 @@ Forked from [reticulatingspline/WorldTime](https://github.com/reticulatingspline
 
 Go into your Limnoria plugin dir, usually ~/runbot/plugins and run:
 
-```plaintext
-gh repo clone Alcheri/WorldTime
-```
+GitHub CLI: `gh repo clone Alcheri/WorldTime` or SSH: `git clone git@github.com:Alcheri/WorldTime.git`
 
 To install additional requirements, run from /plugins/WorldTime folder:
 
-```plaintext
-pip install --upgrade -r requirements.txt 
-```
+`pip install --upgrade -r requirements.txt`
 
 Next, load the plugin:
 
-```plaintext
-/msg bot load WorldTime
-```
+`/msg bot load WorldTime`
 
 Enable Google [Geocoding](https://console.cloud.google.com/apis/library/geocoding-backend.googleapis.com) and [Time Zone](https://console.cloud.google.com/apis/library/timezone-backend.googleapis.com) APIs. Set your [API Key](https://console.cloud.google.com/apis/credentials) using the command below
 
 * **_config plugins.worldtime.mapsapikey <your_key_here_**
 
 ## Example Usage
-<!-- LaTeX text formatting (colour) -->
-\<spline\> @worldtime New York, NY\
-\<myybot\> ${\texttt{New York, NY, USA}}$ :: Current local time is: Sat, 09:38 (Eastern Daylight Time)
-
-\<spline\> @worldtime 90210\
-\<myybot\> ${\texttt{Beverly Hills, CA 90210, USA}}$ :: Current local time is: Sat, 06:38 (Pacific Daylight Time)
-
-* **_aka add \<new alias\> worldtime $*_**
-
-    Add an alias to your bot for ease of use.
 
 ```plaintext
-@wt set [location] -- Sets your current ident@host to [location]
-
-@wt unset -- Removes your current ident@host
+<spline> @worldtime New York, NY
+<myybot> New York, NY, USA :: Current local time is: Sat, 09:38 (Eastern Daylight Time)
+<spline> @worldtime 90210
+<myybot> Beverly Hills, CA 90210, USA :: Current local time is: Sat, 06:38 (Pacific Daylight Time)
 ```
+
+Add an alias to your bot for ease of use.
+
+`aka add [--channel <#channel>] <name> <command>`
+
+`@wt set [location] -- Sets your current ident@host to [location]`
+
+`@wt unset -- Removes your current ident@host`
 
 ## Licensing
 

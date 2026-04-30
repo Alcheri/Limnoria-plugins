@@ -11,7 +11,7 @@ WorldTime: look up current time and timezone info for various locations
 import supybot
 import supybot.world as world
 
-__version__ = "2024.12.26+git"
+__version__ = ""
 
 __author__ = supybot.Author("reticulatingspline", "spline", "")
 __maintainer__ = getattr(
@@ -30,8 +30,8 @@ __url__ = "https://github.com/Alcheri/WorldTime"
 
 import sys
 
-if sys.version_info <= (3, 9):
-    raise RuntimeError("This plugin requires Python 3.9 or above.")
+if sys.version_info < (3, 11):
+    raise RuntimeError("This plugin requires Python 3.11 or above.")
 from . import config
 from . import plugin
 from importlib import reload

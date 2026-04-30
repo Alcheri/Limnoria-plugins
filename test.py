@@ -14,7 +14,10 @@ class WorldTimeTestCase(PluginTestCase):
 
 class WorldTimeSmokeTestCase(unittest.TestCase):
     def test_plugin_module_exports_class(self):
-        from . import plugin
+        try:
+            from . import plugin
+        except ImportError:
+            import plugin
 
         self.assertTrue(hasattr(plugin, "Class"))
 
