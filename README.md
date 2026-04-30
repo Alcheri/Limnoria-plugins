@@ -2,6 +2,10 @@
 
 # Mem: Provides memory usage and allocation statistics
 
+[![Tests](https://github.com/Alcheri/WorldTime/actions/workflows/tests.yml/badge.svg?branch=Limnoria-WorldTime)](https://github.com/Alcheri/WorldTime/actions/workflows/tests.yml)
+[![Lint](https://github.com/Alcheri/WorldTime/actions/workflows/lint.yml/badge.svg?branch=Limnoria-WorldTime)](https://github.com/Alcheri/WorldTime/actions/workflows/lint.yml)
+[![CodeQL](https://github.com/Alcheri/WorldTime/actions/workflows/codeql.yml/badge.svg?branch=Limnoria-WorldTime)](https://github.com/Alcheri/WorldTime/actions/workflows/codeql.yml)
+
 Mem is a plugin for Limnoria that provides insights into memory usage and allocation patterns. It allows users to monitor the memory consumption of the bot and identify potential memory leaks or inefficient memory usage.
 
 ## Features
