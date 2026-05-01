@@ -7,7 +7,6 @@ CACHEDIR.TAG
 
 # Codex files
 *.codex
-RUN.md
 
 # Virtual environments
 .venv/
