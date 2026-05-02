@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools"]
+
+[project]
+name = "limnoria-dalnetid"
+version = "0.0.0"
+authors = [
+    { name = "Barry Suridge" }
+]
+readme = "README.md"
+dependencies = [
+    "limnoria",
+]
+classifiers = [
+    'Environment :: Plugins',
+    'Programming Language :: Python :: 3',
+    'Topic :: Communications :: Chat',
+]
+
+[project.entry-points.'limnoria.plugins']
+DALnetID = "limnoria_dalnetid"
+
+[tool.black]
+target-version = ["py311"]
+extend-exclude = '''
+/(
+    backup
+  | conf
+  | data
+  | logs
+  | tmp
+  | __pycache__
+  | \.pytest_cache
+)/
+'''
+
+[tool.setuptools.package-dir]
+"limnoria_dalnetid" = "."
+"limnoria_dalnetid.local" = "local/"
+
+[tool.setuptools.package-data]
+"limnoria_dalnetid" = ["locales/*.po"]
