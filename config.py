@@ -24,6 +24,24 @@ def configure(advanced):
 
 OnJoin = conf.registerPlugin("OnJoin")
 
+conf.registerGlobalValue(
+    OnJoin,
+    "maxQuotes",
+    registry.PositiveInteger(
+        1000,
+        """Maximum number of stored quotes. Older quotes are pruned first.""",
+    ),
+)
+
+conf.registerGlobalValue(
+    OnJoin,
+    "maxRecentQuotes",
+    registry.PositiveInteger(
+        10,
+        """Maximum number of quotes an admin may request with recentquotes.""",
+    ),
+)
+
 conf.registerChannelValue(
     OnJoin, "enable", registry.Boolean(False, """Should plugin work in this channel?""")
 )
