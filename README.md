@@ -16,9 +16,15 @@ Send a random (humorous) notice to a user entering an IRC channel.
 * `config plugins.onjoin.maxQuotes 1000` to retain at most the newest stored quotes
 * `config plugins.onjoin.maxRecentQuotes 10` to cap how many quotes `recentquotes` may show
 
-## Setting up
+## Installation
 
-** No setting up required.
+From your Limnoria plugins directory (for example, ~/runbot/plugins):
+
+`git clone https://github.com/Alcheri/OnJoin.git`
+
+Load the plugin:
+
+`/msg yourbot load OnJoin`
 
 ## Admin commands
 
