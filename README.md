@@ -38,6 +38,8 @@ multiple bot instances.
 
 The socket is intended as a local owner-control channel. Local filesystem access
 to `.localcontrol.sock` is therefore equivalent to owner-level bot access.
+The optional TCP listener has the same owner-level control semantics and is
+disabled by default.
 
 ---
 
@@ -141,9 +143,9 @@ flowchart LR
 
 The CLI resolves the socket path in this order:
 
-1. `--socket` command‑line flag  
-2. `BOT_CONTROL_SOCKET` environment variable  
-3. Default path:  
+1. `--socket` command‑line flag
+2. `BOT_CONTROL_SOCKET` environment variable
+3. Default path:
 
 ```text
 ~/runbot/plugins/LocalControl/.localcontrol.sock
@@ -154,6 +156,38 @@ Example:
 ```bash
 botctl --socket /tmp/test.sock bot sysinfo
 ```
+
+### Optional TCP listener
+
+LocalControl can also expose the same line-based command protocol on TCP for
+local testing tools. This listener is disabled by default:
+
+```bash
+botctl bot config plugins.LocalControl.tcpListenerEnabled
+```
+
+The default TCP endpoint is loopback-only:
+
+```text
+127.0.0.1:8023
+```
+
+Enable it for local testing:
+
+```bash
+botctl bot config plugins.LocalControl.tcpListenHost 127.0.0.1
+botctl bot config plugins.LocalControl.tcpListenPort 8023
+botctl bot config plugins.LocalControl.tcpListenerEnabled true
+botctl exec "reload LocalControl"
+```
+
+The listener is created when the plugin starts, so reload LocalControl after
+changing `tcpListenerEnabled`, `tcpListenHost`, or `tcpListenPort`.
+
+Binding to a non-loopback address is blocked unless
+`plugins.LocalControl.tcpAllowRemote` is set to `true`. Do not enable remote TCP
+binding unless the host firewall and network exposure are deliberately
+controlled. Anyone who can connect can issue owner-level bot commands.
 
 ---
 
@@ -199,6 +233,25 @@ export BOT_CONTROL_SOCKET=/path/to/.localcontrol.sock
 
 If the socket file is missing entirely, reload the plugin and check the bot log
 for bind or startup errors.
+
+### TCP listener does not accept connections
+
+Check the configured host, port, and enable flag:
+
+```bash
+botctl bot config plugins.LocalControl.tcpListenerEnabled
+botctl bot config plugins.LocalControl.tcpListenHost
+botctl bot config plugins.LocalControl.tcpListenPort
+```
+
+After changing those values, reload the plugin:
+
+```bash
+botctl exec "reload LocalControl"
+```
+
+If `tcpListenHost` is not a loopback address, either change it back to
+`127.0.0.1` or explicitly enable `plugins.LocalControl.tcpAllowRemote`.
 
 ### Permission denied when connecting to the socket
 
@@ -277,6 +330,46 @@ handler thread indefinitely.
 Socket dispatches are serialised while LocalControl temporarily captures
 Limnoria replies, preventing overlapping local requests from racing the shared
 IRC send and queue hooks.
+
+### GUI beta app
+
+The optional GUI is available as beta desktop binaries in `dist/`. End users do
+not need Python, Tk, PyInstaller, or the private build tooling to run it.
+
+Use the binary that matches your desktop platform:
+
+- Linux: `dist/LocalControl-GUI`
+- Windows: `dist/LocalControl-GUI.exe`
+
+From a Linux shell in the repository root:
+
+```bash
+./dist/LocalControl-GUI
+```
+
+From Windows PowerShell in the repository root:
+
+```powershell
+.\dist\LocalControl-GUI.exe
+```
+
+You can also start the Windows binary from Explorer by opening `dist` and
+double-clicking `LocalControl-GUI.exe`.
+
+The GUI connects to LocalControl through the same local socket or configured
+remote command path as `botctl`. Keep socket files and SSH access restricted to
+trusted local users because GUI access can issue owner-level bot commands.
+
+On Windows, SSH mode expects native Windows OpenSSH with a Windows-accessible
+key or ssh-agent identity. Password prompts and WSL-held keys are not available
+to the Windows binary.
+
+These beta binaries target recent Linux distributions and current Windows
+releases. Older platforms are not a support target for the GUI beta.
+
+The GUI binaries are distributed under the project's BSD 3-Clause licence. They
+may include bundled Python, Tcl/Tk, sv-ttk, and PyInstaller runtime components;
+their upstream licence terms continue to apply.
 
 ---
 
