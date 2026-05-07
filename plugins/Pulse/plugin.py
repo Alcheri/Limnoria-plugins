@@ -6,8 +6,11 @@
 ###
 
 import json
+import os
+import tempfile
 import threading
 import time
+from pathlib import Path
 
 import supybot.conf as conf
 import supybot.ircmsgs as ircmsgs
@@ -30,6 +33,7 @@ try:
     from .rendering import render_entry
     from .storage import LEGACY_FEEDS_NETWORK
     from .storage import PulseStorage
+    from .storage import network_key
 except ImportError:
     from feeds import FeedError
     from feeds import clean_text as _clean_text
@@ -40,10 +44,58 @@ except ImportError:
     from rendering import render_entry
     from storage import LEGACY_FEEDS_NETWORK
     from storage import PulseStorage
+    from storage import network_key
 
-FEEDS_FILENAME = conf.supybot.directories.data.dirize("Pulse.feeds.json")
-SEEN_FILENAME = conf.supybot.directories.data.dirize("Pulse.seen.json")
+FEEDS_FILENAME = "Pulse.feeds.json"
+SEEN_FILENAME = "Pulse.seen.json"
 POLL_TICK_SECONDS = 5
+
+
+def _is_pulse_flush_state(callback):
+    return getattr(callback, "__self__", None) is not None and getattr(
+        callback, "__func__", None
+    ) is getattr(Pulse, "_flush_state", None)
+
+
+def _pulse_flushers():
+    return [flusher for flusher in world.flushers if _is_pulse_flush_state(flusher)]
+
+
+def _dirize_data_file(filename):
+    return conf.supybot.directories.data.dirize(filename)
+
+
+def _merge_duplicate_json_object_pairs(pairs):
+    data = {}
+    duplicates = set()
+    for key, value in pairs:
+        if key in data:
+            duplicates.add(key)
+            if isinstance(data[key], dict) and isinstance(value, dict):
+                merged = dict(data[key])
+                merged.update(value)
+                data[key] = merged
+            else:
+                data[key] = value
+            continue
+        data[key] = value
+    if duplicates:
+        data["__pulse_duplicate_keys__"] = sorted(duplicates)
+    return data
+
+
+def _pop_duplicate_key_markers(value):
+    duplicates = []
+    if isinstance(value, dict):
+        marker = value.pop("__pulse_duplicate_keys__", None)
+        if marker:
+            duplicates.extend(marker)
+        for child in value.values():
+            duplicates.extend(_pop_duplicate_key_markers(child))
+    elif isinstance(value, list):
+        for child in value:
+            duplicates.extend(_pop_duplicate_key_markers(child))
+    return duplicates
 
 
 def get_feed_name(irc, msg, args, state):
@@ -74,7 +126,18 @@ class Pulse(callbacks.Plugin):
         self._stop_event = threading.Event()
         self._load_feeds()
         self._load_seen()
+        stale_flushers = [
+            flusher for flusher in _pulse_flushers() if flusher.__self__ is not self
+        ]
+        for flusher in stale_flushers:
+            world.flushers.remove(flusher)
+        if stale_flushers:
+            log.warning(f"Pulse: removed {len(stale_flushers)} stale state flusher(s)")
         world.flushers.append(self._flush_state)
+        log.info(
+            f"Pulse: registered state flusher for instance {id(self)}; "
+            f"active Pulse flushers: {len(_pulse_flushers())}"
+        )
         self._poll_thread = threading.Thread(
             target=self._poll_loop, name="PulsePoller", daemon=True
         )
@@ -108,15 +171,35 @@ class Pulse(callbacks.Plugin):
         self._stop_event.set()
         self._poll_thread.join(timeout=POLL_TICK_SECONDS)
         self._flush_state()
-        if self._flush_state in world.flushers:
+        while self._flush_state in world.flushers:
             world.flushers.remove(self._flush_state)
         self.__parent.die()
 
+    def _state_path(self, filename):
+        return Path(_dirize_data_file(filename))
+
+    def _feeds_path(self):
+        return self._state_path(FEEDS_FILENAME)
+
+    def _seen_path(self):
+        return self._state_path(SEEN_FILENAME)
+
     def _load_json_file(self, path, default):
+        path = Path(path)
         try:
-            with open(path, "r", encoding="utf-8") as handle:
-                return json.load(handle)
+            with path.open("r", encoding="utf-8") as handle:
+                data = json.load(
+                    handle, object_pairs_hook=_merge_duplicate_json_object_pairs
+                )
+            duplicates = _pop_duplicate_key_markers(data)
+            if duplicates:
+                log.warning(
+                    "Pulse: merged duplicate keys in "
+                    f"{path}: {', '.join(sorted(set(duplicates)))}"
+                )
+            return data
         except FileNotFoundError:
+            log.info(f"Pulse: state file does not exist: {path}")
             return default
         except json.JSONDecodeError as e:
             log.warning(f"Pulse: could not parse {path}: {e}")
@@ -126,24 +209,62 @@ class Pulse(callbacks.Plugin):
             return default
 
     def _write_json_file(self, path, data):
+        path = Path(path)
+        tmp_path = None
         try:
-            with open(path, "w", encoding="utf-8") as handle:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(
+                "w",
+                encoding="utf-8",
+                delete=False,
+                dir=str(path.parent),
+                prefix=f".{path.name}.",
+                suffix=".tmp",
+            ) as handle:
+                tmp_path = Path(handle.name)
                 json.dump(data, handle, indent=2)
+                handle.write("\n")
+            os.replace(tmp_path, path)
         except (TypeError, ValueError) as e:
             log.warning(f"Pulse: could not serialise {path}: {e}")
         except OSError as e:
             log.warning(f"Pulse: could not write {path}: {e}")
+        finally:
+            if tmp_path is not None and tmp_path.exists():
+                try:
+                    tmp_path.unlink()
+                except OSError as e:
+                    log.warning(
+                        f"Pulse: could not remove temporary state file {tmp_path}: {e}"
+                    )
 
     def _load_feeds(self):
-        self._storage.load_feeds(self._load_json_file(FEEDS_FILENAME, {}))
+        path = self._feeds_path()
+        self._storage.load_feeds(self._load_json_file(path, {}))
+        feeds, _ = self._storage.snapshot_state()
+        network_count = len(feeds)
+        feed_count = sum(
+            len(network_feeds)
+            for network_feeds in feeds.values()
+            if isinstance(network_feeds, dict)
+        )
+        log.info(
+            f"Pulse: loaded {feed_count} feed(s) across "
+            f"{network_count} network(s) from {path}"
+        )
 
     def _load_seen(self):
-        self._storage.load_seen(self._load_json_file(SEEN_FILENAME, {}))
+        path = self._seen_path()
+        self._storage.load_seen(self._load_json_file(path, {}))
+        _, seen = self._storage.snapshot_state()
+        channel_count = len(seen)
+        log.info(f"Pulse: loaded seen state for {channel_count} channel(s) from {path}")
 
     def _flush_state(self):
+        self._storage.prune_empty_networks()
         feeds, seen = self._storage.snapshot_state()
-        self._write_json_file(FEEDS_FILENAME, feeds)
-        self._write_json_file(SEEN_FILENAME, seen)
+        self._write_json_file(self._feeds_path(), feeds)
+        self._write_json_file(self._seen_path(), seen)
 
     def _channel_key(self, network, channel):
         return self._storage.channel_key(network, channel)
@@ -383,6 +504,50 @@ class Pulse(callbacks.Plugin):
         irc.reply(format("%L", names) or "No feeds are registered.", prefixNick=False)
 
     list = wrap(list)
+
+    def state(self, irc, msg, args):
+        """takes no arguments
+
+        Shows the state files Pulse is using and how many feeds are loaded.
+        """
+        feeds_path = self._feeds_path()
+        seen_path = self._seen_path()
+        feeds, seen = self._storage.snapshot_state()
+        current_network = network_key(irc.network)
+        current_feeds = sorted(feeds.get(current_network, {}))
+        stored_networks = [
+            f"{network}: {format('%L', sorted(network_feeds)) or 'none'}"
+            for network, network_feeds in sorted(feeds.items())
+            if isinstance(network_feeds, dict)
+        ]
+        pulse_threads = [
+            thread.name
+            for thread in threading.enumerate()
+            if thread.name == "PulsePoller"
+        ]
+        network_count = len(feeds)
+        feed_count = sum(
+            len(network_feeds)
+            for network_feeds in feeds.values()
+            if isinstance(network_feeds, dict)
+        )
+        irc.reply(
+            "Feeds: "
+            f"{feed_count} across {network_count} network(s); "
+            f"feed file: {feeds_path} "
+            f"({'exists' if feeds_path.exists() else 'missing'}); "
+            f"seen file: {seen_path} "
+            f"({'exists' if seen_path.exists() else 'missing'}); "
+            f"seen channels: {len(seen)}; "
+            f"current network: {current_network}; "
+            f"current network feeds: {format('%L', current_feeds) or 'none'}; "
+            f"stored networks: {' | '.join(stored_networks) or 'none'}; "
+            f"instance: {id(self)}; Pulse flushers: {len(_pulse_flushers())}; "
+            f"Pulse pollers: {len(pulse_threads)}",
+            prefixNick=False,
+        )
+
+    state = wrap(state)
 
     def show(self, irc, msg, args, name):
         """<name>

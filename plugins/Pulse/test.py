@@ -57,6 +57,11 @@ ATOM_SAMPLE = b"""<?xml version="1.0" encoding="utf-8"?>
 """
 
 
+class DisplayNetwork:
+    def __str__(self):
+        return "ChatLounge"
+
+
 class PulseTestCase(supybot_test.PluginTestCase):
     __test__ = False
     plugins = ("Pulse",)
@@ -216,7 +221,7 @@ class PulseHelperTestCase(unittest.TestCase):
             "https://net2.example/",
         )
 
-    def test_legacy_flat_feeds_seed_each_network(self):
+    def test_legacy_flat_feeds_are_readable_without_creating_network(self):
         original_start = threading.Thread.start
         threading.Thread.start = lambda self: None
         try:
@@ -234,7 +239,23 @@ class PulseHelperTestCase(unittest.TestCase):
             plugin._get_feed_record("testnet", "example")["url"],
             "https://example.com/rss.xml",
         )
-        self.assertIn("testnet", plugin._feeds)
+        self.assertNotIn("testnet", plugin._feeds)
+
+    def test_init_removes_stale_pulse_flushers(self):
+        original_flushers = list(pulse_plugin.world.flushers)
+        original_start = threading.Thread.start
+        old_plugin = pulse_plugin.Pulse.__new__(pulse_plugin.Pulse)
+        pulse_plugin.world.flushers[:] = [old_plugin._flush_state]
+        threading.Thread.start = lambda self: None
+        try:
+            plugin = pulse_plugin.Pulse(MagicMock())
+
+            self.assertNotIn(old_plugin._flush_state, pulse_plugin.world.flushers)
+            self.assertIn(plugin._flush_state, pulse_plugin.world.flushers)
+            self.assertEqual(len(pulse_plugin._pulse_flushers()), 1)
+        finally:
+            threading.Thread.start = original_start
+            pulse_plugin.world.flushers[:] = original_flushers
 
     def test_format_announce_add_change_is_clear(self):
         self.assertEqual(
@@ -283,6 +304,35 @@ class PulseHelperTestCase(unittest.TestCase):
             ["old", "new-1", "new-2"],
         )
 
+    def test_storage_missing_feed_lookup_does_not_create_network(self):
+        store = storage.PulseStorage(threading.RLock())
+
+        self.assertIsNone(store.get_feed_record("ChatLounge", "bbc"))
+        self.assertEqual(store.feeds, {})
+
+    def test_storage_normalises_network_objects_for_lookup(self):
+        store = storage.PulseStorage(threading.RLock())
+        store.feeds = {"ChatLounge": {"bbc": {"url": "https://example.com/rss.xml"}}}
+
+        self.assertEqual(
+            store.get_feed_record(DisplayNetwork(), "bbc"),
+            {"url": "https://example.com/rss.xml"},
+        )
+
+    def test_storage_prunes_empty_networks(self):
+        store = storage.PulseStorage(threading.RLock())
+        store.feeds = {
+            "ChatLounge": {},
+            "DALnet": {"bbc": {"url": "https://example.com/rss.xml"}},
+        }
+
+        store.prune_empty_networks()
+
+        self.assertEqual(
+            store.feeds,
+            {"DALnet": {"bbc": {"url": "https://example.com/rss.xml"}}},
+        )
+
     def test_storage_snapshot_is_isolated_from_live_state(self):
         store = storage.PulseStorage(threading.RLock())
         store.set_feed_record("net", "example", {"url": "https://example.com/rss.xml"})
@@ -306,8 +356,8 @@ class PulseHelperTestCase(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             feeds_path = str(Path(tmpdir) / "feeds.json")
             seen_path = str(Path(tmpdir) / "seen.json")
-            with patch.object(pulse_plugin, "FEEDS_FILENAME", feeds_path):
-                with patch.object(pulse_plugin, "SEEN_FILENAME", seen_path):
+            with patch.object(plugin, "_feeds_path", return_value=Path(feeds_path)):
+                with patch.object(plugin, "_seen_path", return_value=Path(seen_path)):
                     with patch.object(pulse_plugin.log, "warning") as warning:
                         plugin._flush_state()
 
@@ -325,6 +375,92 @@ class PulseHelperTestCase(unittest.TestCase):
                 json.loads(Path(path).read_text(encoding="utf-8")),
                 {"1": "number", "2": "string"},
             )
+
+    def test_write_json_file_keeps_existing_file_on_serialisation_failure(self):
+        plugin = pulse_plugin.Pulse.__new__(pulse_plugin.Pulse)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "state.json"
+            path.write_text('{"existing": true}\n', encoding="utf-8")
+
+            with patch.object(pulse_plugin.log, "warning") as warning:
+                plugin._write_json_file(path, {"broken": {"entry-1"}})
+
+            self.assertEqual(path.read_text(encoding="utf-8"), '{"existing": true}\n')
+            warning.assert_called_once()
+            self.assertIn("could not serialise", warning.call_args[0][0])
+
+    def test_state_path_resolves_data_directory_at_runtime(self):
+        plugin = pulse_plugin.Pulse.__new__(pulse_plugin.Pulse)
+
+        with patch.object(
+            pulse_plugin,
+            "_dirize_data_file",
+            return_value="pulse-state/Pulse.feeds.json",
+        ) as dirize_data_file:
+            self.assertEqual(plugin._feeds_path(), Path("pulse-state/Pulse.feeds.json"))
+
+        dirize_data_file.assert_called_once_with("Pulse.feeds.json")
+
+    def test_state_command_reports_resolved_files_and_loaded_feeds(self):
+        plugin = pulse_plugin.Pulse.__new__(pulse_plugin.Pulse)
+        plugin._lock = threading.RLock()
+        plugin._storage = storage.PulseStorage(plugin._lock)
+        plugin._storage.feeds = {"ChatLounge": {"bbc": {"url": "https://example/"}}}
+        plugin._storage.seen = {"ChatLounge:#test": {"bbc": ["entry-1"]}}
+        plugin.log = MagicMock()
+        irc = MagicMock(network="ChatLounge")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            feeds_path = Path(tmpdir) / "Pulse.feeds.json"
+            seen_path = Path(tmpdir) / "Pulse.seen.json"
+            feeds_path.write_text("{}", encoding="utf-8")
+            with patch.object(plugin, "_feeds_path", return_value=feeds_path):
+                with patch.object(plugin, "_seen_path", return_value=seen_path):
+                    plugin.state(irc, MagicMock(), [])
+
+        reply = irc.reply.call_args[0][0]
+        self.assertIn("Feeds: 1 across 1 network(s)", reply)
+        self.assertIn(f"feed file: {feeds_path} (exists)", reply)
+        self.assertIn(f"seen file: {seen_path} (missing)", reply)
+        self.assertIn("seen channels: 1", reply)
+        self.assertIn("current network: ChatLounge", reply)
+        self.assertIn("current network feeds: bbc", reply)
+        self.assertIn("stored networks: ChatLounge: bbc", reply)
+
+    def test_load_json_file_merges_duplicate_network_keys(self):
+        plugin = pulse_plugin.Pulse.__new__(pulse_plugin.Pulse)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "Pulse.feeds.json"
+            path.write_text(
+                """
+{
+  "ChatLounge": {
+    "bbc": {
+      "url": "https://feeds.bbci.co.uk/news/world/rss.xml"
+    }
+  },
+  "ChatLounge": {}
+}
+""".lstrip(),
+                encoding="utf-8",
+            )
+
+            with patch.object(pulse_plugin.log, "warning") as warning:
+                data = plugin._load_json_file(path, {})
+
+        self.assertEqual(
+            data,
+            {
+                "ChatLounge": {
+                    "bbc": {"url": "https://feeds.bbci.co.uk/news/world/rss.xml"}
+                }
+            },
+        )
+        warning.assert_called_once()
+        self.assertIn("merged duplicate keys", warning.call_args[0][0])
+        self.assertIn("ChatLounge", warning.call_args[0][0])
 
     def test_announce_add_help_mentions_current_channel(self):
         self.assertIn(
