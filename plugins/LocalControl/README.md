@@ -1,6 +1,6 @@
 <!-- LocalControl provides a UNIX socket for local command execution. -->
 
-## LocalControl <img src="docs/images/localcontrol.ico" alt="" width="32" height="32" style="vertical-align: middle;">
+## <img src="docs/images/localcontrol.svg" alt="" width="48" height="48" align="absmiddle"> LocalControl
 
 [![Latest Release](https://img.shields.io/github/v/release/Alcheri/LocalControl?sort=semver)](https://github.com/Alcheri/LocalControl/releases/latest)
 [![Tests](https://github.com/Alcheri/LocalControl/actions/workflows/tests.yml/badge.svg)](https://github.com/Alcheri/LocalControl/actions/workflows/tests.yml)
@@ -321,8 +321,9 @@ IRC send and queue hooks.
 
 ### GUI beta app
 
-The optional GUI is available as beta desktop binaries in `dist/`. End users do
-not need Python, Tk, PyInstaller, or the private build tooling to run it.
+The optional GUI apps are beta desktop builds in `dist/`. They are provided for
+testing and may change before a stable GUI release. End users do not need
+Python, Tk, PyInstaller, or the private build tooling to run them.
 
 Use the binary that matches your desktop platform:
 
