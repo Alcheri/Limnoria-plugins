@@ -23,9 +23,14 @@
   <a href="https://github.com/Alcheri/Asyncio/security/code-scanning">
     <img src="https://github.com/Alcheri/Asyncio/actions/workflows/codeql.yml/badge.svg" alt="CodeQL">
   </a>
-  <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
-  <img src="https://img.shields.io/badge/code%20style-black-black" alt="Code style: black">
-  <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
+  <a href="https://www.python.org/downloads/release/python-3110/">
+    <img src="https://img.shields.io/badge/python-3.11-blue.svg" alt="Python">
+  </a>
+  <a href="https://github.com/psf/black">
+    <img src="https://img.shields.io/badge/code%20style-black-black" alt="Code style: black">
+  <a href="https://github.com/ProgVal/Limnoria">
+    <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
+  </a>
   <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">
     <img src="https://img.shields.io/badge/License-AGPLv3-blue.svg" alt="License">
   </a>
