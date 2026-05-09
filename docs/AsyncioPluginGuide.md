@@ -10,10 +10,18 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.1-blue.svg" alt="Version">
-  <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
-  <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
-  <img src="https://img.shields.io/badge/OpenAI-powered-8A2BE2.svg" alt="OpenAI">
-  <img src="https://img.shields.io/badge/license-AGPLv3-green.svg" alt="Licence">
+  <a href="https://www.python.org/downloads/release/python-3110/">
+    <img src="https://img.shields.io/badge/python-3.11-blue.svg" alt="Python">
+  </a>
+  <a href="https://github.com/ProgVal/Limnoria">
+    <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
+  </a>
+  <a href="https://www.openai.com/">
+    <img src="https://img.shields.io/badge/OpenAI-powered-8A2BE2.svg" alt="OpenAI">
+  </a>
+  <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">
+    <img src="https://img.shields.io/badge/license-AGPLv3-green.svg" alt="Licence">
+  </a>
 </p>
 
 <p align="center">
