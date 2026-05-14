@@ -33,11 +33,17 @@ __contributors__ = {}
 __url__ = "https://github.com/Alcheri/Weather"
 
 from . import config
+from .local import client
+from .local import formatting
+from .local import storage
 from . import plugin
-from importlib import reload
+from importlib import import_module, reload
 
 # In case we're being reloaded.
 reload(config)
+reload(client)
+reload(formatting)
+reload(storage)
 reload(plugin)
 
 # Add more reloads here if you add third-party modules and want them to be
@@ -45,7 +51,7 @@ reload(plugin)
 
 if world.testing:
     try:
-        from . import test
+        import_module(".test", __name__)
     except ImportError as e:
         # Allow plugin loading when a local test module doesn't exist,
         # but surface unrelated import failures from inside test.py.
