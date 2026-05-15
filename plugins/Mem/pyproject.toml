@@ -1,5 +1,6 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "limnoria-mem"
@@ -22,6 +23,7 @@ classifiers = [
 Mem = "limnoria_mem"
 
 [tool.black]
+line-length = 79
 target-version = ["py311"]
 extend-exclude = '''
 /(
