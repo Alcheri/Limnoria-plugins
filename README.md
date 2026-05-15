@@ -1,4 +1,14 @@
+<!-- A fully asynchronous Weather plugin for Limnoria using the OpenWeather and Google Maps APIs. -->
+
 # Weather
+
+[![Tests][tests-badge]][tests-link]
+[![Lint][lint-badge]][lint-link]
+[![CodeQL][codeql-badge]][codeql-link]
+![Python][python-badge]
+![Black][black-badge]
+![Limnoria][limnoria-badge]
+![License][license-badge]
 
 A fully asynchronous Limnoria plugin that uses the Google Maps Geocoding API
 to resolve locations and the OpenWeather One Call 3.0 API to report current
@@ -116,3 +126,19 @@ python -m ruff check .
 python -m black --check .
 python -m pytest
 ```
+
+<!-- Badge reference definitions -->
+[tests-badge]: https://github.com/Alcheri/Weather/actions/workflows/tests.yml/badge.svg
+[tests-link]: https://github.com/Alcheri/Weather/actions/workflows/tests.yml
+
+[lint-badge]: https://github.com/Alcheri/Weather/actions/workflows/lint.yml/badge.svg
+[lint-link]: https://github.com/Alcheri/Weather/actions/workflows/lint.yml
+
+[codeql-badge]: https://github.com/Alcheri/Weather/actions/workflows/codeql.yml/badge.svg
+[codeql-link]: https://github.com/Alcheri/Weather/security/code-scanning
+
+[python-badge]: https://img.shields.io/badge/python-3.9%2B-blue.svg
+[black-badge]: https://img.shields.io/badge/code%20style-black-000000.svg
+[limnoria-badge]: https://img.shields.io/badge/limnoria-compatible-brightgreen.svg
+[license-badge]: https://img.shields.io/badge/License-BSD_3--Clause-blue.svg
+
