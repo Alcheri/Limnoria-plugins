@@ -21,6 +21,7 @@ classifiers = [
 MyDNS = "limnoria_mydns"
 
 [tool.black]
+line-length = 79
 target-version = ["py310"]
 extend-exclude = '''
 /(
