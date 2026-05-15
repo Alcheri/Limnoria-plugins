@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "A Limnoria plugin providing dictionary lookups with clean, expressive output."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "BSD-3-Clause" }
+license = "BSD-3-Clause"
 
 authors = [
   { name = "Alcheri", email = "barry.suridge@gmail.com" }
@@ -17,7 +17,6 @@ authors = [
 keywords = ["limnoria", "supybot", "plugin", "dictionary"]
 classifiers = [
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: BSD 3-Clause License",
   "Operating System :: OS Independent",
 ]
 
@@ -33,18 +32,22 @@ dev = [
   "mypy",
 ]
 
+[project.entry-points.'limnoria.plugins']
+Dictionary = "limnoria_dictionary"
+
 [project.urls]
 Homepage = "https://github.com/Alcheri/Dictionary"
 Issues = "https://github.com/Alcheri/Dictionary/issues"
 
-[tool.setuptools]
-package-dir = { "" = "." }
+[tool.setuptools.package-dir]
+"limnoria_dictionary" = "."
+"limnoria_dictionary.local" = "local/"
 
-[tool.setuptools.packages.find]
-include = ["Dictionary"]
+[tool.setuptools.package-data]
+"limnoria_dictionary" = ["locales/*.po"]
 
 [tool.black]
-line-length = 88
+line-length = 79
 target-version = ["py310"]
 extend-exclude = '''
 /(
@@ -64,4 +67,4 @@ strict = true
 
 [tool.pytest.ini_options]
 addopts = "--strict-markers --disable-warnings"
-testpaths = ["tests"]
+python_files = ["test.py"]

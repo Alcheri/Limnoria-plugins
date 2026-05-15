@@ -5,18 +5,24 @@
 
 import unittest
 
-from supybot.test import *
+from supybot.test import PluginTestCase
+
+PluginTestCase.__test__ = False
+
+try:
+    from . import plugin
+except ImportError:  # pragma: no cover - allows direct unittest execution.
+    import plugin
 
 
 class DictionaryTestCase(PluginTestCase):
+    __test__ = False
     plugins = ("Dictionary",)
 
 
 class DictionarySmokeTestCase(unittest.TestCase):
     def test_plugin_module_exports_class(self):
-        from . import plugin
-
         self.assertTrue(hasattr(plugin, "Class"))
 
 
-# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
+# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
