@@ -5,16 +5,14 @@
 #
 ###
 
-from supybot import utils, plugins, ircutils, callbacks, log
-from supybot.commands import *
-from supybot.i18n import PluginInternationalization
-
-_ = PluginInternationalization("Dictionary")
-
 import json
 from urllib.parse import quote
 
-from builtins import dict  # Ensure the built-in dict is used
+from supybot import callbacks, utils
+from supybot.commands import wrap
+from supybot.i18n import PluginInternationalization
+
+_ = PluginInternationalization("Dictionary")
 
 headers = {
     "User-Agent": "Limnoria-Dictionary/1.0 (+https://github.com/Alcheri/Dictionary)"
@@ -39,11 +37,17 @@ class Dictionary(callbacks.Plugin):
         input = input.strip().lower()
 
         # Remove wrapping quotes from IRC input like 'word' or "word".
-        if len(input) >= 2 and input[0] == input[-1] and input[0] in ('"', "'"):
+        if (
+            len(input) >= 2
+            and input[0] == input[-1]
+            and input[0] in ('"', "'")
+        ):
             input = input[1:-1].strip()
 
         encoded_input = quote(input, safe="")
-        base_url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{encoded_input}"
+        base_url = (
+            f"https://api.dictionaryapi.dev/api/v2/entries/en/{encoded_input}"
+        )
 
         try:
             # Fetch data from the API
@@ -69,17 +73,21 @@ class Dictionary(callbacks.Plugin):
                 response = f"{input} ({part_of_speech}): {definition}"
                 irc.reply(response, prefixNick=False)
             except (KeyError, IndexError) as e:
-                irc.error(f"Error extracting definition: {e}", prefixNick=False)
+                irc.error(
+                    f"Error extracting definition: {e}", prefixNick=False
+                )
         except json.JSONDecodeError:
-            irc.error("Failed to parse the API's JSON response.", prefixNick=False)
+            irc.error(
+                "Failed to parse the API's JSON response.", prefixNick=False
+            )
         except utils.web.Error as e:
             error_text = str(e)
             if "404" in error_text:
-                irc.error(f"No definitions found for: {input}", prefixNick=False)
+                irc.error(
+                    f"No definitions found for: {input}", prefixNick=False
+                )
             else:
                 irc.error(f"Lookup failed: {e}", prefixNick=False)
-        except Exception as e:
-            irc.error(f"An unexpected error occurred: {e}", prefixNick=False)
 
 
 Class = Dictionary

@@ -5,16 +5,17 @@
 #
 ###
 
-from supybot import conf, registry
+import supybot.conf as conf
 
 try:
     from supybot.i18n import PluginInternationalization
 
     _ = PluginInternationalization("Dictionary")
-except:
+except ImportError:
     # Placeholder that allows to run the plugin on a bot
     # without the i18n module
-    _ = lambda x: x
+    def _(text):
+        return text
 
 
 def configure(advanced):
@@ -22,8 +23,6 @@ def configure(advanced):
     # a bool that specifies whether the user identified themself as an advanced
     # user or not.  You should effect your configuration by manipulating the
     # registry as appropriate.
-    from supybot.questions import expect, anything, something, yn
-
     conf.registerPlugin("Dictionary", True)
 
 
@@ -33,4 +32,4 @@ Dictionary = conf.registerPlugin("Dictionary")
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
 
 
-# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
+# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
