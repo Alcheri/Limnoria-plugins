@@ -20,6 +20,7 @@ classifiers = [
 OnJoin = "limnoria_onjoin"
 
 [tool.black]
+line-length = 79
 target-version = ["py36"]
 extend-exclude = '''
 /(
