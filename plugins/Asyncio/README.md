@@ -10,37 +10,20 @@
   <em>Asynchronous AI Chat for Limnoria IRC</em>
 </p>
 
-<p align="center">
-  <a href="https://github.com/Alcheri/Asyncio/releases/latest">
-    <img src="https://img.shields.io/github/v/release/Alcheri/Asyncio?sort=semver" alt="Latest Release">
-  </a>
-  <a href="https://github.com/Alcheri/Asyncio/actions/workflows/tests.yml">
-    <img src="https://github.com/Alcheri/Asyncio/actions/workflows/tests.yml/badge.svg" alt="Tests">
-  </a>
-  <a href="https://github.com/Alcheri/Asyncio/actions/workflows/lint.yml">
-    <img src="https://github.com/Alcheri/Asyncio/actions/workflows/lint.yml/badge.svg" alt="Lint">
-  </a>
-  <a href="https://github.com/Alcheri/Asyncio/security/code-scanning">
-    <img src="https://github.com/Alcheri/Asyncio/actions/workflows/codeql.yml/badge.svg" alt="CodeQL">
-  </a>
-  <a href="https://www.python.org/downloads/release/python-3110/">
-    <img src="https://img.shields.io/badge/python-3.11-blue.svg" alt="Python">
-  </a>
-  <a href="https://github.com/psf/black">
-    <img src="https://img.shields.io/badge/code%20style-black-black" alt="Code style: black">
-  <a href="https://github.com/ProgVal/Limnoria">
-    <img src="https://img.shields.io/badge/limnoria-compatible-brightgreen.svg" alt="Limnoria">
-  </a>
-  <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">
-    <img src="https://img.shields.io/badge/License-AGPLv3-blue.svg" alt="License">
-  </a>
-</p>
+<div align="center">
 
-<p align="center">
-  <a href="https://github.com/Alcheri/Asyncio/releases/latest">
-    <img src="https://img.shields.io/badge/Download-Latest%20Release-brightgreen?style=for-the-badge" alt="Download Latest Release">
-  </a>
-</p>
+[![Latest Release][latest-release-badge]][latest-release-link]
+[![Tests][tests-badge]][tests-link]
+[![Lint][lint-badge]][lint-link]
+[![CodeQL][codeql-badge]][codeql-link]
+[![Python][python-badge]][python-link]
+[![Code style: Black][black-badge]][black-link]
+[![Limnoria][limnoria-badge]][limnoria-link]
+[![Licence: AGPLv3][licence-badge]][licence-link]
+
+[![Download Latest Release][download-badge]][latest-release-link]
+
+</div>
 
 <hr style="width:65%; margin:auto;">
 
@@ -170,3 +153,30 @@ Notes
 
 - In Python 3 files, do not add `# -*- coding: utf-8 -*-` unless a non-default source encoding is required.
 - Use `#!/usr/bin/env python3` only for executable scripts, not import-only modules.
+
+<!-- Badge reference definitions -->
+[latest-release-badge]: https://img.shields.io/github/v/release/Alcheri/Asyncio?sort=semver
+[latest-release-link]: https://github.com/Alcheri/Asyncio/releases/latest
+
+[tests-badge]: https://github.com/Alcheri/Asyncio/actions/workflows/tests.yml/badge.svg
+[tests-link]: https://github.com/Alcheri/Asyncio/actions/workflows/tests.yml
+
+[lint-badge]: https://github.com/Alcheri/Asyncio/actions/workflows/lint.yml/badge.svg
+[lint-link]: https://github.com/Alcheri/Asyncio/actions/workflows/lint.yml
+
+[codeql-badge]: https://github.com/Alcheri/Asyncio/actions/workflows/codeql.yml/badge.svg
+[codeql-link]: https://github.com/Alcheri/Asyncio/security/code-scanning
+
+[python-badge]: https://img.shields.io/badge/python-3.11-blue.svg
+[python-link]: https://www.python.org/downloads/release/python-3110/
+
+[black-badge]: https://img.shields.io/badge/code%20style-black-black
+[black-link]: https://github.com/psf/black
+
+[limnoria-badge]: https://img.shields.io/badge/limnoria-compatible-brightgreen.svg
+[limnoria-link]: https://github.com/ProgVal/Limnoria
+
+[licence-badge]: https://img.shields.io/badge/License-AGPLv3-blue.svg
+[licence-link]: https://www.gnu.org/licenses/agpl-3.0.en.html
+
+[download-badge]: https://img.shields.io/badge/Download-Latest%20Release-brightgreen?style=for-the-badge
