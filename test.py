@@ -28,11 +28,40 @@
 
 ###
 
-from supybot.test import *
+import importlib
+import sys
+import unittest
+from unittest import mock
+from pathlib import Path
+
+PLUGIN_PARENT = Path(__file__).resolve().parent.parent
+if str(PLUGIN_PARENT) not in sys.path:
+    sys.path.insert(0, str(PLUGIN_PARENT))
+
+dalnetid_plugin = importlib.import_module("DALnetID.plugin")
 
 
-class DALnetIDTestCase(PluginTestCase):
-    plugins = ("DALnetID",)
+class DALnetIDTestCase(unittest.TestCase):
+    """Tests for DALnet NickServ identify message handling."""
+
+    def testNickservIdentifyQueuesExpectedMessage(self):
+        """Queue the expected NickServ identify message."""
+        irc = mock.Mock()
+        fake_config = mock.Mock()
+        fake_config.nickservPassword.return_value = "s3cr3t"
+
+        with mock.patch.object(
+            dalnetid_plugin.plugin_config,
+            "DALnetID",
+            new=fake_config,
+        ):
+            dalnetid_plugin.nickservIdentify(irc)
+
+        expected = dalnetid_plugin.ircmsgs.privmsg(
+            "NickServ@services.dal.net",
+            "IDENTIFY s3cr3t",
+        )
+        irc.queueMsg.assert_called_once_with(expected)
 
 
-# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
+# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
