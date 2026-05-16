@@ -34,19 +34,20 @@ try:
     from supybot.i18n import PluginInternationalization
 
     _ = PluginInternationalization("DALnetID")
-except:
+except Exception:
     # Placeholder that allows to run the plugin on a bot
     # without the i18n module
-    _ = lambda x: x
+    def _(x):
+        """Return untranslated text when i18n is unavailable."""
+        return x
 
 
 def configure(advanced):
+    """Register the DALnetID plugin during bot configuration."""
     # This will be called by supybot to configure this module.  advanced is
     # a bool that specifies whether the user identified themself as an advanced
     # user or not.  You should effect your configuration by manipulating the
     # registry as appropriate.
-    from supybot.questions import expect, anything, something, yn
-
     conf.registerPlugin("DALnetID", True)
 
 
@@ -67,4 +68,4 @@ conf.registerGlobalValue(
 
 # config plugins.DALnetID.nickservPassword will return the value of this configuration variable.
 
-# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
+# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
