@@ -81,7 +81,10 @@ class MyDNS(callbacks.Plugin):
 
         address = (address or "").strip()
         if not address:
-            irc.error("Please provide a hostname, URL, nick, or IP.", prefixNick=False)
+            irc.error(
+                "Please provide a hostname, URL, nick, or IP.",
+                prefixNick=False,
+            )
             return
 
         cooldown = self._cooldown_remaining(irc, msg)
@@ -109,7 +112,9 @@ class MyDNS(callbacks.Plugin):
             irc.reply(self.getaddrinfo(address), prefixNick=False)
 
     def _cooldown_remaining(self, irc, msg):
-        cooldown = self.registryValue("cooldownSeconds", msg.channel, irc.network)
+        cooldown = self.registryValue(
+            "cooldownSeconds", msg.channel, irc.network
+        )
         key = (irc.network, msg.channel, msg.prefix)
         return self.cooldowns.remaining(key, cooldown)
 
