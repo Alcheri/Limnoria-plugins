@@ -26,7 +26,9 @@ GoogleMaps = conf.registerPlugin("GoogleMaps")
 conf.registerGlobalValue(
     GoogleMaps,
     "googlemapsAPI",
-    registry.String("", _("""Sets the API key for Google Maps."""), private=True),
+    registry.String(
+        "", _("""Sets the API key for Google Maps."""), private=True
+    ),
 )
 
 conf.registerChannelValue(
