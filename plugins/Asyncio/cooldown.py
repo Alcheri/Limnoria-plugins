@@ -34,7 +34,9 @@ class CooldownManager(object):
 
         if delta < cd:
             wait_time = int(cd - delta) + 1
-            return "Please wait {}s before sending another request.".format(wait_time)
+            return "Please wait {}s before sending another request.".format(
+                wait_time
+            )
 
         return None
 

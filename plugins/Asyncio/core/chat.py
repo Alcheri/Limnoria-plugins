@@ -21,10 +21,14 @@ async def chat_with_model(
     context_key: str,
     config: dict[str, Any],
     *,
-    get_history_fn: Callable[[str, str], list[dict[str, str]]] = get_user_history,
+    get_history_fn: Callable[
+        [str, str], list[dict[str, str]]
+    ] = get_user_history,
     trim_history_fn: Callable[[str], list[dict[str, str]]] = trim_history,
     ensure_openai_client_fn: Callable[[], Any] = ensure_openai_client,
-    create_completion_fn: Callable[..., Any] = create_chat_completion_with_fallback,
+    create_completion_fn: Callable[
+        ..., Any
+    ] = create_chat_completion_with_fallback,
 ) -> str:
     math_mode = is_likely_math(user_message)
 
@@ -82,7 +86,9 @@ async def execute_chat_with_input_moderation(
     *,
     cooldown_manager: Any,
     check_moderation_flag_fn: Callable[[str], Any] = check_moderation_flag,
-    chat_with_model_fn: Callable[[str, str, dict[str, Any]], Any] = chat_with_model,
+    chat_with_model_fn: Callable[
+        [str, str, dict[str, Any]], Any
+    ] = chat_with_model,
     count_tokens_fn: Callable[[str | None], int] = count_tokens,
     now_fn: Callable[[], float] = time.time,
 ) -> str:

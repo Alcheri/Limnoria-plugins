@@ -27,7 +27,9 @@ def _chat_model_candidates() -> list[str]:
     """Ordered model fallback list for chat completions."""
     env_value = os.getenv("OPENAI_CHAT_MODELS", "")
     if env_value.strip():
-        models = [model.strip() for model in env_value.split(",") if model.strip()]
+        models = [
+            model.strip() for model in env_value.split(",") if model.strip()
+        ]
         if models:
             return models
 
@@ -70,7 +72,9 @@ def create_chat_completion_with_fallback(
                 **kwargs,
             )
             if state.active_chat_model != model_name:
-                log.warning("[Asyncio] Chat model switched to '{}'".format(model_name))
+                log.warning(
+                    "[Asyncio] Chat model switched to '{}'".format(model_name)
+                )
             state.active_chat_model = model_name
             return response
         except Exception as error:
@@ -89,7 +93,9 @@ def create_chat_completion_with_fallback(
     raise RuntimeError("No chat model candidates configured.")
 
 
-def ensure_openai_client(runtime_state: OpenAIRuntimeState | None = None) -> Any:
+def ensure_openai_client(
+    runtime_state: OpenAIRuntimeState | None = None,
+) -> Any:
     state = runtime_state or OPENAI_RUNTIME
     if state.client is not None:
         return state.client
