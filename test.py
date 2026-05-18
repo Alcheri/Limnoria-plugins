@@ -34,7 +34,9 @@ class TestGoogleMaps(SupybotPluginTestCase):
                         {}, "1600 Amphitheatre Parkway, Mountain View, CA"
                     )
                 )
-        self.assertEqual(str(context.exception), "Google Maps API key is missing.")
+        self.assertEqual(
+            str(context.exception), "Google Maps API key is missing."
+        )
 
     def test_missing_map_option_returns_usage_error(self):
         with self.assertRaises(ValueError) as context:
@@ -67,11 +69,14 @@ class TestGoogleMaps(SupybotPluginTestCase):
         mock_context.__aenter__.return_value = mock_response
         mock_get.return_value = mock_context
 
-        with patch.object(self.plugin, "registryValue", return_value="fake_api_key"):
+        with patch.object(
+            self.plugin, "registryValue", return_value="fake_api_key"
+        ):
             loop = asyncio.get_event_loop()
             result = loop.run_until_complete(
                 self.plugin.process_arguments(
-                    {"address": ""}, "1600 Amphitheatre Parkway, Mountain View, CA"
+                    {"address": ""},
+                    "1600 Amphitheatre Parkway, Mountain View, CA",
                 )
             )
         self.assertIn("results", result)
@@ -91,7 +96,9 @@ class TestGoogleMaps(SupybotPluginTestCase):
         mock_context.__aenter__.return_value = mock_response
         mock_get.return_value = mock_context
 
-        with patch.object(self.plugin, "registryValue", return_value="fake_api_key"):
+        with patch.object(
+            self.plugin, "registryValue", return_value="fake_api_key"
+        ):
             loop = asyncio.get_event_loop()
             result = loop.run_until_complete(
                 self.plugin.process_arguments(
@@ -99,7 +106,9 @@ class TestGoogleMaps(SupybotPluginTestCase):
                 )
             )
         self.assertIn("results", result)
-        self.assertEqual(result["results"][0]["formatted_address"], "Some Location")
+        self.assertEqual(
+            result["results"][0]["formatted_address"], "Some Location"
+        )
 
     @patch("aiohttp.ClientSession.get")
     def test_process_directions(self, mock_get):
@@ -125,7 +134,9 @@ class TestGoogleMaps(SupybotPluginTestCase):
         mock_context.__aenter__.return_value = mock_response
         mock_get.return_value = mock_context
 
-        with patch.object(self.plugin, "registryValue", return_value="fake_api_key"):
+        with patch.object(
+            self.plugin, "registryValue", return_value="fake_api_key"
+        ):
             loop = asyncio.get_event_loop()
             result = loop.run_until_complete(
                 self.plugin.process_arguments(
@@ -133,15 +144,23 @@ class TestGoogleMaps(SupybotPluginTestCase):
                 )
             )
         self.assertIn("routes", result)
-        self.assertEqual(result["routes"][0]["legs"][0]["start_address"], "Moscow")
-        self.assertEqual(result["routes"][0]["legs"][0]["end_address"], "Vladivostok")
+        self.assertEqual(
+            result["routes"][0]["legs"][0]["start_address"], "Moscow"
+        )
+        self.assertEqual(
+            result["routes"][0]["legs"][0]["end_address"], "Vladivostok"
+        )
 
     def test_invalid_reverse_geocoding_format(self):
-        with patch.object(self.plugin, "registryValue", return_value="fake_api_key"):
+        with patch.object(
+            self.plugin, "registryValue", return_value="fake_api_key"
+        ):
             with self.assertRaises(ValueError) as context:
                 loop = asyncio.get_event_loop()
                 loop.run_until_complete(
-                    self.plugin.process_arguments({"reverse": ""}, "invalid_format")
+                    self.plugin.process_arguments(
+                        {"reverse": ""}, "invalid_format"
+                    )
                 )
         self.assertEqual(
             str(context.exception),
@@ -157,20 +176,27 @@ class TestGoogleMaps(SupybotPluginTestCase):
         mock_context.__aenter__.return_value = mock_response
         mock_get.return_value = mock_context
 
-        with patch.object(self.plugin, "registryValue", return_value="fake_api_key"):
+        with patch.object(
+            self.plugin, "registryValue", return_value="fake_api_key"
+        ):
             with self.assertRaises(Exception) as context:
                 loop = asyncio.get_event_loop()
                 loop.run_until_complete(
                     self.plugin.process_arguments(
-                        {"address": ""}, "1600 Amphitheatre Parkway, Mountain View, CA"
+                        {"address": ""},
+                        "1600 Amphitheatre Parkway, Mountain View, CA",
                     )
                 )
-        self.assertIn("API call failed with status 500", str(context.exception))
+        self.assertIn(
+            "API call failed with status 500", str(context.exception)
+        )
 
 
 class GoogleMapsUnitTestCase(unittest.TestCase):
     def test_clean_output_removes_control_characters(self):
-        self.assertEqual(clean_output("Line\nwith\x02control"), "Line with control")
+        self.assertEqual(
+            clean_output("Line\nwith\x02control"), "Line with control"
+        )
 
     def test_build_directions_url_encodes_user_input(self):
         result = build_directions_url("Sydney & CBD", "Bondi Beach #1")

@@ -33,7 +33,9 @@ MAP_OPTIONS = frozenset(("address", "reverse", "directions"))
 
 # Global Error Routine
 def handle_error(
-    error: Exception, context: str = None, user_message: str = "An error occurred."
+    error: Exception,
+    context: str = None,
+    user_message: str = "An error occurred.",
 ):
     """Log and handle errors gracefully."""
     message = user_message
@@ -69,7 +71,9 @@ def validate_coordinates(user_input: str) -> str:
 
 def build_directions_url(origin: str, destination: str) -> str:
     """Build a Google Maps directions URL with encoded user input."""
-    query = urlencode({"api": "1", "origin": origin, "destination": destination})
+    query = urlencode(
+        {"api": "1", "origin": origin, "destination": destination}
+    )
     return f"https://www.google.com/maps/dir/?{query}"
 
 
@@ -136,21 +140,30 @@ class GoogleMaps(callbacks.Plugin):
 
                 origin, destination = map(str.strip, user_input.split("|", 1))
                 url = f"{base_url}directions/json"
-                params = {"destination": destination, "origin": origin, "key": apikey}
+                params = {
+                    "destination": destination,
+                    "origin": origin,
+                    "key": apikey,
+                }
             else:
                 raise ValueError(f"Invalid option provided. {USAGE_MESSAGE}")
 
             async with session.get(url, params=params) as response:
                 if response.status != 200:
                     handle_error(
-                        Exception(f"API call failed with status {response.status}"),
+                        Exception(
+                            f"API call failed with status {response.status}"
+                        ),
                         "API Request",
                     )
                 response_json = await response.json()
                 return response_json
 
     @wrap(
-        [getopts({"address": "", "reverse": "", "directions": ""}), additional("text")]
+        [
+            getopts({"address": "", "reverse": "", "directions": ""}),
+            additional("text"),
+        ]
     )
     def map(self, irc, msg, args, optlist, user_input=None):
         """
@@ -175,7 +188,9 @@ class GoogleMaps(callbacks.Plugin):
             return
 
         optlist = dict(optlist)
-        log.info("Processing GoogleMaps request with options: %s", sorted(optlist))
+        log.info(
+            "Processing GoogleMaps request with options: %s", sorted(optlist)
+        )
 
         cooldown = self._cooldown_remaining(irc, msg)
         if cooldown:
@@ -187,13 +202,16 @@ class GoogleMaps(callbacks.Plugin):
 
         try:
             loop = asyncio.get_event_loop()
-            data = loop.run_until_complete(self.process_arguments(optlist, user_input))
+            data = loop.run_until_complete(
+                self.process_arguments(optlist, user_input)
+            )
 
             if "directions" in optlist:
                 if not data.get("routes"):
                     log.error("No routes found in the API response.")
                     irc.error(
-                        "No routes found. Please check your input.", prefixNick=False
+                        "No routes found. Please check your input.",
+                        prefixNick=False,
                     )
                     return
 
@@ -224,7 +242,9 @@ class GoogleMaps(callbacks.Plugin):
                     return
 
                 result = data["results"][0]
-                formatted_address = result.get("formatted_address", "Unknown location")
+                formatted_address = result.get(
+                    "formatted_address", "Unknown location"
+                )
                 location_type = result.get("types", [])
                 geometry = result.get("geometry", {})
                 location = geometry.get("location", {})
@@ -251,11 +271,14 @@ class GoogleMaps(callbacks.Plugin):
         except Exception:
             log.exception("Unexpected GoogleMaps error.")
             irc.error(
-                "An unexpected error occurred. Please check the logs.", prefixNick=False
+                "An unexpected error occurred. Please check the logs.",
+                prefixNick=False,
             )
 
     def _cooldown_remaining(self, irc, msg):
-        cooldown = self.registryValue("cooldownSeconds", msg.channel, irc.network)
+        cooldown = self.registryValue(
+            "cooldownSeconds", msg.channel, irc.network
+        )
         key = (irc.network, msg.channel, msg.prefix)
         return self.cooldowns.remaining(key, cooldown)
 
