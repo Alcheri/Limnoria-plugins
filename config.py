@@ -56,7 +56,9 @@ conf.registerGlobalValue(
     "allowInsecureGeoIP",
     registry.Boolean(
         False,
-        _("""Allows plaintext GeoIP providers such as ip-api. Disabled by default."""),
+        _(
+            """Allows plaintext GeoIP providers such as ip-api. Disabled by default."""
+        ),
     ),
 )
 conf.registerChannelValue(
@@ -64,7 +66,9 @@ conf.registerChannelValue(
     "cooldownSeconds",
     registry.NonNegativeInteger(
         5,
-        _("""Sets the per-user DNS lookup cooldown for this channel, in seconds."""),
+        _(
+            """Sets the per-user DNS lookup cooldown for this channel, in seconds."""
+        ),
     ),
 )
 conf.registerChannelValue(

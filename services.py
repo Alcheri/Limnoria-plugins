@@ -23,7 +23,10 @@ class GeoIPService:
                 "GET",
                 uri,
                 timeout=timeout,
-                headers={"Accept": "application/json", "User-Agent": "MyDNS/1.0"},
+                headers={
+                    "Accept": "application/json",
+                    "User-Agent": "MyDNS/1.0",
+                },
             )
         except Exception as err:
             self.log.warning(
@@ -54,7 +57,9 @@ class GeoIPService:
         return normalize_geoip("ipapi", payload)
 
     def ip_api(self, address):
-        fields = "status,message,country,countryCode,regionName,city,zip,lat,lon"
+        fields = (
+            "status,message,country,countryCode,regionName,city,zip,lat,lon"
+        )
         uri = f"http://ip-api.com/json/{address}?fields={fields}"
         payload = self.request_json(uri, timeout=2.5)
         if not payload or payload.get("status") != "success":

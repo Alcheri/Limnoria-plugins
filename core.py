@@ -149,7 +149,9 @@ def pick_best_ip(addresses):
             return address
 
     for address, parsed in valid:
-        if not (parsed.is_loopback or parsed.is_link_local or parsed.is_unspecified):
+        if not (
+            parsed.is_loopback or parsed.is_link_local or parsed.is_unspecified
+        ):
             return address
 
     return valid[0][0]
