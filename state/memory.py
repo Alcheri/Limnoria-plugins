@@ -11,9 +11,13 @@ def make_context_key(msg: Any) -> str:
     return f"{channel}:{nick}"
 
 
-def get_user_history(context_key: str, system_prompt: str) -> list[dict[str, str]]:
+def get_user_history(
+    context_key: str, system_prompt: str
+) -> list[dict[str, str]]:
     if context_key not in USER_HISTORIES:
-        USER_HISTORIES[context_key] = [{"role": "system", "content": system_prompt}]
+        USER_HISTORIES[context_key] = [
+            {"role": "system", "content": system_prompt}
+        ]
         return USER_HISTORIES[context_key]
 
     history = USER_HISTORIES[context_key]
@@ -27,7 +31,9 @@ def get_user_history(context_key: str, system_prompt: str) -> list[dict[str, str
     return history
 
 
-def trim_history(context_key: str, max_messages: int = 12) -> list[dict[str, str]]:
+def trim_history(
+    context_key: str, max_messages: int = 12
+) -> list[dict[str, str]]:
     history = USER_HISTORIES.get(context_key, [])
     if len(history) > max_messages:
         USER_HISTORIES[context_key] = [history[0]] + history[-10:]

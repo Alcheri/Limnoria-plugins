@@ -23,7 +23,9 @@ class _CooldownBlock:
         return "Please wait 1s before sending another request."
 
     def record(self, context_key, now):
-        raise AssertionError("record should not be called when cooldown blocks")
+        raise AssertionError(
+            "record should not be called when cooldown blocks"
+        )
 
 
 class CoreChatTestCase(unittest.IsolatedAsyncioTestCase):
@@ -59,7 +61,13 @@ class CoreChatTestCase(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response, "ok")
         self.assertEqual(
             events,
-            ["cooldown_check", "cooldown_record", "count_tokens", "moderation", "chat"],
+            [
+                "cooldown_check",
+                "cooldown_record",
+                "count_tokens",
+                "moderation",
+                "chat",
+            ],
         )
 
     async def test_cooldown_blocks_early(self):
@@ -120,4 +128,6 @@ class CoreChatTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertIn("flagged as inappropriate", response)
-        self.assertEqual(events, ["cooldown_check", "cooldown_record", "moderation"])
+        self.assertEqual(
+            events, ["cooldown_check", "cooldown_record", "moderation"]
+        )

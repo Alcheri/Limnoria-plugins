@@ -58,9 +58,15 @@ def get_config() -> dict[str, Any]:
         "max_tokens": _to_int(
             plugin_conf.maxUserTokens(), default_config["max_tokens"]
         ),
-        "cooldown": _to_int(plugin_conf.cooldownSeconds(), default_config["cooldown"]),
-        "irc_chunk": _to_int(plugin_conf.ircChunkSize(), default_config["irc_chunk"]),
+        "cooldown": _to_int(
+            plugin_conf.cooldownSeconds(), default_config["cooldown"]
+        ),
+        "irc_chunk": _to_int(
+            plugin_conf.ircChunkSize(), default_config["irc_chunk"]
+        ),
         "botnick": _to_str(plugin_conf.botnick(), default_config["botnick"]),
-        "language": _to_str(plugin_conf.language(), default_config["language"]),
+        "language": _to_str(
+            plugin_conf.language(), default_config["language"]
+        ),
         "debug": _to_bool(plugin_conf.debugMode(), default_config["debug"]),
     }

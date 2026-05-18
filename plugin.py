@@ -52,7 +52,9 @@ class Asyncio(callbacks.Plugin):
 
         # ---- Pre-cooldown check (UX polish) ----
         now = time.time()
-        msg_wait = COOLDOWNS.should_wait_message(context_key, now, config["cooldown"])
+        msg_wait = COOLDOWNS.should_wait_message(
+            context_key, now, config["cooldown"]
+        )
 
         if msg_wait:
             irc.reply(msg_wait, prefixNick=False)
@@ -80,7 +82,9 @@ class Asyncio(callbacks.Plugin):
                 )
             )
 
-            chunks = split_irc_reply_lines(response, chunk_size=config["irc_chunk"])
+            chunks = split_irc_reply_lines(
+                response, chunk_size=config["irc_chunk"]
+            )
             if not chunks:
                 irc.reply("AI returned no response.", prefixNick=False)
             else:
@@ -88,13 +92,18 @@ class Asyncio(callbacks.Plugin):
                     irc.reply(chunk, prefixNick=False)
 
             if config["debug"]:
-                log.info("[Asyncio DEBUG] {}: {}".format(context_key, response))
+                log.info(
+                    "[Asyncio DEBUG] {}: {}".format(context_key, response)
+                )
 
         except Exception as error:
             log.error(
-                "[Asyncio] Exception in chat command: {}".format(error), exc_info=True
+                "[Asyncio] Exception in chat command: {}".format(error),
+                exc_info=True,
             )
-            irc.reply("An unexpected error occurred. Check logs.", prefixNick=False)
+            irc.reply(
+                "An unexpected error occurred. Check logs.", prefixNick=False
+            )
 
     def resetCommand(self, irc, msg, args):
         """Reset your conversation memory for this channel (or PM)."""

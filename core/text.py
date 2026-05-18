@@ -32,7 +32,9 @@ def clean_output(text: str | None) -> str:
     return cleaned.strip()
 
 
-def split_irc_reply_lines(text: str | None, chunk_size: int = 350) -> list[str]:
+def split_irc_reply_lines(
+    text: str | None, chunk_size: int = 350
+) -> list[str]:
     payload = (text or "").strip()
     if not payload:
         return []

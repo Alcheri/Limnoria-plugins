@@ -50,7 +50,8 @@ class ServicesOpenAIClientTestCase(unittest.TestCase):
 
         self.assertEqual(response, "ok-response")
         self.assertEqual(
-            [call[0] for call in completions.calls], ["gpt-4o-mini", "gpt-4.1-mini"]
+            [call[0] for call in completions.calls],
+            ["gpt-4o-mini", "gpt-4.1-mini"],
         )
         self.assertEqual(state.active_chat_model, "gpt-4.1-mini")
 
