@@ -118,7 +118,10 @@ class MyPing(callbacks.Plugin):
             # Will print the command failed
             irc.reply(f"{red(cmd[-1])} is Not Reachable", prefixNick=False)
         else:
-            irc.reply(f"{red(cmd[-1])} is Reachable ~ {elapsed_loss}", prefixNick=False)
+            irc.reply(
+                f"{red(cmd[-1])} is Reachable ~ {elapsed_loss}",
+                prefixNick=False,
+            )
 
 
 Class = MyPing

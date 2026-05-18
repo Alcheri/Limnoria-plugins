@@ -33,7 +33,9 @@ MyPing = conf.registerPlugin("MyPing")
 # conf.registerGlobalValue(MyPing, 'someConfigVariableName',
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
 conf.registerChannelValue(
-    MyPing, "enable", registry.Boolean(False, """Should plugin work in this channel?""")
+    MyPing,
+    "enable",
+    registry.Boolean(False, """Should plugin work in this channel?"""),
 )
 
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
