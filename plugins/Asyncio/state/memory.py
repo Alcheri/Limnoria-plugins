@@ -1,13 +1,22 @@
 from __future__ import annotations
 
+from collections import OrderedDict
 from typing import Any
 
-USER_HISTORIES: dict[str, list[dict[str, str]]] = {}
+MAX_HISTORY_CONTEXTS = 512
+USER_HISTORIES: OrderedDict[str, list[dict[str, str]]] = OrderedDict()
 
 
-def make_context_key(msg: Any) -> str:
+def _prune_histories(max_contexts: int = MAX_HISTORY_CONTEXTS) -> None:
+    while len(USER_HISTORIES) > max_contexts:
+        USER_HISTORIES.popitem(last=False)
+
+
+def make_context_key(msg: Any, network: str | None = None) -> str:
     nick = getattr(msg, "nick", "unknown")
     channel = getattr(msg, "channel", None) or "PM"
+    if network:
+        return f"{network}:{channel}:{nick}"
     return f"{channel}:{nick}"
 
 
@@ -18,8 +27,10 @@ def get_user_history(
         USER_HISTORIES[context_key] = [
             {"role": "system", "content": system_prompt}
         ]
+        _prune_histories()
         return USER_HISTORIES[context_key]
 
+    USER_HISTORIES.move_to_end(context_key)
     history = USER_HISTORIES[context_key]
     if (
         history

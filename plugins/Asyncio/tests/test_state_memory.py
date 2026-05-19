@@ -2,6 +2,7 @@ from types import SimpleNamespace
 import unittest
 
 from ..state.memory import (
+    MAX_HISTORY_CONTEXTS,
     USER_HISTORIES,
     clear_context_history,
     clear_history,
@@ -25,6 +26,19 @@ class StateMemoryTestCase(unittest.TestCase):
         pm_msg = SimpleNamespace(nick="alice")
         self.assertEqual(make_context_key(pm_msg), "PM:alice")
 
+    def test_make_context_key_includes_network_when_available(self):
+        msg = SimpleNamespace(nick="alice", channel="#test")
+        self.assertEqual(
+            make_context_key(msg, network="Libera"),
+            "Libera:#test:alice",
+        )
+
+        pm_msg = SimpleNamespace(nick="alice")
+        self.assertEqual(
+            make_context_key(pm_msg, network="OFTC"),
+            "OFTC:PM:alice",
+        )
+
     def test_get_user_history_initializes_and_updates_system_prompt(self):
         history = get_user_history("ctx", "prompt-a")
         self.assertEqual(history, [{"role": "system", "content": "prompt-a"}])
@@ -47,3 +61,11 @@ class StateMemoryTestCase(unittest.TestCase):
         self.assertIn("ctx", USER_HISTORIES)
         clear_context_history("ctx")
         self.assertNotIn("ctx", USER_HISTORIES)
+
+    def test_get_user_history_prunes_old_contexts(self):
+        for index in range(MAX_HISTORY_CONTEXTS + 1):
+            get_user_history(f"ctx-{index}", "prompt")
+
+        self.assertEqual(len(USER_HISTORIES), MAX_HISTORY_CONTEXTS)
+        self.assertNotIn("ctx-0", USER_HISTORIES)
+        self.assertIn(f"ctx-{MAX_HISTORY_CONTEXTS}", USER_HISTORIES)

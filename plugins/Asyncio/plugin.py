@@ -25,7 +25,8 @@ from . import __version__ as PLUGIN_VERSION
 from .config.runtime import get_config
 from .cooldown import CooldownManager
 from .core.chat import execute_chat_with_input_moderation
-from .core.text import split_irc_reply_lines
+from .core.limits import RequestLimiter
+from .core.text import split_irc_reply_lines, summarize_for_log
 from .services.openai_client import ensure_openai_client, get_active_chat_model
 from .state.memory import clear_context_history, make_context_key
 
@@ -33,6 +34,7 @@ from .state.memory import clear_context_history, make_context_key
 # Global State
 # ----------------------------
 COOLDOWNS = CooldownManager()
+REQUEST_LIMITER = RequestLimiter(max_concurrent=4)
 
 
 # ----------------------------
@@ -47,7 +49,9 @@ class Asyncio(callbacks.Plugin):
     def chat(self, irc, msg, args, user_input):
         """<message> -- Chat with the AI (per-channel + per-user memory)."""
 
-        context_key = make_context_key(msg)
+        context_key = make_context_key(
+            msg, network=getattr(irc, "network", None)
+        )
         config = get_config()
 
         # ---- Pre-cooldown check (UX polish) ----
@@ -70,15 +74,25 @@ class Asyncio(callbacks.Plugin):
             )
             return
 
+        if not REQUEST_LIMITER.acquire():
+            irc.reply(
+                "Too many AI requests are already running. Please try again shortly.",
+                prefixNick=False,
+            )
+            return
+
         irc.reply("Processing your message...", prefixNick=False)
 
         try:
             response = asyncio.run(
-                execute_chat_with_input_moderation(
-                    user_input,
-                    context_key=context_key,
-                    config=config,
-                    cooldown_manager=COOLDOWNS,
+                asyncio.wait_for(
+                    execute_chat_with_input_moderation(
+                        user_input,
+                        context_key=context_key,
+                        config=config,
+                        cooldown_manager=COOLDOWNS,
+                    ),
+                    timeout=config["api_timeout"],
                 )
             )
 
@@ -93,9 +107,20 @@ class Asyncio(callbacks.Plugin):
 
             if config["debug"]:
                 log.info(
-                    "[Asyncio DEBUG] {}: {}".format(context_key, response)
+                    "[Asyncio DEBUG] {}: {}".format(
+                        context_key,
+                        summarize_for_log(response),
+                    )
                 )
 
+        except asyncio.TimeoutError:
+            log.warning(
+                "[Asyncio] AI request timed out for {}".format(context_key)
+            )
+            irc.reply(
+                "The AI request timed out. Please try again shortly.",
+                prefixNick=False,
+            )
         except Exception as error:
             log.error(
                 "[Asyncio] Exception in chat command: {}".format(error),
@@ -104,10 +129,14 @@ class Asyncio(callbacks.Plugin):
             irc.reply(
                 "An unexpected error occurred. Check logs.", prefixNick=False
             )
+        finally:
+            REQUEST_LIMITER.release()
 
     def resetCommand(self, irc, msg, args):
         """Reset your conversation memory for this channel (or PM)."""
-        context_key = make_context_key(msg)
+        context_key = make_context_key(
+            msg, network=getattr(irc, "network", None)
+        )
 
         clear_context_history(context_key)
         COOLDOWNS.clear(context_key)

@@ -39,6 +39,7 @@ def split_irc_reply_lines(
     if not payload:
         return []
 
+    chunk_size = max(1, int(chunk_size))
     chunks: list[str] = []
     lines = payload.splitlines()
     for line in lines:
@@ -53,3 +54,13 @@ def split_irc_reply_lines(
         chunks.append(line)
 
     return chunks
+
+
+def summarize_for_log(text: str | None, max_length: int = 240) -> str:
+    payload = " ".join((text or "").split())
+    if len(payload) <= max_length:
+        return payload
+    return "{}... [truncated {} chars]".format(
+        payload[:max_length],
+        len(payload) - max_length,
+    )

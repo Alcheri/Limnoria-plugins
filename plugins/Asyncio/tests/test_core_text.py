@@ -5,6 +5,7 @@ from ..core.text import (
     count_tokens,
     is_likely_math,
     split_irc_reply_lines,
+    summarize_for_log,
 )
 
 
@@ -31,3 +32,13 @@ class CoreTextTestCase(unittest.TestCase):
         self.assertEqual(chunks, ["a", "b"])
 
         self.assertEqual(split_irc_reply_lines("", chunk_size=10), [])
+
+    def test_split_irc_reply_lines_handles_invalid_chunk_size(self):
+        self.assertEqual(
+            split_irc_reply_lines("abc", chunk_size=0),
+            ["a", "b", "c"],
+        )
+
+    def test_summarize_for_log_truncates_long_text(self):
+        summary = summarize_for_log("a" * 300, max_length=10)
+        self.assertEqual(summary, "aaaaaaaaaa... [truncated 290 chars]")

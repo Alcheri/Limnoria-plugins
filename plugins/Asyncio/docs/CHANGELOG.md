@@ -10,6 +10,24 @@ This project follows a simple versioning approach:
 
 ---
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- Conversation memory and cooldown context keys now include the IRC network
+  when available, preventing same-channel/same-nick collisions across
+  multiple networks in one bot process.
+- AI requests now have a process-wide concurrency cap and explicit timeout to
+  reduce worker-thread pileups during upstream API stalls.
+- Conversation history and cooldown stores now prune old contexts to avoid
+  unbounded in-memory growth from nick/channel churn.
+- Runtime config values are clamped to safe bounds, including IRC reply chunk
+  size.
+- Debug logging now records a bounded response summary instead of the full AI
+  response.
+
+---
+
 ## [1.1] – 2026-02-26
 
 ### ✨ Added

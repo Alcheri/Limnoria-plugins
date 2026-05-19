@@ -45,7 +45,7 @@ reload(plugin)
 
 if world.testing:
     try:
-        from . import test
+        from . import test  # noqa: F401
     except ImportError as e:
         missing_names = {"test", f"{__name__}.test"}
         missing_test_import = "cannot import name 'test'" in str(e)
