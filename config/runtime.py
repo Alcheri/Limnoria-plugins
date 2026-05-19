@@ -23,6 +23,10 @@ def _to_int(value: Any, default: int) -> int:
         return default
 
 
+def _clamp_int(value: int, minimum: int, maximum: int) -> int:
+    return max(minimum, min(maximum, value))
+
+
 def _to_bool(value: Any, default: bool = False) -> bool:
     try:
         return bool(_unwrap_value(value, default))
@@ -43,6 +47,7 @@ def get_config() -> dict[str, Any]:
         "max_tokens": 512,
         "cooldown": 5,
         "irc_chunk": 350,
+        "api_timeout": 45,
         "botnick": "Assistant",
         "language": "British",
         "debug": False,
@@ -55,14 +60,28 @@ def get_config() -> dict[str, Any]:
         return default_config
 
     return {
-        "max_tokens": _to_int(
-            plugin_conf.maxUserTokens(), default_config["max_tokens"]
+        "max_tokens": _clamp_int(
+            _to_int(plugin_conf.maxUserTokens(), default_config["max_tokens"]),
+            1,
+            4096,
         ),
-        "cooldown": _to_int(
-            plugin_conf.cooldownSeconds(), default_config["cooldown"]
+        "cooldown": _clamp_int(
+            _to_int(plugin_conf.cooldownSeconds(), default_config["cooldown"]),
+            0,
+            3600,
         ),
-        "irc_chunk": _to_int(
-            plugin_conf.ircChunkSize(), default_config["irc_chunk"]
+        "irc_chunk": _clamp_int(
+            _to_int(plugin_conf.ircChunkSize(), default_config["irc_chunk"]),
+            80,
+            450,
+        ),
+        "api_timeout": _clamp_int(
+            _to_int(
+                plugin_conf.apiTimeoutSeconds(),
+                default_config["api_timeout"],
+            ),
+            5,
+            300,
         ),
         "botnick": _to_str(plugin_conf.botnick(), default_config["botnick"]),
         "language": _to_str(

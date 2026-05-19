@@ -7,7 +7,9 @@ try:
 
     _ = PluginInternationalization("Asyncio")
 except Exception:
-    _ = lambda x: x
+
+    def _(text):
+        return text
 
 
 def configure(advanced):
@@ -60,6 +62,12 @@ conf.registerGlobalValue(
     Asyncio,
     "ircChunkSize",
     registry.Integer(350, _("Max characters per IRC reply chunk")),
+)
+
+conf.registerGlobalValue(
+    Asyncio,
+    "apiTimeoutSeconds",
+    registry.Integer(45, _("Maximum seconds to wait for an AI request")),
 )
 
 
