@@ -12,6 +12,8 @@ See [docs/TODO.md](docs/TODO.md) for small future expansion ideas.
 
 ``/msg <yourbot> config plugins.DALnetID.nickservPassword [BotNickServPassword]``
 
+``/msg <yourbot> config plugins.DALnetID.allowedNetworks DALnet``
+
 ``@id``
 
 ```plaintext

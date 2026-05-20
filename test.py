@@ -31,8 +31,10 @@
 import importlib
 import sys
 import unittest
-from unittest import mock
 from pathlib import Path
+from unittest import mock
+
+from supybot import commands
 
 PLUGIN_PARENT = Path(__file__).resolve().parent.parent
 if str(PLUGIN_PARENT) not in sys.path:
@@ -47,8 +49,10 @@ class DALnetIDTestCase(unittest.TestCase):
     def testNickservIdentifyQueuesExpectedMessage(self):
         """Queue the expected NickServ identify message."""
         irc = mock.Mock()
+        irc.network = "DALnet"
         fake_config = mock.Mock()
         fake_config.nickservPassword.return_value = "s3cr3t"
+        fake_config.allowedNetworks.return_value = ["DALnet"]
 
         with mock.patch.object(
             dalnetid_plugin.plugin_config,
@@ -62,6 +66,52 @@ class DALnetIDTestCase(unittest.TestCase):
             "IDENTIFY s3cr3t",
         )
         irc.queueMsg.assert_called_once_with(expected)
+
+    def testIdRequiresAdminCapability(self):
+        """Do not identify when the caller lacks admin capability."""
+        plugin = mock.Mock()
+        plugin.log = mock.Mock()
+        irc = mock.Mock()
+        msg = mock.Mock(prefix="user!ident@host")
+
+        with mock.patch.object(
+            commands.ircdb,
+            "checkCapability",
+            return_value=False,
+        ):
+            dalnetid_plugin.DALnetID.id(plugin, irc, msg, [])
+
+        irc.queueMsg.assert_not_called()
+        irc.reply.assert_not_called()
+
+    def testIdRefusesDisallowedNetwork(self):
+        """Do not identify on networks outside the configured allowlist."""
+        plugin = mock.Mock()
+        plugin.log = mock.Mock()
+        irc = mock.Mock()
+        irc.network = "Libera"
+        msg = mock.Mock(prefix="admin!ident@host")
+        fake_config = mock.Mock()
+        fake_config.allowedNetworks.return_value = ["DALnet"]
+
+        with (
+            mock.patch.object(
+                commands.ircdb,
+                "checkCapability",
+                return_value=True,
+            ),
+            mock.patch.object(
+                dalnetid_plugin.plugin_config,
+                "DALnetID",
+                new=fake_config,
+            ),
+        ):
+            dalnetid_plugin.DALnetID.id(plugin, irc, msg, [])
+
+        irc.queueMsg.assert_not_called()
+        irc.error.assert_called_once_with(
+            "DALnetID identify is not enabled for this network."
+        )
 
 
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:

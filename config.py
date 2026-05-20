@@ -65,6 +65,16 @@ conf.registerGlobalValue(
         private=True,
     ),
 )
+conf.registerGlobalValue(
+    DALnetID,
+    "allowedNetworks",
+    registry.SpaceSeparatedSetOfStrings(
+        ["DALnet"],
+        _(
+            """Sets the IRC network names where the identify command may run."""
+        ),
+    ),
+)
 
 # config plugins.DALnetID.nickservPassword will return the value of this configuration variable.
 
