@@ -27,14 +27,17 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 ###
-import shlex
-import subprocess
+import ipaddress
+import re
+import subprocess  # nosec B404
 import sys
+import threading
+import time
 
 ###
-from supybot.commands import *
 import supybot.ircutils as utils
 import supybot.callbacks as callbacks
+from supybot.commands import wrap
 
 try:
     from supybot.i18n import PluginInternationalization
@@ -43,7 +46,11 @@ try:
 except ImportError:
     # Placeholder that allows to run the plugin on a bot
     # without the i18n module
-    _ = lambda x: x
+
+    def _(text):
+        return text
+
+
 from .local.colour import red, teal
 
 ###############
@@ -51,6 +58,13 @@ from .local.colour import red, teal
 ###############
 
 special_chars = ("-", "[", "]", "\\", "`", "^", "{", "}", "_")
+CONTROL_CHARS_RE = re.compile(r"[\x00-\x1f\x7f]")
+HOSTNAME_LABEL_RE = re.compile(
+    r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+)
+MAX_TARGET_LENGTH = 253
+MAX_REPLY_LENGTH = 360
+PING_TIMEOUT = 3.0
 
 
 def is_nick(nick):
@@ -60,6 +74,8 @@ def is_nick(nick):
     that it may consist of any combination of letters, numbers, or allowed
     special characters.
     """
+    if not nick:
+        return False
     if not nick[0].isalpha() and nick[0] not in special_chars:
         return False
     for char in nick[1:]:
@@ -68,23 +84,74 @@ def is_nick(nick):
     return True
 
 
-def _elapsed_loss(loss):
-    """
-    :rtype: dict or None
-    """
-    lines = loss.split("\n")
-    loss = lines[-2].split(",")[2].split()[0]
-    timing = lines[-1].split()[3].split("/")
-    elapsed = int(float(timing[1]))
-    time = divmod(elapsed, 1000.0)
+def _limit_text(value, max_length=MAX_REPLY_LENGTH):
+    text = CONTROL_CHARS_RE.sub("", str(value)).strip()
+    if len(text) <= max_length:
+        return text
+    return f"{text[: max_length - 3]}..."
 
-    return f"Time elapsed: {teal(time)} seconds/milliseconds Packet Loss: {teal(loss)}"
+
+def _valid_hostname(host):
+    if len(host) > MAX_TARGET_LENGTH:
+        return False
+
+    labels = host.rstrip(".").split(".")
+    if any(not label or len(label) > 63 for label in labels):
+        return False
+
+    return all(HOSTNAME_LABEL_RE.match(label) for label in labels)
+
+
+def _valid_ping_target(host):
+    raw = (host or "").strip()
+    target = CONTROL_CHARS_RE.sub("", raw).strip()
+    if not target:
+        return False, "", "Please provide a host, nick, IPv4, or IPv6 target."
+
+    if target != raw:
+        return False, "", "Ping target contains invalid characters."
+
+    if target.startswith("-"):
+        return False, "", "Ping target must not start with '-'."
+
+    if len(target) > MAX_TARGET_LENGTH:
+        return False, "", "Ping target is too long."
+
+    try:
+        ipaddress.ip_address(target)
+        return True, target, ""
+    except ValueError:
+        pass
+
+    if _valid_hostname(target):
+        return True, target, ""
+
+    return False, "", "Ping target contains invalid characters."
+
+
+def _elapsed_loss(output):
+    lines = [line for line in output.splitlines() if line.strip()]
+    try:
+        loss = lines[-2].split(",")[2].split()[0]
+        timing = lines[-1].split()[3].split("/")
+        elapsed = int(float(timing[1]))
+    except (IndexError, ValueError):
+        return "Ping completed; timing details unavailable."
+
+    elapsed_time = divmod(elapsed, 1000.0)
+
+    return (
+        f"Time elapsed: {teal(elapsed_time)} seconds/milliseconds "
+        f"Packet Loss: {teal(loss)}"
+    )
 
 
 class MyPing(callbacks.Plugin):
     def __init__(self, irc):
         self.__parent = super(MyPing, self)
         self.__parent.__init__(irc)
+        self._cooldowns = {}
+        self._cooldown_lock = threading.Lock()
 
     threaded = True
 
@@ -99,6 +166,7 @@ class MyPing(callbacks.Plugin):
         # config channel #channel plugins.myping.enable True or False (or On or Off)
         if not self.registryValue("enable", channel):
             return
+
         if is_nick(host):  # Valid nick?
             nick = host
             try:
@@ -107,21 +175,63 @@ class MyPing(callbacks.Plugin):
                 nick, _, host = utils.splitHostmask(userHostmask)
             except KeyError:
                 pass
-        if sys.platform.startswith("win"):
-            cmd = shlex.split(f"ping -n 1 -w 1000 {host}")
-        else:
-            cmd = shlex.split(f"ping -c 1 -W 1 {host}")
-        try:
-            reply = subprocess.check_output(cmd, text=True).strip()
-            elapsed_loss = _elapsed_loss(reply)
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            # Will print the command failed
-            irc.reply(f"{red(cmd[-1])} is Not Reachable", prefixNick=False)
-        else:
-            irc.reply(
-                f"{red(cmd[-1])} is Reachable ~ {elapsed_loss}",
+
+        is_valid, host, error = _valid_ping_target(host)
+        if not is_valid:
+            irc.error(error, prefixNick=False)
+            return
+
+        cooldown = self._cooldown_remaining(irc, msg, channel)
+        if cooldown:
+            irc.error(
+                f"Please wait {cooldown}s before sending another ping request.",
                 prefixNick=False,
             )
+            return
+
+        if sys.platform.startswith("win"):
+            cmd = ["ping", "-n", "1", "-w", "1000", host]
+        else:
+            cmd = ["ping", "-c", "1", "-W", "1", host]
+        try:
+            reply = subprocess.check_output(  # nosec B603
+                cmd, text=True, timeout=PING_TIMEOUT
+            ).strip()
+            elapsed_loss = _elapsed_loss(reply)
+        except (
+            subprocess.CalledProcessError,
+            FileNotFoundError,
+            subprocess.TimeoutExpired,
+        ):
+            # Will print the command failed
+            self._reply(irc, f"{red(host)} is Not Reachable")
+        else:
+            self._reply(irc, f"{red(host)} is Reachable ~ {elapsed_loss}")
+
+    def _cooldown_remaining(self, irc, msg, channel):
+        cooldown = self.registryValue("cooldownSeconds", channel)
+        if not cooldown:
+            return 0
+
+        now = time.monotonic()
+        key = (irc.network, channel, msg.prefix)
+        with self._cooldown_lock:
+            expired = [
+                item
+                for item, last_seen in self._cooldowns.items()
+                if now - last_seen >= cooldown
+            ]
+            for item in expired:
+                del self._cooldowns[item]
+
+            last_seen = self._cooldowns.get(key)
+            if last_seen is None or now - last_seen >= cooldown:
+                self._cooldowns[key] = now
+                return 0
+            return max(1, int(cooldown - (now - last_seen)))
+
+    def _reply(self, irc, text):
+        irc.reply(_limit_text(text), prefixNick=False)
 
 
 Class = MyPing

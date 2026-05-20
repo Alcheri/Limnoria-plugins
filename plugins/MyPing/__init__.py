@@ -10,6 +10,7 @@ MyPing: An alternative to Supybot's Ping function.
 """
 
 import sys
+from typing import Dict, List
 
 # Python 3.6 and above only.
 if sys.version_info < (3, 6):
@@ -28,7 +29,7 @@ __author__ = supybot.Author(
 
 # This is a dictionary mapping supybot.Author instances to lists of
 # contributions.
-__contributors__ = {}
+__contributors__: Dict[object, List[object]] = {}
 
 # This is a url where the most recent plugin package can be downloaded.
 __url__ = "https://github.com/Alcheri/Plugins.git"
@@ -44,7 +45,7 @@ reload(plugin)
 # reloaded when this plugin is reloaded.  Don't forget to import them as well!
 
 if world.testing:
-    from . import test
+    from . import test as test
 
 Class = plugin.Class
 configure = config.configure
