@@ -50,6 +50,12 @@ Disable in a channel:
 /msg bot config channel #channel plugins.Wikipedia.enabled False
 ```
 
+Set the public command cooldown:
+
+```text
+/msg bot config plugins.Wikipedia.cooldownSeconds 5
+```
+
 ## Usage
 
 ```text
@@ -68,6 +74,8 @@ Monty Python (also collectively known as the Pythons) were a British comedy trou
 - Detects disambiguation pages and asks for a more specific topic.
 - Returns a friendly message when no article is found.
 - Honors channel enable/disable config, and can still be used in private messages.
+- Applies a per-user, per-channel cooldown. Private-message use is public and
+  tracked separately.
 
 ## Testing
 

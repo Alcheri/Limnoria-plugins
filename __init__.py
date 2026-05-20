@@ -46,7 +46,7 @@ reload(config)
 reload(plugin)
 
 if world.testing:
-    from . import test
+    from . import test as test
 
 Class = plugin.Class
 configure = config.configure
