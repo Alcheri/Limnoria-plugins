@@ -30,7 +30,7 @@ __author__ = supybot.Author(
 
 # This is a dictionary mapping supybot.Author instances to lists of
 # contributions.
-__contributors__ = {}
+__contributors__: dict[object, list[object]] = {}
 
 # This is a url where the most recent plugin package can be downloaded.
 __url__ = "https://github.com/Alcheri/MyDNS"
@@ -53,7 +53,7 @@ reload(plugin)
 
 if world.testing:
     try:
-        from . import test
+        from . import test as test
     except ImportError as e:
         missing_names = {"test", f"{__name__}.test"}
         missing_test_import = "cannot import name 'test'" in str(e)
