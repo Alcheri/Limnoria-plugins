@@ -12,13 +12,13 @@ try:
     from supybot.i18n import PluginInternationalization
 
     _ = PluginInternationalization("OnJoin")
-except:
-    _ = lambda x: x
+except ImportError:
+
+    def _(text):
+        return text
 
 
 def configure(advanced):
-    from supybot.questions import expect, anything, something, yn
-
     conf.registerPlugin("OnJoin", True)
 
 
@@ -43,7 +43,9 @@ conf.registerGlobalValue(
 )
 
 conf.registerChannelValue(
-    OnJoin, "enable", registry.Boolean(False, """Should plugin work in this channel?""")
+    OnJoin,
+    "enable",
+    registry.Boolean(False, """Should plugin work in this channel?"""),
 )
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
