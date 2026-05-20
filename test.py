@@ -7,8 +7,12 @@ from supybot.test import PluginTestCase as SupybotPluginTestCase
 SupybotPluginTestCase.__test__ = False
 from .plugin import (
     GoogleMaps,
+    MAX_ADDRESS_LENGTH,
+    MAX_DIRECTIONS_ENDPOINT_LENGTH,
+    MAX_REPLY_LENGTH,
     build_directions_url,
     clean_output,
+    truncate_output,
     validate_coordinates,
     CooldownTracker,
 )
@@ -197,6 +201,71 @@ class GoogleMapsUnitTestCase(unittest.TestCase):
         self.assertEqual(
             clean_output("Line\nwith\x02control"), "Line with control"
         )
+
+    def test_truncate_output_caps_long_replies(self):
+        result = truncate_output("x" * (MAX_REPLY_LENGTH + 1))
+
+        self.assertEqual(len(result), MAX_REPLY_LENGTH)
+        self.assertTrue(result.endswith("..."))
+
+    @patch("aiohttp.ClientSession")
+    def test_process_address_rejects_overlong_input_before_session(
+        self, mock_session
+    ):
+        plugin = GoogleMaps.__new__(GoogleMaps)
+        plugin.registryValue = lambda name, *args: "fake_api_key"
+
+        with self.assertRaises(ValueError) as context:
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(
+                plugin.process_arguments(
+                    {"address": ""}, "x" * (MAX_ADDRESS_LENGTH + 1)
+                )
+            )
+
+        self.assertEqual(str(context.exception), "Address input is too long.")
+        mock_session.assert_not_called()
+
+    @patch("aiohttp.ClientSession")
+    def test_process_directions_rejects_empty_endpoint_before_session(
+        self, mock_session
+    ):
+        plugin = GoogleMaps.__new__(GoogleMaps)
+        plugin.registryValue = lambda name, *args: "fake_api_key"
+
+        with self.assertRaises(ValueError) as context:
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(
+                plugin.process_arguments({"directions": ""}, "Sydney | ")
+            )
+
+        self.assertEqual(
+            str(context.exception),
+            "Invalid input format for directions. Use: 'origin|destination'",
+        )
+        mock_session.assert_not_called()
+
+    @patch("aiohttp.ClientSession")
+    def test_process_directions_rejects_overlong_endpoint_before_session(
+        self, mock_session
+    ):
+        plugin = GoogleMaps.__new__(GoogleMaps)
+        plugin.registryValue = lambda name, *args: "fake_api_key"
+
+        with self.assertRaises(ValueError) as context:
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(
+                plugin.process_arguments(
+                    {"directions": ""},
+                    f"{'x' * (MAX_DIRECTIONS_ENDPOINT_LENGTH + 1)} | Sydney",
+                )
+            )
+
+        self.assertEqual(
+            str(context.exception),
+            "Directions origin or destination is too long.",
+        )
+        mock_session.assert_not_called()
 
     def test_build_directions_url_encodes_user_input(self):
         result = build_directions_url("Sydney & CBD", "Bondi Beach #1")
