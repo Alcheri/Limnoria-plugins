@@ -28,16 +28,17 @@
 
 ###
 
-from supybot import conf, registry
+from supybot import conf
 
 try:
     from supybot.i18n import PluginInternationalization
 
     _ = PluginInternationalization("ISO")
-except:
+except ImportError:
     # Placeholder that allows to run the plugin on a bot
     # without the i18n module
-    _ = lambda x: x
+    def _(text):
+        return text
 
 
 def configure(advanced):
@@ -45,8 +46,6 @@ def configure(advanced):
     # a bool that specifies whether the user identified themself as an advanced
     # user or not.  You should effect your configuration by manipulating the
     # registry as appropriate.
-    from supybot.questions import expect, anything, something, yn
-
     conf.registerPlugin("ISO", True)
 
 

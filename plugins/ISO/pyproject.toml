@@ -35,6 +35,15 @@ extend-exclude = '''
 )/
 '''
 
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+explicit_package_bases = true
+exclude = "(__init__|test)\\.py"
+
+[tool.pytest.ini_options]
+python_files = ["test.py"]
+
 [tool.setuptools.package-dir]
 "limnoria_iso" = "."
 "limnoria_iso.local" = "local/"

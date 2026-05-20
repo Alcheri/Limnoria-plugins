@@ -28,11 +28,53 @@
 
 ###
 
-from supybot.test import *
+import unittest
+
+import supybot.test as supybot_test
+
+supybot_test.PluginTestCase.__test__ = False
+
+try:
+    from . import plugin as iso_plugin
+except ImportError:  # pragma: no cover - allows direct unittest execution.
+    import plugin as iso_plugin
 
 
-class ISOTestCase(PluginTestCase):
+class ISOTestCase(supybot_test.PluginTestCase):
+    __test__ = False
     plugins = ("ISO",)
+
+
+class ISOUnitTestCase(unittest.TestCase):
+    def test_lookup_country_accepts_alpha2_code(self):
+        self.assertEqual(iso_plugin.lookup_country("tr"), ("TR", "Türkiye"))
+
+    def test_lookup_country_accepts_country_name(self):
+        self.assertEqual(
+            iso_plugin.lookup_country("myanmar"), ("MM", "Myanmar")
+        )
+
+    def test_normalise_lookup_rejects_empty_input(self):
+        with self.assertRaisesRegex(
+            ValueError, "Country code or name is required."
+        ):
+            iso_plugin.normalise_lookup(" \n\t ")
+
+    def test_normalise_lookup_rejects_overlong_input(self):
+        with self.assertRaisesRegex(
+            ValueError, "Country code or name is too long."
+        ):
+            iso_plugin.normalise_lookup(
+                "x" * (iso_plugin.MAX_LOOKUP_LENGTH + 1)
+            )
+
+    def test_lookup_country_uses_generic_unknown_error(self):
+        with self.assertRaisesRegex(
+            ValueError, "Unknown country code or name."
+        ) as context:
+            iso_plugin.lookup_country("zz\nvery noisy input")
+
+        self.assertNotIn("zz", str(context.exception))
 
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
