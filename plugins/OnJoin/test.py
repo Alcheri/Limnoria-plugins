@@ -6,17 +6,18 @@
 ###
 
 import tempfile
+import threading
 import unittest
 from pathlib import Path
-import supybot.conf as conf
-import supybot.ircdb as ircdb
-import supybot.ircmsgs as ircmsgs
-import supybot.ircutils as ircutils
-import supybot.world as world
-from supybot.test import *
 from types import SimpleNamespace
 from unittest import mock
 from unittest.mock import patch
+
+import supybot.conf as conf
+import supybot.ircmsgs as ircmsgs
+import supybot.ircutils as ircutils
+import supybot.world as world
+from supybot.test import ChannelPluginTestCase as SupybotChannelPluginTestCase
 
 try:
     from . import plugin
@@ -30,7 +31,12 @@ if not hasattr(conf.supybot.networks, "test"):
     conf.registerNetwork("test")
 
 
-class OnJoinTestCase(ChannelPluginTestCase):
+SupybotChannelPluginTestCase.__test__ = False
+
+
+class OnJoinTestCase(SupybotChannelPluginTestCase):
+    __test__ = False
+
     plugins = ("OnJoin",)
     channel = "#test"
 
@@ -45,7 +51,9 @@ class OnJoinTestCase(ChannelPluginTestCase):
         cb = self.irc.getCallback("OnJoin")
         irc_proxy = self._irc_proxy()
         with patch.object(cb, "registryValue", return_value=False):
-            with patch.object(cb, "_read_random_quote", return_value="Welcome"):
+            with patch.object(
+                cb, "_read_random_quote", return_value="Welcome"
+            ):
                 cb.doJoin(irc_proxy, self._join_msg("alice"))
         irc_proxy.reply.assert_not_called()
 
@@ -53,7 +61,9 @@ class OnJoinTestCase(ChannelPluginTestCase):
         cb = self.irc.getCallback("OnJoin")
         irc_proxy = self._irc_proxy()
         with patch.object(cb, "registryValue", return_value=True):
-            with patch.object(cb, "_read_random_quote", return_value="Welcome"):
+            with patch.object(
+                cb, "_read_random_quote", return_value="Welcome"
+            ):
                 cb.doJoin(irc_proxy, self._join_msg("alice"))
 
         irc_proxy.reply.assert_called_once_with(
@@ -88,7 +98,9 @@ class OnJoinTestCase(ChannelPluginTestCase):
             quotes_path = Path(tmpdir) / "quotes.txt"
             quotes_path.write_text("existing quote\n", encoding="utf-8")
 
-            with patch.object(plugin.OnJoin, "_quotes_path", return_value=quotes_path):
+            with patch.object(
+                plugin.OnJoin, "_quotes_path", return_value=quotes_path
+            ):
                 self.assertNotError("addquote new remote quote")
 
             self.assertEqual(
@@ -107,7 +119,9 @@ class OnJoinTestCase(ChannelPluginTestCase):
             quotes_path = Path(tmpdir) / "quotes.txt"
             quotes_path.write_text("first\nsecond\nthird\n", encoding="utf-8")
 
-            with patch.object(plugin.OnJoin, "_quotes_path", return_value=quotes_path):
+            with patch.object(
+                plugin.OnJoin, "_quotes_path", return_value=quotes_path
+            ):
                 self.assertNotError("delquote 2")
 
             self.assertEqual(
@@ -127,6 +141,7 @@ class OnJoinInternalTestCase(unittest.TestCase):
             }[name]
         )
         onjoin.log = mock.Mock()
+        onjoin._quote_lock = threading.Lock()
         return onjoin
 
     def testAppendQuoteRejectsBlankText(self):
@@ -148,13 +163,53 @@ class OnJoinInternalTestCase(unittest.TestCase):
                 ["two", "three", "four line"],
             )
 
+    def testAppendQuoteSanitisesAndCapsText(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            quotes_path = Path(tmpdir) / "quotes.txt"
+            quotes_path.write_text("", encoding="utf-8")
+            onjoin = self._plugin(quotes_path)
+
+            result = onjoin._append_quote("A\x02" * 400)
+
+            self.assertNotIn("\x02", result)
+            self.assertEqual(len(result), plugin.MAX_QUOTE_LENGTH)
+            self.assertTrue(result.endswith("..."))
+            self.assertEqual(
+                quotes_path.read_text(encoding="utf-8"), result + "\n"
+            )
+
     def testRecentQuotesReturnsNewestEntries(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             quotes_path = Path(tmpdir) / "quotes.txt"
             quotes_path.write_text("one\ntwo\nthree\nfour\n", encoding="utf-8")
-            onjoin = self._plugin(quotes_path)
+            onjoin = self._plugin(quotes_path, max_quotes=10)
 
-            self.assertEqual(onjoin._recent_quotes(2), [(3, "three"), (4, "four")])
+            self.assertEqual(
+                onjoin._recent_quotes(2), [(3, "three"), (4, "four")]
+            )
+
+    def testRecentQuotesClampsToHardLimit(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            quotes_path = Path(tmpdir) / "quotes.txt"
+            quotes_path.write_text(
+                "".join(f"quote {number}\n" for number in range(30)),
+                encoding="utf-8",
+            )
+            onjoin = self._plugin(
+                quotes_path, max_quotes=100, max_recent_quotes=100
+            )
+
+            self.assertEqual(
+                len(onjoin._recent_quotes(100)), plugin.HARD_RECENT_QUOTES
+            )
+
+    def testLoadQuotesKeepsNewestBoundedEntries(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            quotes_path = Path(tmpdir) / "quotes.txt"
+            quotes_path.write_text("one\ntwo\nthree\nfour\n", encoding="utf-8")
+            onjoin = self._plugin(quotes_path, max_quotes=2)
+
+            self.assertEqual(onjoin._load_quotes(), ["three", "four"])
 
     def testDeleteQuoteRemovesRequestedEntry(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -185,7 +240,20 @@ class OnJoinInternalTestCase(unittest.TestCase):
             onjoin = self._plugin(quotes_path)
 
             with patch.object(plugin.random, "uniform", return_value=0):
-                self.assertEqual(onjoin._read_random_quote(), "only quote\n")
+                self.assertEqual(onjoin._read_random_quote(), "only quote")
+
+    def testWriteQuotesUsesAtomicReplace(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            quotes_path = Path(tmpdir) / "quotes.txt"
+            onjoin = self._plugin(quotes_path)
+
+            with patch.object(
+                plugin.os, "replace", wraps=plugin.os.replace
+            ) as replace:
+                self.assertTrue(onjoin._write_quotes(["one"]))
+
+            replace.assert_called_once()
+            self.assertEqual(quotes_path.read_text(encoding="utf-8"), "one\n")
 
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
