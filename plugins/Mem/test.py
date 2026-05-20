@@ -9,12 +9,15 @@ from types import SimpleNamespace
 import unittest
 from unittest import mock
 
-from supybot.test import *
+import supybot.test as supybot_test
 
 from . import plugin
 
+supybot_test.PluginTestCase.__test__ = False
 
-class MemTestCase(PluginTestCase):
+
+class MemTestCase(supybot_test.PluginTestCase):
+    __test__ = False
     plugins = ("Mem",)
 
     def test_mem_usage(self):
@@ -34,10 +37,71 @@ class MemTestCase(PluginTestCase):
 
 
 class MemInternalTestCase(unittest.TestCase):
+    def test_has_admin_capability_delegates_to_limnoria(self):
+        msg = SimpleNamespace(prefix="nick!user@example")
+
+        with mock.patch.object(
+            plugin.ircdb, "checkCapability", return_value=True
+        ) as check:
+            self.assertTrue(plugin._has_admin_capability(msg))
+
+        check.assert_called_once_with("nick!user@example", "admin")
+
+    def test_mem_top_requires_admin_capability(self):
+        mem_plugin = plugin.Mem.__new__(plugin.Mem)
+        mem_plugin.log = mock.Mock()
+        irc = mock.Mock()
+        msg = SimpleNamespace(prefix="nick!user@example")
+
+        with (
+            mock.patch.object(
+                plugin.ircdb, "checkCapability", return_value=False
+            ),
+            mock.patch.object(mem_plugin, "_top") as top,
+        ):
+            plugin.Mem.mem(mem_plugin, irc, msg, ["top"])
+
+        top.assert_not_called()
+        irc.error.assert_called_once_with(
+            "The mem top subcommand requires admin capability.",
+            prefixNick=False,
+        )
+
+    def test_mem_top_runs_for_admins(self):
+        mem_plugin = plugin.Mem.__new__(plugin.Mem)
+        mem_plugin.log = mock.Mock()
+        irc = mock.Mock()
+        msg = SimpleNamespace(prefix="nick!user@example")
+
+        with (
+            mock.patch.object(
+                plugin.ircdb, "checkCapability", return_value=True
+            ),
+            mock.patch.object(mem_plugin, "_top") as top,
+        ):
+            plugin.Mem.mem(mem_plugin, irc, msg, ["top"])
+
+        top.assert_called_once_with(irc, 5)
+
+    def test_mem_usage_remains_public(self):
+        mem_plugin = plugin.Mem.__new__(plugin.Mem)
+        mem_plugin.log = mock.Mock()
+        irc = mock.Mock()
+        msg = SimpleNamespace(prefix="nick!user@example")
+
+        with mock.patch.object(mem_plugin, "_usage") as usage:
+            plugin.Mem.mem(mem_plugin, irc, msg, ["usage"])
+
+        usage.assert_called_once_with(irc)
+
     def test_tracemalloc_already_tracing(self):
         with (
-            mock.patch.object(plugin.callbacks.Plugin, "__init__", return_value=None),
-            mock.patch.object(plugin.tracemalloc, "is_tracing", return_value=True),
+            mock.patch.object(
+                plugin.callbacks.Plugin, "__init__", return_value=None
+            ),
+            mock.patch.object(
+                plugin.tracemalloc, "is_tracing", return_value=True
+            ),
             mock.patch.object(plugin.tracemalloc, "start") as mock_start,
         ):
             plugin.Mem(mock.sentinel.irc)
@@ -45,8 +109,12 @@ class MemInternalTestCase(unittest.TestCase):
 
     def test_tracemalloc_not_tracing(self):
         with (
-            mock.patch.object(plugin.callbacks.Plugin, "__init__", return_value=None),
-            mock.patch.object(plugin.tracemalloc, "is_tracing", return_value=False),
+            mock.patch.object(
+                plugin.callbacks.Plugin, "__init__", return_value=None
+            ),
+            mock.patch.object(
+                plugin.tracemalloc, "is_tracing", return_value=False
+            ),
             mock.patch.object(plugin.tracemalloc, "start") as mock_start,
         ):
             plugin.Mem(mock.sentinel.irc)
@@ -61,7 +129,9 @@ class MemInternalTestCase(unittest.TestCase):
         mock_process = mock.Mock()
         mock_process.memory_info.return_value = memory_info
 
-        with mock.patch.object(plugin.psutil, "Process", return_value=mock_process):
+        with mock.patch.object(
+            plugin.psutil, "Process", return_value=mock_process
+        ):
             mem_plugin = plugin.Mem.__new__(plugin.Mem)
             mem_plugin._stats(mock_irc)
 

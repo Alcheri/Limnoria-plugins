@@ -18,7 +18,9 @@ from supybot import world
 __version__ = "1.0.0"
 
 # XXX Replace this with an appropriate author or supybot.Author instance.
-__author__ = supybot.Author("Barry Suridge", "Alcheri", "barry.suridge@outlook.com")
+__author__ = supybot.Author(
+    "Barry Suridge", "Alcheri", "barry.suridge@outlook.com"
+)
 
 # This is a dictionary mapping supybot.Author instances to lists of
 # contributions.
@@ -38,7 +40,7 @@ reload(plugin)
 # reloaded when this plugin is reloaded.  Don't forget to import them as well!
 
 if world.testing:
-    from . import test
+    from . import test as test
 
 Class = plugin.Class
 configure = config.configure
