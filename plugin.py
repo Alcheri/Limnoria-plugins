@@ -29,7 +29,7 @@
 ###
 
 from supybot import callbacks
-from supybot.commands import *
+from supybot.commands import wrap
 
 try:
     from supybot.i18n import PluginInternationalization
@@ -38,12 +38,39 @@ try:
 except ImportError:
     # Placeholder that allows to run the plugin on a bot
     # without the i18n module
-    _ = lambda x: x
+    def _(text):
+        return text
+
 
 try:
     from iso3166 import countries
 except ImportError as ie:
     raise ImportError(f"Cannot import module: {ie}")
+
+
+MAX_LOOKUP_LENGTH = 64
+
+
+def normalise_lookup(value):
+    """Normalise a country lookup value before querying iso3166."""
+    lookup = str(value or "").strip().lower()
+    if not lookup:
+        raise ValueError("Country code or name is required.")
+    if len(lookup) > MAX_LOOKUP_LENGTH:
+        raise ValueError("Country code or name is too long.")
+    return lookup
+
+
+def lookup_country(value):
+    """Return alpha-2 code and country name for a safe lookup value."""
+    lookup = normalise_lookup(value)
+    try:
+        country = countries.get(lookup)
+    except KeyError:
+        raise ValueError("Unknown country code or name.")
+    name = country[0]
+    alpha2 = country[1]
+    return alpha2, name
 
 
 class ISO(callbacks.Plugin):
@@ -58,13 +85,10 @@ class ISO(callbacks.Plugin):
         Convert country name to alpha2 country codes.
         """
 
-        code = code.lower()
         try:
-            country = countries.get(code)
-            name = country[0]
-            alpha2 = country[1]
-        except KeyError as error:
-            raise callbacks.Error(f"{error} unknown country code.")
+            alpha2, name = lookup_country(code)
+        except ValueError as error:
+            raise callbacks.Error(str(error))
         irc.reply(f"{alpha2} {name}", prefixNick=False)
 
 
