@@ -37,12 +37,30 @@ from . import config as plugin_config
 _ = PluginInternationalization("DALnetID")
 
 
+def _normalise_network(network):
+    """Return a canonical network name for local allowlist checks."""
+    return str(network or "").strip().lower()
+
+
+def isAllowedNetwork(irc):
+    """Return whether identify may run on the current IRC network."""
+    current_network = _normalise_network(getattr(irc, "network", ""))
+    allowed_networks = {
+        _normalise_network(network)
+        for network in plugin_config.DALnetID.allowedNetworks()
+    }
+    return bool(current_network and current_network in allowed_networks)
+
+
 def nickservIdentify(irc):
     """Identify to DALnet's NickServ"""
+    if not isAllowedNetwork(irc):
+        return False
     password = plugin_config.DALnetID.nickservPassword()
     irc.queueMsg(
         ircmsgs.privmsg("NickServ@services.dal.net", "IDENTIFY %s" % password)
     )
+    return True
 
 
 class DALnetID(callbacks.Plugin):
@@ -56,17 +74,19 @@ class DALnetID(callbacks.Plugin):
         self.__parent.__init__(irc)
         self.irc = irc
 
-    @wrap([])
+    @wrap([("checkCapability", "admin")])
     def id(self, irc, msg, args):
         """takes no arguments
 
         Identify to DALnet's NickServ using the configured password.
         """
-        irc.reply("Identifying to NickServ...")
-
+        if not isAllowedNetwork(irc):
+            irc.error("DALnetID identify is not enabled for this network.")
+            return
         if not plugin_config.DALnetID.nickservPassword():
             irc.error("NickServ password is not configured.")
             return
+        irc.reply("Identifying to NickServ...")
         nickservIdentify(irc)
 
         irc.reply("The operation succeeded.")
