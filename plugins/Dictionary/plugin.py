@@ -18,6 +18,21 @@ headers = {
     "User-Agent": "Limnoria-Dictionary/1.0 (+https://github.com/Alcheri/Dictionary)"
 }
 REQUEST_TIMEOUT = 10
+MAX_LOOKUP_LENGTH = 64
+MAX_REPLY_LENGTH = 400
+
+
+def _normalise_reply_text(text):
+    """Collapse unsafe or noisy API text before sending it to IRC."""
+    cleaned = "".join(ch if ch >= " " and ch != "\x7f" else " " for ch in text)
+    return " ".join(cleaned.split())
+
+
+def _truncate_reply_text(text):
+    """Return text capped to a safe IRC reply length."""
+    if len(text) <= MAX_REPLY_LENGTH:
+        return text
+    return f"{text[: MAX_REPLY_LENGTH - 3].rstrip()}..."
 
 
 class Dictionary(callbacks.Plugin):
@@ -43,6 +58,13 @@ class Dictionary(callbacks.Plugin):
             and input[0] in ('"', "'")
         ):
             input = input[1:-1].strip()
+
+        if not input:
+            irc.error("No word provided.", prefixNick=False)
+            return
+        if len(input) > MAX_LOOKUP_LENGTH:
+            irc.error("Lookup text is too long.", prefixNick=False)
+            return
 
         encoded_input = quote(input, safe="")
         base_url = (
@@ -71,6 +93,9 @@ class Dictionary(callbacks.Plugin):
                 definition = meaning["definitions"][0]["definition"]
                 part_of_speech = meaning["partOfSpeech"]
                 response = f"{input} ({part_of_speech}): {definition}"
+                response = _truncate_reply_text(
+                    _normalise_reply_text(response)
+                )
                 irc.reply(response, prefixNick=False)
             except (KeyError, IndexError) as e:
                 irc.error(
