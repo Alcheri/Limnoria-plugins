@@ -74,6 +74,24 @@ class MyPingSecurityTestCase(unittest.TestCase):
         self.assertFalse(is_valid)
         self.assertIn("too long", error)
 
+    def test_hostname_validation_ignores_supybot_any_shadowing(self):
+        sentinel = object()
+        original_any = getattr(plugin, "any", sentinel)
+        original_all = getattr(plugin, "all", sentinel)
+        plugin.any = self.fail
+        plugin.all = self.fail
+        try:
+            self.assertTrue(plugin._valid_hostname("example.com"))
+        finally:
+            if original_any is sentinel:
+                del plugin.any
+            else:
+                plugin.any = original_any
+            if original_all is sentinel:
+                del plugin.all
+            else:
+                plugin.all = original_all
+
     def test_elapsed_loss_handles_unexpected_output(self):
         self.assertIn(
             "unavailable",
@@ -85,6 +103,12 @@ class MyPingSecurityTestCase(unittest.TestCase):
 
         self.assertEqual(len(result), plugin.MAX_REPLY_LENGTH)
         self.assertTrue(result.endswith("..."))
+
+    def test_reply_text_preserves_irc_colours(self):
+        result = plugin._limit_text(plugin.red("example.com"))
+
+        self.assertIn("\x03", result)
+        self.assertIn("example.com", result)
 
     def test_cooldown_is_per_user_and_prunes_expired_entries(self):
         resolver = plugin.MyPing.__new__(plugin.MyPing)

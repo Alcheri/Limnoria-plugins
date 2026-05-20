@@ -27,6 +27,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 ###
+import builtins
 import ipaddress
 import re
 import subprocess  # nosec B404
@@ -58,7 +59,9 @@ from .local.colour import red, teal
 ###############
 
 special_chars = ("-", "[", "]", "\\", "`", "^", "{", "}", "_")
-CONTROL_CHARS_RE = re.compile(r"[\x00-\x1f\x7f]")
+UNSAFE_CONTROL_CHARS_RE = re.compile(
+    r"[\x00-\x01\x04-\x0e\x10-\x15\x17-\x1c\x1e\x7f]"
+)
 HOSTNAME_LABEL_RE = re.compile(
     r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
 )
@@ -85,7 +88,7 @@ def is_nick(nick):
 
 
 def _limit_text(value, max_length=MAX_REPLY_LENGTH):
-    text = CONTROL_CHARS_RE.sub("", str(value)).strip()
+    text = UNSAFE_CONTROL_CHARS_RE.sub("", str(value)).strip()
     if len(text) <= max_length:
         return text
     return f"{text[: max_length - 3]}..."
@@ -96,15 +99,15 @@ def _valid_hostname(host):
         return False
 
     labels = host.rstrip(".").split(".")
-    if any(not label or len(label) > 63 for label in labels):
+    if builtins.any(not label or len(label) > 63 for label in labels):
         return False
 
-    return all(HOSTNAME_LABEL_RE.match(label) for label in labels)
+    return builtins.all(HOSTNAME_LABEL_RE.match(label) for label in labels)
 
 
 def _valid_ping_target(host):
     raw = (host or "").strip()
-    target = CONTROL_CHARS_RE.sub("", raw).strip()
+    target = UNSAFE_CONTROL_CHARS_RE.sub("", raw).strip()
     if not target:
         return False, "", "Please provide a host, nick, IPv4, or IPv6 target."
 
