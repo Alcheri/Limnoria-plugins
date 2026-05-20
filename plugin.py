@@ -28,8 +28,8 @@
 
 import socket
 
-from supybot.commands import *
 from supybot import callbacks
+from supybot.commands import wrap
 import supybot.ircutils as utils
 
 from .cooldown import CooldownTracker
@@ -41,10 +41,13 @@ from .core import (
     is_ip,
     is_nick,
     is_public_ip,
+    limit_reply,
     loc,
     normalize_lookup_target,
     pick_best_ip,
     score_geoip_result,
+    validate_dns_host,
+    validate_lookup_input,
 )
 from .services import GeoIPService
 
@@ -53,7 +56,9 @@ try:
 
     _ = PluginInternationalization("MyDNS")
 except ImportError:
-    _ = lambda x: x
+
+    def _(text):
+        return text
 
 
 class MyDNS(callbacks.Plugin):
@@ -80,9 +85,10 @@ class MyDNS(callbacks.Plugin):
         self.log.info("MyDNS: running on %s/%s", irc.network, msg.channel)
 
         address = (address or "").strip()
-        if not address:
+        is_valid, error = validate_lookup_input(address)
+        if not is_valid:
             irc.error(
-                "Please provide a hostname, URL, nick, or IP.",
+                error,
                 prefixNick=False,
             )
             return
@@ -96,20 +102,23 @@ class MyDNS(callbacks.Plugin):
             return
 
         if is_ip(address):
-            irc.reply(self.gethostbyaddr(address), prefixNick=False)
+            self._reply(irc, self.gethostbyaddr(address))
         elif is_nick(address):
             nick = address
             try:
                 user_hostmask = irc.state.nickToHostmask(nick)
                 nick, _, host = utils.splitHostmask(user_hostmask)
                 if is_ip(host):
-                    irc.reply(self.gethostbyaddr(host), prefixNick=False)
+                    self._reply(irc, self.gethostbyaddr(host))
                 else:
-                    irc.reply(self.getaddrinfo(host), prefixNick=False)
+                    self._reply(irc, self.getaddrinfo(host))
             except KeyError:
-                irc.reply(self.getaddrinfo(address), prefixNick=False)
+                self._reply(irc, self.getaddrinfo(address))
         else:
-            irc.reply(self.getaddrinfo(address), prefixNick=False)
+            self._reply(irc, self.getaddrinfo(address))
+
+    def _reply(self, irc, text):
+        irc.reply(limit_reply(text), prefixNick=False)
 
     def _cooldown_remaining(self, irc, msg):
         cooldown = self.registryValue(
@@ -140,8 +149,9 @@ class MyDNS(callbacks.Plugin):
     def getaddrinfo(self, host):
         """Get host information and approximate geolocation."""
         host = normalize_lookup_target(host).lower()
-        if not host:
-            return "Could not resolve empty host."
+        is_valid, error = validate_dns_host(host)
+        if not is_valid:
+            return error
 
         try:
             result = socket.getaddrinfo(host, None)

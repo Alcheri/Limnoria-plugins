@@ -20,13 +20,31 @@ special_chars = ('-', '[', ']', '\\', '`', '^', '{', '}', '_')
 # fmt: on
 
 CONTROL_CHARS_RE = re.compile(r"[\x00-\x1f\x7f]")
+MAX_PROVIDER_TEXT = 80
+MAX_IRC_REPLY = 360
+MAX_RAW_LOOKUP = 512
+MAX_HOSTNAME = 253
+MAX_DNS_LABEL = 63
+HOSTNAME_LABEL_RE = re.compile(
+    r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+)
+
+
+def limit_text(value, max_length):
+    """Limit text so provider data cannot create oversized IRC replies."""
+    text = str(value)
+    if len(text) <= max_length:
+        return text
+    return f"{text[: max_length - 3]}..."
 
 
 def sanitise_provider_text(value):
     """Remove IRC/control characters from provider-supplied text."""
     if value is None:
         return ""
-    return CONTROL_CHARS_RE.sub("", str(value)).strip()
+    return limit_text(
+        CONTROL_CHARS_RE.sub("", str(value)).strip(), MAX_PROVIDER_TEXT
+    )
 
 
 def format_coordinate(value):
@@ -43,6 +61,11 @@ def redact_uri(uri):
     if not parsed.query:
         return uri
     return parsed._replace(query="<redacted>").geturl()
+
+
+def limit_reply(value):
+    """Keep final IRC replies within a conservative single-message size."""
+    return limit_text(value, MAX_IRC_REPLY)
 
 
 def format_location(data, address):
@@ -130,6 +153,37 @@ def normalize_lookup_target(target):
         host = parsed.hostname or value
 
     return (host or "").strip("[]")
+
+
+def validate_lookup_input(target):
+    """Validate raw lookup text before any DNS or GeoIP work."""
+    value = (target or "").strip()
+    if not value:
+        return False, "Please provide a hostname, URL, nick, or IP."
+    if len(value) > MAX_RAW_LOOKUP:
+        return False, "Lookup target is too long."
+    return True, ""
+
+
+def validate_dns_host(host):
+    """Validate a normalised DNS hostname without rejecting IP literals."""
+    if not host:
+        return False, "Could not resolve empty host."
+
+    if is_ip(host):
+        return True, ""
+
+    if len(host) > MAX_HOSTNAME:
+        return False, "Host name is too long."
+
+    labels = host.rstrip(".").split(".")
+    if any(not label or len(label) > MAX_DNS_LABEL for label in labels):
+        return False, "Host name contains an invalid DNS label."
+
+    if not all(HOSTNAME_LABEL_RE.match(label) for label in labels):
+        return False, "Host name contains invalid characters."
+
+    return True, ""
 
 
 def pick_best_ip(addresses):

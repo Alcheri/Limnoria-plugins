@@ -4,6 +4,7 @@
 ###
 
 import unittest
+from unittest import mock
 from types import SimpleNamespace
 
 from supybot.test import PluginTestCase as SupybotPluginTestCase
@@ -59,6 +60,47 @@ class MyDNSSmokeTestCase(unittest.TestCase):
         self.assertNotIn("\x03", result)
         self.assertNotIn("\x1f", result)
 
+    def test_format_location_limits_provider_text(self):
+        from . import core
+
+        data = {"city": "A" * 200}
+
+        result = core.format_location(data, "203.0.113.1")
+
+        self.assertLessEqual(len(result), 90)
+        self.assertIn("...", result)
+
+    def test_limit_reply_caps_output(self):
+        from . import core
+
+        result = core.limit_reply("A" * 500)
+
+        self.assertEqual(len(result), core.MAX_IRC_REPLY)
+        self.assertTrue(result.endswith("..."))
+
+    def test_getaddrinfo_rejects_invalid_host_before_dns_lookup(self):
+        from . import plugin
+
+        resolver = plugin.MyDNS.__new__(plugin.MyDNS)
+
+        with mock.patch("socket.getaddrinfo") as getaddrinfo:
+            result = resolver.getaddrinfo("bad host.example")
+
+        self.assertIn("invalid characters", result)
+        getaddrinfo.assert_not_called()
+
+    def test_getaddrinfo_rejects_oversized_host_before_dns_lookup(self):
+        from . import plugin
+
+        resolver = plugin.MyDNS.__new__(plugin.MyDNS)
+        host = "a" * 64 + ".example"
+
+        with mock.patch("socket.getaddrinfo") as getaddrinfo:
+            result = resolver.getaddrinfo(host)
+
+        self.assertIn("invalid DNS label", result)
+        getaddrinfo.assert_not_called()
+
     def test_ipstack_uses_https_only(self):
         from .services import GeoIPService
 
@@ -111,6 +153,20 @@ class MyDNSSmokeTestCase(unittest.TestCase):
 
         self.assertEqual(resolver._cooldown_remaining(irc, msg), 0)
         self.assertGreaterEqual(resolver._cooldown_remaining(irc, msg), 1)
+
+    def test_cooldown_prunes_expired_entries(self):
+        from .cooldown import CooldownTracker
+
+        tracker = CooldownTracker()
+        tracker._seen[("net", "#chan", "old!user@example")] = 1.0
+
+        with mock.patch("time.monotonic", return_value=10.0):
+            self.assertEqual(
+                tracker.remaining(("net", "#chan", "new!user@example"), 5),
+                0,
+            )
+
+        self.assertNotIn(("net", "#chan", "old!user@example"), tracker._seen)
 
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
