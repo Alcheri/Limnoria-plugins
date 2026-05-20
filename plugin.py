@@ -8,10 +8,14 @@
 import tracemalloc
 
 import psutil
-from supybot import callbacks, commands
+from supybot import callbacks, commands, ircdb
 from supybot.i18n import PluginInternationalization
 
 _ = PluginInternationalization("Mem")
+
+
+def _has_admin_capability(msg):
+    return bool(ircdb.checkCapability(msg.prefix, "admin"))
 
 
 class Mem(callbacks.Plugin):
@@ -33,6 +37,12 @@ class Mem(callbacks.Plugin):
         if sub == "usage":
             self._usage(irc)
         elif sub == "top":
+            if not _has_admin_capability(msg):
+                irc.error(
+                    "The mem top subcommand requires admin capability.",
+                    prefixNick=False,
+                )
+                return
             self._top(irc, 5)
         elif sub == "stats":
             self._stats(irc)
@@ -82,7 +92,9 @@ class Mem(callbacks.Plugin):
         shared = getattr(mem, "shared", 0) // 1024 // 1024
         data = getattr(mem, "data", 0) // 1024 // 1024
 
-        irc.reply(f"RSS: {rss} MB; VMS: {vms} MB; Shared: {shared} MB; Data: {data} MB")
+        irc.reply(
+            f"RSS: {rss} MB; VMS: {vms} MB; Shared: {shared} MB; Data: {data} MB"
+        )
 
 
 Class = Mem
