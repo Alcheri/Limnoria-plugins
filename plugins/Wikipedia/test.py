@@ -5,11 +5,17 @@
 # Credits: spline [https://github.com/andrewtryder] for the inspiration.
 ###
 
-from supybot.test import *
+import unittest
 from unittest.mock import MagicMock, patch
 
+import requests
+import supybot.test as supytest
 
-class WikipediaTestCase(PluginTestCase):
+from Wikipedia import plugin
+
+
+class WikipediaTestCase(supytest.PluginTestCase):
+    __test__ = False
     plugins = ("Wikipedia",)
 
     @patch("Wikipedia.plugin.Wikipedia.registryValue", return_value=True)
@@ -63,6 +69,53 @@ class WikipediaTestCase(PluginTestCase):
             "wiki topicthatdoesnotexist",
             "No result for 'topicthatdoesnotexist' on Wikipedia (missingtitle).",
         )
+
+    @patch("Wikipedia.plugin.Wikipedia.registryValue", return_value=True)
+    @patch("Wikipedia.plugin.requests.get")
+    def test_wiki_subject_too_long_is_rejected(
+        self, mock_get, _mock_registry_value
+    ):
+        self.assertError(f"wiki {'a' * 121}")
+        mock_get.assert_not_called()
+
+    @patch("Wikipedia.plugin.Wikipedia.registryValue", return_value=True)
+    @patch("Wikipedia.plugin.requests.get")
+    def test_wiki_network_error_is_generic(
+        self, mock_get, _mock_registry_value
+    ):
+        mock_get.side_effect = requests.exceptions.Timeout(
+            "internal connection detail"
+        )
+
+        self.assertError("wiki test")
+
+
+def test_clean_text_strips_formatting_control_chars_and_caps():
+    unittest.TestCase().assertEqual(
+        plugin._clean_text("\x02hello\x02\x00 world", limit=8),
+        "hello...",
+    )
+
+
+def test_cooldown_is_per_user_and_channel():
+    bot = plugin.Wikipedia(MagicMock())
+    bot.registryValue = MagicMock(return_value=5)
+
+    irc = MagicMock()
+    irc.network = "testnet"
+    msg = MagicMock()
+    msg.channel = "#test"
+    msg.prefix = "user!ident@example.test"
+
+    testcase = unittest.TestCase()
+    testcase.assertTrue(bot._check_cooldown(irc, msg))
+    testcase.assertFalse(bot._check_cooldown(irc, msg))
+
+    other_channel_msg = MagicMock()
+    other_channel_msg.channel = "#other"
+    other_channel_msg.prefix = msg.prefix
+
+    testcase.assertTrue(bot._check_cooldown(irc, other_channel_msg))
 
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

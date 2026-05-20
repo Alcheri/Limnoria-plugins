@@ -11,8 +11,10 @@ try:
     from supybot.i18n import PluginInternationalization
 
     _ = PluginInternationalization("Wikipedia")
-except:
-    _ = lambda x: x
+except ImportError:
+
+    def _(x):
+        return x
 
 
 def configure(advanced):
@@ -20,8 +22,6 @@ def configure(advanced):
     # a bool that specifies whether the user identified himself as an advanced
     # user or not.  You should effect your configuration by manipulating the
     # registry as appropriate.
-    from supybot.questions import expect, anything, something, yn
-
     conf.registerPlugin("Wikipedia", True)
 
 
@@ -32,6 +32,17 @@ conf.registerChannelValue(
     Wikipedia,
     "enabled",
     registry.Boolean(False, """Should plugin work in this channel?"""),
+)
+
+conf.registerGlobalValue(
+    Wikipedia,
+    "cooldownSeconds",
+    registry.NonNegativeInteger(
+        5,
+        _("""Determines the per-user, per-channel cooldown in seconds for
+            the wiki command. Private-message use is tracked separately from
+            channel use."""),
+    ),
 )
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=250:
