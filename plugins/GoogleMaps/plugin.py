@@ -29,6 +29,9 @@ REQUEST_TIMEOUT_SECONDS = 10
 CONTROL_CHARS_RE = re.compile(r"[\x00-\x1f\x7f]")
 USAGE_MESSAGE = "Use --address, --reverse, or --directions."
 MAP_OPTIONS = frozenset(("address", "reverse", "directions"))
+MAX_ADDRESS_LENGTH = 200
+MAX_DIRECTIONS_ENDPOINT_LENGTH = 200
+MAX_REPLY_LENGTH = 400
 
 
 # Global Error Routine
@@ -48,6 +51,13 @@ def handle_error(
 def clean_output(text: str) -> str:
     """Clean and simplify text output for user readability."""
     return CONTROL_CHARS_RE.sub(" ", str(text)).strip()
+
+
+def truncate_output(text: str) -> str:
+    """Cap cleaned IRC output to a safe reply length."""
+    if len(text) <= MAX_REPLY_LENGTH:
+        return text
+    return f"{text[: MAX_REPLY_LENGTH - 3].rstrip()}..."
 
 
 def validate_coordinates(user_input: str) -> str:
@@ -118,36 +128,50 @@ class GoogleMaps(callbacks.Plugin):
         if not apikey:
             raise ValueError("Google Maps API key is missing.")
 
+        user_input = user_input or ""
         base_url = "https://maps.googleapis.com/maps/api/"
+        if "address" in optlist:
+            if len(user_input) > MAX_ADDRESS_LENGTH:
+                raise ValueError("Address input is too long.")
+            url = f"{base_url}geocode/json"
+            params = {"address": user_input, "key": apikey}
+        elif "reverse" in optlist:
+            latlng = validate_coordinates(user_input)
+
+            url = f"{base_url}geocode/json"
+            params = {"latlng": latlng, "key": apikey}
+        elif "directions" in optlist:
+            if not user_input or "|" not in user_input:
+                log.error(
+                    "Invalid input format for directions. Expected format: 'origin|destination'"
+                )
+                raise ValueError(
+                    "Invalid input format for directions. Use: 'origin|destination'"
+                )
+
+            origin, destination = map(str.strip, user_input.split("|", 1))
+            if not origin or not destination:
+                raise ValueError(
+                    "Invalid input format for directions. Use: 'origin|destination'"
+                )
+            if (
+                len(origin) > MAX_DIRECTIONS_ENDPOINT_LENGTH
+                or len(destination) > MAX_DIRECTIONS_ENDPOINT_LENGTH
+            ):
+                raise ValueError(
+                    "Directions origin or destination is too long."
+                )
+            url = f"{base_url}directions/json"
+            params = {
+                "destination": destination,
+                "origin": origin,
+                "key": apikey,
+            }
+        else:
+            raise ValueError(f"Invalid option provided. {USAGE_MESSAGE}")
+
         timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            if "address" in optlist:
-                url = f"{base_url}geocode/json"
-                params = {"address": user_input, "key": apikey}
-            elif "reverse" in optlist:
-                latlng = validate_coordinates(user_input)
-
-                url = f"{base_url}geocode/json"
-                params = {"latlng": latlng, "key": apikey}
-            elif "directions" in optlist:
-                if not user_input or "|" not in user_input:
-                    log.error(
-                        "Invalid input format for directions. Expected format: 'origin|destination'"
-                    )
-                    raise ValueError(
-                        "Invalid input format for directions. Use: 'origin|destination'"
-                    )
-
-                origin, destination = map(str.strip, user_input.split("|", 1))
-                url = f"{base_url}directions/json"
-                params = {
-                    "destination": destination,
-                    "origin": origin,
-                    "key": apikey,
-                }
-            else:
-                raise ValueError(f"Invalid option provided. {USAGE_MESSAGE}")
-
             async with session.get(url, params=params) as response:
                 if response.status != 200:
                     handle_error(
@@ -230,7 +254,7 @@ class GoogleMaps(callbacks.Plugin):
                     f"Distance: \x02{distance}\x02, Duration: \x02{duration}\x02.\n"
                     f"Directions: {directions_url}"
                 )
-                clean_response = clean_output(response)
+                clean_response = truncate_output(clean_output(response))
                 irc.reply(clean_response, prefixNick=False)
             elif "reverse" in optlist or "address" in optlist:
                 if not data.get("results"):
@@ -258,7 +282,7 @@ class GoogleMaps(callbacks.Plugin):
                     f"Type: {', '.join(location_type)}\n"
                     f"Place ID: {place_id}"
                 )
-                clean_response = clean_output(response)
+                clean_response = truncate_output(clean_output(response))
                 irc.reply(clean_response, prefixNick=False)
             else:
                 irc.error(
