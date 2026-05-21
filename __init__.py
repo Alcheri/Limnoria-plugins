@@ -11,7 +11,7 @@ WorldTime: look up current time and timezone info for various locations
 import supybot
 import supybot.world as world
 
-__version__ = ""
+__version__ = "1.1.0"
 
 __author__ = supybot.Author("reticulatingspline", "spline", "")
 __maintainer__ = getattr(
@@ -41,7 +41,7 @@ reload(plugin)
 
 if world.testing:
     try:
-        from . import test
+        from . import test as test
     except ImportError as e:
         # Allow plugin loading when a local test module doesn't exist,
         # but surface unrelated import failures from inside test.py.
