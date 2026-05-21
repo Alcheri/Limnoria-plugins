@@ -28,6 +28,23 @@ Enable Google [Geocoding](https://console.cloud.google.com/apis/library/geocodin
 
 * **_config plugins.worldtime.mapsapikey <your_key_here_**
 
+* **_config channel #channel plugins.WorldTime.cooldownSeconds 5_**
+
+    Sets the per-user `worldtime` lookup cooldown for the channel.
+
+* **_config plugins.WorldTime.maxResponseBytes 262144_**
+
+    Sets the maximum Google API response size WorldTime will read.
+
+Security notes:
+
+* `--nick` lookups are public and use locations that users have stored with
+  `set`.
+* Stored locations and direct lookup locations are capped and sanitised before
+  use.
+* Replies preserve intentional IRC formatting while stripping unsafe control
+  characters.
+
 ## Example Usage
 
 ```plaintext
