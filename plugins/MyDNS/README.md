@@ -162,6 +162,6 @@ Licensed under the BSD 3-Clause License. See [LICENCE](LICENCE.md) for details.
 [codeql-badge]: https://github.com/Alcheri/MyDNS/actions/workflows/codeql.yml/badge.svg
 [codeql-link]: https://github.com/Alcheri/MyDNS/security/code-scanning
 
-[python-badge]: https://img.shields.io/badge/python-3.10%2B-blue.svg
+[python-badge]: https://img.shields.io/badge/python-3.11.2-blue.svg
 [black-badge]: https://img.shields.io/badge/code%20style-black-000000.svg
 [limnoria-badge]: https://img.shields.io/badge/limnoria-compatible-brightgreen.svg
