@@ -12,6 +12,7 @@
 
 <div align="center">
 
+<!-- README_HEADER:start -->
 [![Latest Release][latest-release-badge]][latest-release-link]
 [![Tests][tests-badge]][tests-link]
 [![Lint][lint-badge]][lint-link]
@@ -20,6 +21,7 @@
 [![Code style: Black][black-badge]][black-link]
 [![Limnoria][limnoria-badge]][limnoria-link]
 [![Licence: AGPLv3][licence-badge]][licence-link]
+<!-- README_HEADER:end -->
 
 [![Download Latest Release][download-badge]][latest-release-link]
 
