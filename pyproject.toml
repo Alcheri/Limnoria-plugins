@@ -7,7 +7,7 @@ name = "limnoria-iso"
 version = "1.0.0"
 description = "ISO lookup plugin for Limnoria."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 license = { file = "LICENCE.md" }
 authors = [{ name = "Barry Suridge" }]
 dependencies = ["iso3166"]
