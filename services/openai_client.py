@@ -51,6 +51,22 @@ def _is_model_unavailable_error(error: Exception) -> bool:
     return "model" in text and any(signal in text for signal in signals[1:])
 
 
+def _prepare_chat_completion_kwargs(
+    model_name: str, kwargs: dict[str, Any]
+) -> dict[str, Any]:
+    request_kwargs = dict(kwargs)
+    if not model_name.startswith("gpt-5"):
+        return request_kwargs
+
+    max_tokens = request_kwargs.pop("max_tokens", None)
+    if max_tokens is not None:
+        request_kwargs.setdefault("max_completion_tokens", max_tokens)
+
+    request_kwargs.pop("temperature", None)
+    request_kwargs.pop("top_p", None)
+    return request_kwargs
+
+
 def create_chat_completion_with_fallback(
     openai_client: Any,
     runtime_state: OpenAIRuntimeState | None = None,
@@ -67,9 +83,12 @@ def create_chat_completion_with_fallback(
     last_error: Exception | None = None
     for model_name in candidates:
         try:
+            request_kwargs = _prepare_chat_completion_kwargs(
+                model_name, kwargs
+            )
             response = openai_client.chat.completions.create(
                 model=model_name,
-                **kwargs,
+                **request_kwargs,
             )
             if state.active_chat_model != model_name:
                 log.warning(
