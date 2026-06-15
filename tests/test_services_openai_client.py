@@ -1,7 +1,10 @@
 import unittest
 from unittest import mock
 
-from ..services.openai_client import create_chat_completion_with_fallback
+from ..services.openai_client import (
+    _chat_model_candidates,
+    create_chat_completion_with_fallback,
+)
 from ..state.runtime import OpenAIRuntimeState
 
 
@@ -24,6 +27,13 @@ class _FakeClient:
 
 
 class ServicesOpenAIClientTestCase(unittest.TestCase):
+    def test_default_models_exclude_retired_chatgpt_models(self):
+        with mock.patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(
+                _chat_model_candidates(),
+                ["gpt-5.5", "gpt-5.4-mini", "gpt-5.4-nano"],
+            )
+
     def test_fallback_uses_next_model_when_deprecated(self):
         completions = _FakeCompletions(
             [
@@ -36,7 +46,7 @@ class ServicesOpenAIClientTestCase(unittest.TestCase):
 
         with mock.patch.dict(
             "os.environ",
-            {"OPENAI_CHAT_MODELS": "gpt-4o-mini,gpt-4.1-mini"},
+            {"OPENAI_CHAT_MODELS": "gpt-5.5,gpt-5.4-mini"},
             clear=False,
         ):
             response = create_chat_completion_with_fallback(
@@ -51,9 +61,9 @@ class ServicesOpenAIClientTestCase(unittest.TestCase):
         self.assertEqual(response, "ok-response")
         self.assertEqual(
             [call[0] for call in completions.calls],
-            ["gpt-4o-mini", "gpt-4.1-mini"],
+            ["gpt-5.5", "gpt-5.4-mini"],
         )
-        self.assertEqual(state.active_chat_model, "gpt-4.1-mini")
+        self.assertEqual(state.active_chat_model, "gpt-5.4-mini")
 
     def test_non_model_error_is_raised(self):
         completions = _FakeCompletions([Exception("connection reset")])
