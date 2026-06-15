@@ -3,6 +3,7 @@ from unittest import mock
 
 from ..services.openai_client import (
     _chat_model_candidates,
+    _prepare_chat_completion_kwargs,
     create_chat_completion_with_fallback,
 )
 from ..state.runtime import OpenAIRuntimeState
@@ -34,6 +35,37 @@ class ServicesOpenAIClientTestCase(unittest.TestCase):
                 ["gpt-5.5", "gpt-5.4-mini", "gpt-5.4-nano"],
             )
 
+    def test_gpt5_kwargs_use_completion_token_limit(self):
+        request_kwargs = _prepare_chat_completion_kwargs(
+            "gpt-5.5",
+            {
+                "messages": [{"role": "user", "content": "hi"}],
+                "max_tokens": 10,
+                "temperature": 0.1,
+                "top_p": 0.9,
+            },
+        )
+
+        self.assertEqual(request_kwargs["max_completion_tokens"], 10)
+        self.assertNotIn("max_tokens", request_kwargs)
+        self.assertNotIn("temperature", request_kwargs)
+        self.assertNotIn("top_p", request_kwargs)
+
+    def test_non_gpt5_kwargs_keep_legacy_parameters(self):
+        request_kwargs = _prepare_chat_completion_kwargs(
+            "custom-chat-model",
+            {
+                "messages": [{"role": "user", "content": "hi"}],
+                "max_tokens": 10,
+                "temperature": 0.1,
+                "top_p": 0.9,
+            },
+        )
+
+        self.assertEqual(request_kwargs["max_tokens"], 10)
+        self.assertEqual(request_kwargs["temperature"], 0.1)
+        self.assertEqual(request_kwargs["top_p"], 0.9)
+
     def test_fallback_uses_next_model_when_deprecated(self):
         completions = _FakeCompletions(
             [
@@ -63,6 +95,11 @@ class ServicesOpenAIClientTestCase(unittest.TestCase):
             [call[0] for call in completions.calls],
             ["gpt-5.5", "gpt-5.4-mini"],
         )
+        self.assertEqual(
+            completions.calls[1][1]["max_completion_tokens"],
+            10,
+        )
+        self.assertNotIn("max_tokens", completions.calls[1][1])
         self.assertEqual(state.active_chat_model, "gpt-5.4-mini")
 
     def test_non_model_error_is_raised(self):
