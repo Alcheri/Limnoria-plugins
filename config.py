@@ -11,13 +11,13 @@ try:
     from supybot.i18n import PluginInternationalization
 
     _ = PluginInternationalization("GoogleMaps")
-except:
-    _ = lambda x: x
+except ImportError:
+
+    def _(text):
+        return text
 
 
 def configure(advanced):
-    from supybot.questions import expect, anything, something, yn
-
     conf.registerPlugin("GoogleMaps", True)
 
 
