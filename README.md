@@ -44,8 +44,8 @@ Next, load the plugin:
 
 * **supybot.plugins.URLtitle.userAgent**
 
-  User-Agent header sent when fetching URLs. Default is a plugin-specific
-  Limnoria URLtitle identifier.
+  User-Agent header sent when fetching URLs. Default is a browser-like Mozilla
+  string, matching common Limnoria URL snarfer behaviour.
 
 * **config channel #channel plugins.URLtitle.showExpandedShortUrl True or False (On or Off)**
 
@@ -65,7 +65,7 @@ Next, load the plugin:
 * **supybot.plugins.URLtitle.maxResponseBytes**
 
   Maximum HTTP response size to read when extracting titles. Default is
-  _262144_.
+  _524288_.
 
 ## Security Behaviour
 
