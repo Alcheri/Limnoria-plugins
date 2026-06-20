@@ -304,3 +304,5 @@ PROVIDER_ALIASES = {
 
 
 DEFAULT_PROVIDER_ORDER = ["ipstack", "ipapi"]
+
+# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79: autoindent:
