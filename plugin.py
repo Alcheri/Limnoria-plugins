@@ -33,7 +33,7 @@ HEADERS = {
 REQUEST_TIMEOUT = 10
 MAX_SUBJECT_LENGTH = 120
 MAX_REPLY_LENGTH = 360
-MAX_SUMMARY_LENGTH = 300
+MAX_SUMMARY_LENGTH = 1200
 CONTROL_CHARS_RE = re.compile(r"[\x00-\x1f\x7f]")
 WHITESPACE_RE = re.compile(r"\s+")
 
@@ -73,10 +73,30 @@ class Wikipedia(callbacks.Plugin):
         self._cooldown_lock = threading.Lock()
 
     def _reply(self, irc, text):
-        irc.reply(_clean_text(text, limit=MAX_REPLY_LENGTH), prefixNick=False)
+        irc.reply(_clean_text(text), prefixNick=False)
 
     def _error(self, irc, text):
         irc.error(_clean_text(text, limit=MAX_REPLY_LENGTH), Raise=True)
+
+    def _clear_more_cache(self, irc, msg):
+        mores = getattr(irc, "_mores", None)
+        if mores is None:
+            return
+
+        for key in self._more_cache_keys(msg):
+            mores.pop(key, None)
+
+    def _more_cache_keys(self, msg):
+        keys = []
+        nick = getattr(msg, "nick", None)
+        if nick:
+            keys.append(nick)
+
+        prefix = getattr(msg, "prefix", None) or ""
+        if "!" in prefix and "@" in prefix:
+            keys.append(prefix.split("!", 1)[1])
+
+        return keys
 
     def _cooldown_key(self, irc, msg):
         channel = getattr(msg, "channel", None) or "PM"
@@ -117,6 +137,8 @@ class Wikipedia(callbacks.Plugin):
         channel = getattr(msg, "channel", None)
         if channel and not self.registryValue("enabled", channel, irc.network):
             return
+
+        self._clear_more_cache(irc, msg)
 
         try:
             subject = _validate_subject(subject)

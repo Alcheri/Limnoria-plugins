@@ -118,4 +118,34 @@ def test_cooldown_is_per_user_and_channel():
     testcase.assertTrue(bot._check_cooldown(irc, other_channel_msg))
 
 
+def test_reply_does_not_pretruncate_before_limnoria_mores():
+    bot = plugin.Wikipedia(MagicMock())
+    irc = MagicMock()
+    text = "x" * (plugin.MAX_REPLY_LENGTH + 50)
+
+    bot._reply(irc, text)
+
+    irc.reply.assert_called_once_with(text, prefixNick=False)
+
+
+def test_clear_more_cache_removes_requesting_nick_and_hostmask():
+    bot = plugin.Wikipedia(MagicMock())
+    irc = MagicMock()
+    irc._mores = {
+        "Tester": ["nick stale"],
+        "ident@example.test": ["hostmask stale"],
+        "Other": ["other stale"],
+    }
+    msg = MagicMock()
+    msg.nick = "Tester"
+    msg.prefix = "Tester!ident@example.test"
+
+    bot._clear_more_cache(irc, msg)
+
+    testcase = unittest.TestCase()
+    testcase.assertNotIn("Tester", irc._mores)
+    testcase.assertNotIn("ident@example.test", irc._mores)
+    testcase.assertEqual(irc._mores["Other"], ["other stale"])
+
+
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
