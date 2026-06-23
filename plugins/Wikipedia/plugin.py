@@ -36,6 +36,11 @@ MAX_REPLY_LENGTH = 360
 MAX_SUMMARY_LENGTH = 1200
 CONTROL_CHARS_RE = re.compile(r"[\x00-\x1f\x7f]")
 WHITESPACE_RE = re.compile(r"\s+")
+DISAMBIGUATION_MARKERS = (
+    "may refer to:",
+    "may also refer to:",
+    "most often refers to:",
+)
 
 
 def _clean_text(value, limit=None):
@@ -60,6 +65,11 @@ def _log_safe_text(value):
     return _clean_text(value, limit=120) or "<empty>"
 
 
+def _is_disambiguation_text(text):
+    lowered = text.lower()
+    return any(marker in lowered for marker in DISAMBIGUATION_MARKERS)
+
+
 def _extract_summary_paragraphs(soup):
     content = soup.find(class_="mw-parser-output") or soup
     paragraphs = []
@@ -68,7 +78,7 @@ def _extract_summary_paragraphs(soup):
         paragraph_text = _clean_text(p.get_text(" ", strip=True))
         if not paragraph_text:
             continue
-        if "may refer to:" in paragraph_text.lower():
+        if _is_disambiguation_text(paragraph_text):
             return paragraphs, True
         paragraphs.append(paragraph_text)
         if len(paragraphs) >= 2:
@@ -219,6 +229,9 @@ class Wikipedia(callbacks.Plugin):
                 _log_safe_text(subject),
                 e.__class__.__name__,
             )
+            if isinstance(e, requests.exceptions.Timeout):
+                self._error(irc, "Wikipedia request timed out.")
+                return
             self._error(irc, "Wikipedia request failed.")
             return
         except (KeyError, TypeError, ValueError) as e:
