@@ -82,14 +82,14 @@ class WikipediaTestCase(supytest.PluginTestCase):
 
     @patch("Wikipedia.plugin.Wikipedia.registryValue", return_value=True)
     @patch("Wikipedia.plugin.requests.get")
-    def test_wiki_network_error_is_generic(
+    def test_wiki_timeout_error_is_specific(
         self, mock_get, _mock_registry_value
     ):
         mock_get.side_effect = requests.exceptions.Timeout(
             "internal connection detail"
         )
 
-        self.assertError("wiki test")
+        self.assertError("wiki test", "Wikipedia request timed out.")
 
 
 def test_clean_text_strips_formatting_control_chars_and_caps():
@@ -155,6 +155,23 @@ def test_extract_summary_ignores_sidebar_paragraphs():
             "It repeatedly eliminates candidates with the fewest votes.",
         ],
     )
+
+
+def test_extract_summary_detects_spam_disambiguation_wording():
+    soup = BeautifulSoup(
+        """
+        <div class="mw-parser-output">
+            <p>Spam most often refers to:</p>
+            <p>Spam or SPAM may also refer to:</p>
+        </div>
+        """,
+        "html.parser",
+    )
+
+    paragraphs, is_disambiguation = plugin._extract_summary_paragraphs(soup)
+
+    unittest.TestCase().assertEqual(paragraphs, [])
+    unittest.TestCase().assertTrue(is_disambiguation)
 
 
 def test_clear_more_cache_removes_requesting_nick_and_hostmask():
