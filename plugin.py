@@ -60,6 +60,23 @@ def _log_safe_text(value):
     return _clean_text(value, limit=120) or "<empty>"
 
 
+def _extract_summary_paragraphs(soup):
+    content = soup.find(class_="mw-parser-output") or soup
+    paragraphs = []
+
+    for p in content.find_all("p", recursive=False):
+        paragraph_text = _clean_text(p.get_text(" ", strip=True))
+        if not paragraph_text:
+            continue
+        if "may refer to:" in paragraph_text.lower():
+            return paragraphs, True
+        paragraphs.append(paragraph_text)
+        if len(paragraphs) >= 2:
+            break
+
+    return paragraphs, False
+
+
 class Wikipedia(callbacks.Plugin):
     """
     Limnoria plugin for Wikipedia searching and fetching of documents.
@@ -188,21 +205,13 @@ class Wikipedia(callbacks.Plugin):
                 return
 
             soup = BeautifulSoup(raw_html, "html.parser")
-            paragraphs = []
-
-            for p in soup.find_all("p"):
-                paragraph_text = _clean_text(p.get_text(" ", strip=True))
-                if not paragraph_text:
-                    continue
-                if "may refer to:" in paragraph_text.lower():
-                    self._reply(
-                        irc,
-                        f"Disambiguation page found for '{subject}'. Please be more specific.",
-                    )
-                    return
-                paragraphs.append(paragraph_text)
-                if len(paragraphs) >= 2:
-                    break
+            paragraphs, is_disambiguation = _extract_summary_paragraphs(soup)
+            if is_disambiguation:
+                self._reply(
+                    irc,
+                    f"Disambiguation page found for '{subject}'. Please be more specific.",
+                )
+                return
 
         except requests.exceptions.RequestException as e:
             log.warning(

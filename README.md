@@ -78,7 +78,7 @@ Monty Python (also collectively known as the Pythons) were a British comedy trou
 - Returns a short summary (up to 2 paragraphs), truncated for IRC-friendly length.
 - Detects disambiguation pages and asks for a more specific topic.
 - Returns a friendly message when no article is found.
-- Honors channel enable/disable config, and can still be used in private messages.
+- Honours channel enable/disable config, and can still be used in private messages.
 - Applies a per-user, per-channel cooldown. Private-message use is public and
   tracked separately.
 

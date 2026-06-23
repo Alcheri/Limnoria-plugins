@@ -11,6 +11,8 @@ from unittest.mock import MagicMock, patch
 import requests
 import supybot.test as supytest
 
+from bs4 import BeautifulSoup
+
 from Wikipedia import plugin
 
 
@@ -126,6 +128,33 @@ def test_reply_does_not_pretruncate_before_limnoria_mores():
     bot._reply(irc, text)
 
     irc.reply.assert_called_once_with(text, prefixNick=False)
+
+
+def test_extract_summary_ignores_sidebar_paragraphs():
+    soup = BeautifulSoup(
+        """
+        <div class="mw-parser-output">
+            <table class="sidebar">
+                <tr><td><p>Condorcet methods Positional voting</p></td></tr>
+            </table>
+            <p><b>Instant-runoff voting</b> is a ranked voting method.</p>
+            <p>It repeatedly eliminates candidates with the fewest votes.</p>
+        </div>
+        """,
+        "html.parser",
+    )
+
+    paragraphs, is_disambiguation = plugin._extract_summary_paragraphs(soup)
+
+    testcase = unittest.TestCase()
+    testcase.assertFalse(is_disambiguation)
+    testcase.assertEqual(
+        paragraphs,
+        [
+            "Instant-runoff voting is a ranked voting method.",
+            "It repeatedly eliminates candidates with the fewest votes.",
+        ],
+    )
 
 
 def test_clear_more_cache_removes_requesting_nick_and_hostmask():
