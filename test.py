@@ -27,7 +27,9 @@ class MessagesLogTestCase(supybot_test.PluginTestCase):
 
 class TestMessagesLogInternal(unittest.TestCase):
     def test_read_last_lines_returns_only_tail(self):
-        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as handle:
+        with tempfile.NamedTemporaryFile(
+            "w", delete=False, encoding="utf-8"
+        ) as handle:
             handle.write("line1\nline2\nline3\nline4\n")
             log_path = Path(handle.name)
         self.addCleanup(log_path.unlink)
@@ -44,8 +46,12 @@ class TestMessagesLogInternal(unittest.TestCase):
                 "maxLineCount": 100,
             }[key]
         )
-        messages_log._log_path = mock.Mock(return_value=Path("/tmp/messages.log"))
-        messages_log._read_last_lines = mock.Mock(return_value=["entry1", "entry2"])
+        messages_log._log_path = mock.Mock(
+            return_value=Path("/tmp/messages.log")
+        )
+        messages_log._read_last_lines = mock.Mock(
+            return_value=["entry1", "entry2"]
+        )
         irc = mock.Mock()
         msg = mock.Mock(nick="Barry")
 
@@ -71,8 +77,12 @@ class TestMessagesLogInternal(unittest.TestCase):
                 "maxLineCount": 100,
             }[key]
         )
-        messages_log._log_path = mock.Mock(return_value=Path("/tmp/messages.log"))
-        messages_log._read_last_lines = mock.Mock(side_effect=FileNotFoundError)
+        messages_log._log_path = mock.Mock(
+            return_value=Path("/tmp/messages.log")
+        )
+        messages_log._read_last_lines = mock.Mock(
+            side_effect=FileNotFoundError
+        )
         irc = mock.Mock()
         msg = mock.Mock(nick="Barry")
 
@@ -89,7 +99,9 @@ class TestMessagesLogInternal(unittest.TestCase):
                 "maxLineCount": 100,
             }[key]
         )
-        messages_log._log_path = mock.Mock(return_value=Path("/tmp/messages.log"))
+        messages_log._log_path = mock.Mock(
+            return_value=Path("/tmp/messages.log")
+        )
         messages_log._read_last_lines = mock.Mock(return_value=["entry1"])
         irc = mock.Mock()
         msg = mock.Mock(nick="Barry")
@@ -110,7 +122,9 @@ class TestMessagesLogInternal(unittest.TestCase):
                 "maxLineCount": 10,
             }[key]
         )
-        messages_log._log_path = mock.Mock(return_value=Path("/tmp/messages.log"))
+        messages_log._log_path = mock.Mock(
+            return_value=Path("/tmp/messages.log")
+        )
         messages_log._read_last_lines = mock.Mock(return_value=["entry1"])
         irc = mock.Mock()
         msg = mock.Mock(nick="Barry")
@@ -120,6 +134,48 @@ class TestMessagesLogInternal(unittest.TestCase):
         messages_log._read_last_lines.assert_called_once_with(
             Path("/tmp/messages.log"), 10
         )
+
+    def test_truncate_file_clears_existing_file(self):
+        with tempfile.NamedTemporaryFile(
+            "w", delete=False, encoding="utf-8"
+        ) as handle:
+            handle.write("line1\nline2\n")
+            log_path = Path(handle.name)
+        self.addCleanup(log_path.unlink)
+
+        plugin.MessagesLog._truncate_file(log_path)
+
+        self.assertEqual(log_path.read_text(encoding="utf-8"), "")
+
+    def test_truncate_reports_success(self):
+        messages_log = plugin.MessagesLog.__new__(plugin.MessagesLog)
+        messages_log._log_path = mock.Mock(
+            return_value=Path("/tmp/messages.log")
+        )
+        messages_log._truncate_file = mock.Mock()
+        irc = mock.Mock()
+
+        messages_log._truncate_impl(irc)
+
+        messages_log._truncate_file.assert_called_once_with(
+            Path("/tmp/messages.log")
+        )
+        irc.reply.assert_called_once_with(
+            "Truncated log file: /tmp/messages.log"
+        )
+
+    def test_truncate_reports_missing_file(self):
+        messages_log = plugin.MessagesLog.__new__(plugin.MessagesLog)
+        messages_log._log_path = mock.Mock(
+            return_value=Path("/tmp/messages.log")
+        )
+        messages_log._truncate_file = mock.Mock(side_effect=FileNotFoundError)
+        irc = mock.Mock()
+
+        messages_log._truncate_impl(irc)
+
+        irc.error.assert_called_once()
+        irc.reply.assert_not_called()
 
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
