@@ -15,10 +15,12 @@ Reads the tail of `~/runbot/logs/messages.log` (configurable) with:
 
 - `messageslog tail`
 - `messageslog tail 50`
+- `messageslog truncate`
 
-The command can be run in-channel. Log lines are sent to the requesting user
-via IRC notice, and the channel receives a short confirmation message with the
-number of lines sent.
+The commands can be run in-channel by users with the `admin` capability. Log
+lines are sent to the requesting user via IRC notice, and the channel receives a
+short confirmation message with the number of lines sent. `truncate` clears the
+configured log file in place without creating a backup.
 
 Config keys:
 

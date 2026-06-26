@@ -11,7 +11,7 @@ from typing import List
 
 from supybot import callbacks
 from supybot import ircmsgs
-from supybot.commands import *
+from supybot.commands import optional, wrap
 from supybot.i18n import PluginInternationalization
 
 _ = PluginInternationalization("MessagesLog")
@@ -30,7 +30,15 @@ class MessagesLog(callbacks.Plugin):
         if line_count <= 0:
             return []
         with path.open("r", encoding="utf-8", errors="replace") as handle:
-            return [line.rstrip("\r\n") for line in deque(handle, maxlen=line_count)]
+            return [
+                line.rstrip("\r\n")
+                for line in deque(handle, maxlen=line_count)
+            ]
+
+    @staticmethod
+    def _truncate_file(path: Path) -> None:
+        with path.open("r+", encoding="utf-8", errors="replace") as handle:
+            handle.truncate(0)
 
     def tail(self, irc, msg, args, line_count):
         """[<line count>]
@@ -68,6 +76,29 @@ class MessagesLog(callbacks.Plugin):
         irc.reply(_("Sent %s log lines by notice.") % len(lines))
 
     tail = wrap(tail, [("checkCapability", "admin"), optional("positiveInt")])
+
+    def truncate(self, irc, msg, args):
+        """
+
+        Truncates the configured messages.log file in place.
+        """
+        self._truncate_impl(irc)
+
+    def _truncate_impl(self, irc):
+        log_path = self._log_path()
+
+        try:
+            self._truncate_file(log_path)
+        except FileNotFoundError:
+            irc.error(_("Log file not found: %s") % log_path)
+            return
+        except OSError as error:
+            irc.error(_("Unable to truncate log file: %s") % error)
+            return
+
+        irc.reply(_("Truncated log file: %s") % log_path)
+
+    truncate = wrap(truncate, [("checkCapability", "admin")])
 
 
 Class = MessagesLog
