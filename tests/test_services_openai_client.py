@@ -28,11 +28,16 @@ class _FakeClient:
 
 
 class ServicesOpenAIClientTestCase(unittest.TestCase):
-    def test_default_models_exclude_retired_chatgpt_models(self):
+    def test_default_models_use_current_fallbacks(self):
         with mock.patch.dict("os.environ", {}, clear=True):
             self.assertEqual(
                 _chat_model_candidates(),
-                ["gpt-5.5", "gpt-5.4-mini", "gpt-5.4-nano"],
+                [
+                    "gpt-5.6-luna",
+                    "gpt-5.6-terra",
+                    "gpt-5.6-sol",
+                    "gpt-5.5",
+                ],
             )
 
     def test_gpt5_kwargs_use_completion_token_limit(self):

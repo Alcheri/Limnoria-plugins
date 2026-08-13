@@ -33,7 +33,7 @@ def _chat_model_candidates() -> list[str]:
         if models:
             return models
 
-    return ["gpt-5.5", "gpt-5.4-mini", "gpt-5.4-nano"]
+    return ["gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol", "gpt-5.5"]
 
 
 def _is_model_unavailable_error(error: Exception) -> bool:

@@ -103,7 +103,7 @@ OpenAI model fallback
 * You can override this order with an environment variable:
 
 ```plaintext
-OPENAI_CHAT_MODELS="gpt-5.5,gpt-5.4-mini,gpt-5.4-nano"
+OPENAI_CHAT_MODELS="gpt-5.6-luna,gpt-5.6-terra,gpt-5.6-sol,gpt-5.5"
 ```
 
 The plugin will try models left-to-right and switch to the first available one.
