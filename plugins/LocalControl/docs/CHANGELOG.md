@@ -4,6 +4,8 @@ All notable changes to LocalControl will be documented in this file.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-12
+
 ### Added
 
 - Added an optional TCP listener for local testing tools, disabled by default.
@@ -20,6 +22,11 @@ All notable changes to LocalControl will be documented in this file.
   reload.
 - Cleaned lint health issues in plugin imports, the i18n fallback, and test
   re-export handling.
+
+### Fixed
+
+- Fixed Eggdrop SSH tunnel connections so a running local Pudding instance no
+  longer blocks tunnelled remote Eggdrop profiles that use the same Telnet port.
 
 ### Security
 
