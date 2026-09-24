@@ -37,8 +37,8 @@ class CoreChatTestCase(unittest.IsolatedAsyncioTestCase):
             events.append("count_tokens")
             return 2
 
-        async def fake_check_moderation(text):
-            _ = text
+        async def fake_check_moderation(text, *, context_key):
+            _ = (text, context_key)
             events.append("moderation")
             return False
 
@@ -83,7 +83,8 @@ class CoreChatTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_token_limit_blocks_before_moderation(self):
         events = []
 
-        async def fake_check_moderation(_text):
+        async def fake_check_moderation(_text, *, context_key):
+            _ = context_key
             events.append("moderation")
             return False
 
@@ -108,7 +109,8 @@ class CoreChatTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_moderation_blocks_before_chat(self):
         events = []
 
-        async def fake_check_moderation(_text):
+        async def fake_check_moderation(_text, *, context_key):
+            _ = context_key
             events.append("moderation")
             return True
 
