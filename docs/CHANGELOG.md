@@ -14,6 +14,14 @@ This project follows a simple versioning approach:
 
 ### 🐛 Fixed
 
+- Moderation retries now reach OpenAI after rate-limit responses instead of
+  failing open before the retry loop could act.
+
+### 🔧 Changed
+
+- Blocked moderation requests now log the context key, flagged categories, and
+  OpenAI request ID when available, without retaining the input text.
+
 - Conversation memory and cooldown context keys now include the IRC network
   when available, preventing same-channel/same-nick collisions across
   multiple networks in one bot process.

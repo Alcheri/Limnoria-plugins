@@ -85,7 +85,7 @@ async def execute_chat_with_input_moderation(
     config: dict[str, Any],
     *,
     cooldown_manager: Any,
-    check_moderation_flag_fn: Callable[[str], Any] = check_moderation_flag,
+    check_moderation_flag_fn: Callable[..., Any] = check_moderation_flag,
     chat_with_model_fn: Callable[
         [str, str, dict[str, Any]], Any
     ] = chat_with_model,
@@ -108,7 +108,10 @@ async def execute_chat_with_input_moderation(
             "{max_tokens} (you used {used})."
         ).format(max_tokens=config["max_tokens"], used=prompt_tokens)
 
-    flagged = await check_moderation_flag_fn(user_request)
+    flagged = await check_moderation_flag_fn(
+        user_request,
+        context_key=context_key,
+    )
     if flagged:
         return "I'm sorry, but your input has been flagged as inappropriate."
 

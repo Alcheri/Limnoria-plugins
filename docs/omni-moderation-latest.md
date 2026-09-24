@@ -37,7 +37,10 @@ openai_client.moderations.create(
 )
 ```
 
-Only `response.results[0].flagged` is currently used for allow/block behavior.
+`response.results[0].flagged` controls allow/block behaviour. When an input is
+blocked, Asyncio logs the flagged category names and the OpenAI request ID when
+the client provides one. It never logs the input text as part of this audit
+entry.
 
 ## Async + Caching Strategy
 
@@ -84,7 +87,8 @@ This avoids spending moderation calls on command-like or trivial inputs.
 
 - Moderation decisions are based on the input message only.
 - Conversation history is not separately moderated in this layer.
-- Logs include moderation warnings/errors for diagnostics.
+- Blocked-input warnings include the context key, flagged categories, and
+  OpenAI request ID when available; they do not include the input text.
 - User-facing output stays minimal to avoid noisy channel behavior.
 
 ## Security and Product Tradeoffs
@@ -94,7 +98,9 @@ Current policy balances safety and availability:
 - **Safety**: flagged content is blocked before chat generation.
 - **Availability**: moderation outages/rate limits should not take the bot offline.
 
-If stricter enforcement is needed later, fail-open can be changed to fail-closed, or category-level decisions can be added using richer moderation fields.
+If stricter enforcement is needed later, fail-open can be changed to
+fail-closed, or category-specific enforcement can be added using the recorded
+moderation fields.
 
 ## Summary
 
