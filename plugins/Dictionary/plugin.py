@@ -68,7 +68,7 @@ class Dictionary(callbacks.Plugin):
 
         encoded_input = quote(input, safe="")
         base_url = (
-            f"https://api.dictionaryapi.dev/api/v2/entries/en/{encoded_input}"
+            f"https://freedictionaryapi.com/api/v1/entries/en/{encoded_input}"
         )
 
         try:
@@ -78,20 +78,26 @@ class Dictionary(callbacks.Plugin):
             ).decode("utf-8")
             data = json.loads(raw_response, strict=False)
 
-            if not isinstance(data, list):  # Valid check
-                irc.error("No definitions found for the given word.")
+            if not isinstance(data, dict):  # Valid check
+                irc.error("Unexpected response format from the API.")
                 return
 
-            first_element = data[0]
+            entries = data.get("entries")
 
-            if not isinstance(first_element, dict):  # Valid check
+            if not entries:
+                irc.error(f"No definitions found for: {input}")
+                return
+
+            first_entry = entries[0]
+
+            if not isinstance(first_entry, dict):  # Valid check
                 irc.error("Unexpected response format from the API.")
                 return
 
             try:
-                meaning = first_element["meanings"][0]
-                definition = meaning["definitions"][0]["definition"]
-                part_of_speech = meaning["partOfSpeech"]
+                sense = first_entry["senses"][0]
+                definition = sense["definition"]
+                part_of_speech = first_entry.get("partOfSpeech", "unknown")
                 response = f"{input} ({part_of_speech}): {definition}"
                 response = _truncate_reply_text(
                     _normalise_reply_text(response)

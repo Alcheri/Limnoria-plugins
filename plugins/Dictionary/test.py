@@ -54,16 +54,15 @@ class DictionarySmokeTestCase(unittest.TestCase):
             "word " * 120
         )
         payload = json.dumps(
-            [
-                {
-                    "meanings": [
-                        {
-                            "partOfSpeech": "noun",
-                            "definitions": [{"definition": raw_definition}],
-                        }
-                    ]
-                }
-            ]
+            {
+                "word": "example",
+                "entries": [
+                    {
+                        "partOfSpeech": "noun",
+                        "senses": [{"definition": raw_definition}],
+                    }
+                ],
+            }
         ).encode("utf-8")
 
         with mock.patch.object(
